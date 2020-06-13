@@ -1,0 +1,43 @@
+=========================================
+ evgam v0.1.2 (Release date: 2020-04-18)
+=========================================
+
+Changes:
+
+* The Fremantle data from package ismev have been added, and are used for examples. Usage is data(fremantle), as in ismev.
+
+* colplot() adds the option to add a legend, which defaults to FALSE.
+
+* logLik.evgam() now returns an object of class `logLik', allowing, e.g., AIC() and BIC() to be used.
+
+* extremal0() has gone, as extremal() can now do the same.
+
+* evgam()'s trace argument now allows -1, which suppresses any information on the console.
+
+Bug fixes:
+
+* Negative response data now work okay with family = "ald".
+
+* evgams()'s formula argument may have smooths and parametric-only terms in any order. (Previously, smooths had
+    to come first, so formula = list(response ~ s(), ~ 1, ~ s()) broke.)
+    
+* predict.evgam(object) with missing(newdata) only gave one set predictions for object$data. It now gives predictions
+   for all rows of object$data (as it should).
+
+=========================================
+ evgam v0.1.1 (Release date: 2020-03-11)
+=========================================
+
+Changes:
+
+* Compilation flag with clang++ in gradHess.cpp addressed.
+
+* plot.evgam() now has informative y-axis labels for one-dimensional smooths.
+
+* simulate.evgam() correctly labels variables for family = "response".
+
+=========================================
+ evgam v0.1.0 (Release date: 2020-03-08)
+=========================================
+
+Initial release.
