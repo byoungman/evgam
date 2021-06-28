@@ -11,7 +11,7 @@ Description: Methods for fitting various extreme value distributions with parame
       <doi:10.1201/9781315370279>, and the fitting approach see Wood, S.N., Pya, N. & 
       Safken, B. (2016) <doi:10.1080/01621459.2016.1180986>.
 License: GPL-3
-Imports: Rcpp (>= 1.0.4.6), mgcv
+Imports: Rcpp (>= 1.0.6), mgcv
 LinkingTo: Rcpp, RcppArmadillo
 Depends: R (>= 3.5.0)
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1

@@ -23,7 +23,9 @@ evgam(
   ald.args = list(),
   exi.args = list(),
   pp.args = list(),
-  sandwich.args = list()
+  sandwich.args = list(),
+  egpd.args = list(),
+  custom.fns = list()
 )
 }
 \arguments{
@@ -62,6 +64,10 @@ evgam(
 \item{pp.args}{a list of arguments for \code{family="pp"}; see Details}
 
 \item{sandwich.args}{a list of arguments for sandwich adjustment; see Details}
+
+\item{egpd.args}{a list of arguments for extended GPD; see Details}
+
+\item{custom.fns}{a list of functions for a custom family; see Details}
 }
 \value{
 An object of class \code{evgam}
@@ -153,6 +159,10 @@ m_ald <- evgam(fmla_ald, COprcp, family="ald", ald.args=list(tau=.98))
 \references{
 Chandler, R. E., & Bate, S. (2007). Inference for clustered data
 using the independence loglikelihood. Biometrika, 94(1), 167-183.
+
+Naveau, P., Huser, R., Ribereau, P., and Hannart, A. (2016), Modeling 
+jointly low, moderate, and heavy rainfall intensities without a threshold 
+selection, Water Resources Research, 52, 2753-2769.
 
 Oh, H. S., Lee, T. C., & Nychka, D. W. (2011). Fast nonparametric 
 quantile regression with arbitrary smoothing methods. Journal of 

@@ -13,6 +13,18 @@ aldd34 <- function(pars, X1, X2, yvec, tau, C, dupid, dcate) {
     .Call(`_evgam_aldd34`, pars, X1, X2, yvec, tau, C, dupid, dcate)
 }
 
+egpd1d0 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
+    .Call(`_evgam_egpd1d0`, pars, X1, X2, X3, yvec, dupid, dcate)
+}
+
+egpd1d12 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
+    .Call(`_evgam_egpd1d12`, pars, X1, X2, X3, yvec, dupid, dcate)
+}
+
+egpd1d34 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
+    .Call(`_evgam_egpd1d34`, pars, X1, X2, X3, yvec, dupid, dcate)
+}
+
 exid0 <- function(yvec, zvec, pars, nmax, X, dupid, dcate, link) {
     .Call(`_evgam_exid0`, yvec, zvec, pars, nmax, X, dupid, dcate, link)
 }

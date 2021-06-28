@@ -1,3 +1,13 @@
+## evgam 0.1.5
+
+### Changes:
+
+* None.
+
+### Bug fixes:
+
+* That all variables have been supplied to `data` is now properly detected.
+
 ## evgam 0.1.4
 
 ### Changes:
@@ -14,7 +24,7 @@
 
 * `plot()` for an evgam object now calls `mgcv::plot.gam()` to plot smooths (with thanks to Debbie Dupuis for triggering this). `plot()` no longer has the `addMap` option, for adding map outlines via `maps::map()`; instead using one-figure devices with `maps::map()` separately is recommended.
 
-* Calculations of log(|S|_+) for penalty matrix S now fully implement Wood (JRSSB, 2011(73)1, Appendix B).
+* Calculations of log(|S|_+) for penalty matrix S now fully implements Wood (JRSSB, 2011(73)1, Appendix B).
 
 * Calculations of log(|H|) for Hessian H now use diagonality simpifications; see Wood (book: GAMs in R 2nd ed. (2017) pp. 286).
 
