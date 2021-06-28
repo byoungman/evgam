@@ -150,10 +150,11 @@ if (family == "egpd") {
     }
   }
 } else {
-if (length(likfns)) {
-  lik.fns <- likfns
-  family <- "custom"
-  npar <- length(formula)
+  if (length(likfns)) {
+    lik.fns <- likfns
+    family <- "custom"
+    npar <- length(formula)
+  }
 }
 }
 }
