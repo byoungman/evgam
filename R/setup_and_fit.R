@@ -169,7 +169,7 @@ if (family == "egpd") {
 }
 }
 }
-out <- list(npar=npar, npar2=npar, lik.fns=lik.fns, nms=nms)
+out <- list(npar=npar, npar2=npar, lik.fns=lik.fns, nms=nms, family=family)
 }
 
 ############ .setup.formula ##########################
