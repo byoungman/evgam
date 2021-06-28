@@ -294,6 +294,100 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// mean_arr
+arma::mat mean_arr(arma::mat x, double n);
+RcppExport SEXP _evgam_mean_arr(SEXP xSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(mean_arr(x, n));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ragged_mean_vec
+arma::vec ragged_mean_vec(arma::vec x, arma::uvec n);
+RcppExport SEXP _evgam_ragged_mean_vec(SEXP xSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(ragged_mean_vec(x, n));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ragged_mean_mat
+arma::mat ragged_mean_mat(arma::mat x, arma::uvec n);
+RcppExport SEXP _evgam_ragged_mean_mat(SEXP xSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(ragged_mean_mat(x, n));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ldgev
+double ldgev(arma::vec yvec, arma::vec muvec, arma::vec lpsivec, arma::vec xivec);
+RcppExport SEXP _evgam_ldgev(SEXP yvecSEXP, SEXP muvecSEXP, SEXP lpsivecSEXP, SEXP xivecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type yvec(yvecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type muvec(muvecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lpsivec(lpsivecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type xivec(xivecSEXP);
+    rcpp_result_gen = Rcpp::wrap(ldgev(yvec, muvec, lpsivec, xivec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ldgev12
+arma::mat ldgev12(arma::vec yvec, arma::vec muvec, arma::vec lpsivec, arma::vec xivec);
+RcppExport SEXP _evgam_ldgev12(SEXP yvecSEXP, SEXP muvecSEXP, SEXP lpsivecSEXP, SEXP xivecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type yvec(yvecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type muvec(muvecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lpsivec(lpsivecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type xivec(xivecSEXP);
+    rcpp_result_gen = Rcpp::wrap(ldgev12(yvec, muvec, lpsivec, xivec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ldgevagg
+double ldgevagg(arma::vec yvec, arma::vec muvec, arma::vec lpsivec, arma::vec xivec, arma::vec thetavec);
+RcppExport SEXP _evgam_ldgevagg(SEXP yvecSEXP, SEXP muvecSEXP, SEXP lpsivecSEXP, SEXP xivecSEXP, SEXP thetavecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type yvec(yvecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type muvec(muvecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lpsivec(lpsivecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type xivec(xivecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type thetavec(thetavecSEXP);
+    rcpp_result_gen = Rcpp::wrap(ldgevagg(yvec, muvec, lpsivec, xivec, thetavec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ldgevagg12
+arma::mat ldgevagg12(arma::vec yvec, arma::vec muvec, arma::vec lpsivec, arma::vec xivec, arma::vec thetavec);
+RcppExport SEXP _evgam_ldgevagg12(SEXP yvecSEXP, SEXP muvecSEXP, SEXP lpsivecSEXP, SEXP xivecSEXP, SEXP thetavecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type yvec(yvecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type muvec(muvecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lpsivec(lpsivecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type xivec(xivecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type thetavec(thetavecSEXP);
+    rcpp_result_gen = Rcpp::wrap(ldgevagg12(yvec, muvec, lpsivec, xivec, thetavec));
+    return rcpp_result_gen;
+END_RCPP
+}
 // gevcd0
 double gevcd0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate);
 RcppExport SEXP _evgam_gevcd0(SEXP parsSEXP, SEXP X1SEXP, SEXP X2SEXP, SEXP X3SEXP, SEXP ymatSEXP, SEXP dupidSEXP, SEXP dcateSEXP) {
@@ -821,6 +915,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_evgam_gevd0", (DL_FUNC) &_evgam_gevd0, 7},
     {"_evgam_gevd12", (DL_FUNC) &_evgam_gevd12, 7},
     {"_evgam_gevd34", (DL_FUNC) &_evgam_gevd34, 7},
+    {"_evgam_mean_arr", (DL_FUNC) &_evgam_mean_arr, 2},
+    {"_evgam_ragged_mean_vec", (DL_FUNC) &_evgam_ragged_mean_vec, 2},
+    {"_evgam_ragged_mean_mat", (DL_FUNC) &_evgam_ragged_mean_mat, 2},
+    {"_evgam_ldgev", (DL_FUNC) &_evgam_ldgev, 4},
+    {"_evgam_ldgev12", (DL_FUNC) &_evgam_ldgev12, 4},
+    {"_evgam_ldgevagg", (DL_FUNC) &_evgam_ldgevagg, 5},
+    {"_evgam_ldgevagg12", (DL_FUNC) &_evgam_ldgevagg12, 5},
     {"_evgam_gevcd0", (DL_FUNC) &_evgam_gevcd0, 7},
     {"_evgam_gevcd12", (DL_FUNC) &_evgam_gevcd12, 7},
     {"_evgam_gevcd34", (DL_FUNC) &_evgam_gevcd34, 7},

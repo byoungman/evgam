@@ -88,6 +88,34 @@ gevd34 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
     .Call(`_evgam_gevd34`, pars, X1, X2, X3, yvec, dupid, dcate)
 }
 
+mean_arr <- function(x, n) {
+    .Call(`_evgam_mean_arr`, x, n)
+}
+
+ragged_mean_vec <- function(x, n) {
+    .Call(`_evgam_ragged_mean_vec`, x, n)
+}
+
+ragged_mean_mat <- function(x, n) {
+    .Call(`_evgam_ragged_mean_mat`, x, n)
+}
+
+ldgev <- function(yvec, muvec, lpsivec, xivec) {
+    .Call(`_evgam_ldgev`, yvec, muvec, lpsivec, xivec)
+}
+
+ldgev12 <- function(yvec, muvec, lpsivec, xivec) {
+    .Call(`_evgam_ldgev12`, yvec, muvec, lpsivec, xivec)
+}
+
+ldgevagg <- function(yvec, muvec, lpsivec, xivec, thetavec) {
+    .Call(`_evgam_ldgevagg`, yvec, muvec, lpsivec, xivec, thetavec)
+}
+
+ldgevagg12 <- function(yvec, muvec, lpsivec, xivec, thetavec) {
+    .Call(`_evgam_ldgevagg12`, yvec, muvec, lpsivec, xivec, thetavec)
+}
+
 gevcd0 <- function(pars, X1, X2, X3, ymat, dupid, dcate) {
     .Call(`_evgam_gevcd0`, pars, X1, X2, X3, ymat, dupid, dcate)
 }

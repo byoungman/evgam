@@ -4,27 +4,20 @@
 \alias{plot.evgam}
 \title{Plot a fitted \code{evgam} object}
 \usage{
-\method{plot}{evgam}(
-  x,
-  given.vals = NULL,
-  use.image = FALSE,
-  add.map = FALSE,
-  map.env = "world",
-  ...
-)
+\method{plot}{evgam}(x, onepage = TRUE, which = NULL, main, ask = !onepage, ...)
 }
 \arguments{
 \item{x}{a fitted \code{evgam} object}
 
-\item{given.vals}{a list specifying variables values that are fixed.}
+\item{onepage}{logical: should all plots be on one page, or on separate pages? Defaults to \code{TRUE}}
 
-\item{use.image}{logical: should \link[graphics]{image} be used to represent two-dimensional smooths, as opposed to \link[graphics]{contour}? Defaults to \code{FALSE}}
+\item{which}{a vector of integers identifying which smooths to plot. The default \code{NULL} plots all smooths}
 
-\item{add.map}{logical: should a map outline be added to any two-dimensional smooths using \link[maps]{map}? Defaults to \code{FALSE}}
+\item{main}{a character string or vector of plot titles for each plot. If not supplied default titles are used}
 
-\item{map.env}{a character string identifying the map to superimpose via \link[maps]{map}; defaults to \code{"world"}}
+\item{ask}{logical: ask to show next plots if too many figures for current device?}
 
-\item{...}{unused}
+\item{...}{extra arguments to pass to \link[mgcv]{plot.gam}}
 }
 \value{
 Plots representing all one- or two-dimensional smooths

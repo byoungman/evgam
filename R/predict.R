@@ -6,7 +6,7 @@
 #' @param prob a scalar or vector of probabilities for quantiles to be estimated if \code{type == "quantile"}; defaults to 0.5
 #' @param se.fit a logical: should estimated standard errors be returned? Defaults to \code{FALSE}
 #' @param marginal a logical: should uncertainty estimates integrate out smoothing parameter uncertainty? Defaults to \code{TRUE}
-#' @param exi a logical: if a dependent GEV is fitted should the independent parameters be returned? Defaults to \code{TRUE}
+#' @param exi a logical: if a dependent GEV is fitted should the independent parameters be returned? Defaults to \code{FALSE}
 #' @param trace an integer where higher values give more output. -1 suppresses everything. Defaults to 0
 #' @param ... unused
 #'
@@ -37,13 +37,11 @@
 #' predict(m_gev, y1989, type= "quantile", prob = .9)
 #' # 10- and 100-year return level predictions
 #' predict(m_gev, y1989, type= "quantile", prob = c(.9, .99))
-#'
-#' @name predict.evgam
 #' 
 #' @export
 #'
 predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE, marginal=TRUE, 
-exi = TRUE, trace = 0, ...) {
+exi = FALSE, trace = 0, ...) {
 
 ## a few checks
 
@@ -143,22 +141,30 @@ if (family != "exi") {
 
 unlink <- which(substr(nms, 1, 3) == "log")
 for (i in unlink) {
-  out[,i] <- exp(out[,i])
+  out[, i] <- exp(out[, i])
   if (substr(nms[i], 1, 5) == "logit") {
-    temp <- exp(-out[,i])
-    out[,i] <- 1 / (1 + temp)
+    temp <- exp(-out[, i])
+    out[, i] <- 1 / (1 + temp)
     if (se.fit & type == "response")
-      std.err[,i] <- temp * out[,i] * std.err[,i] / (1 + temp)
+      std.err[, i] <- temp * out[, i] * std.err[, i] / (1 + temp)
   }
   if (se.fit & type == "response")
-    std.err[,i] <- out[,i] * std.err[,i]
+    std.err[, i] <- out[, i] * std.err[, i]
+}
+
+if (exi & ncol(out) == 4) {
+  out[, 4] <- out[, 4] ^ out[, 3]
+  out[, 1] <- out[, 1] - out[, 2] * (1 - out[, 4]) / out[, 3]
+  out[, 2] <- out[, 2] * out[, 4]
+  out <- out[, 1:3, drop = FALSE]
+  nms <- nms[1:3]
 }
 
 } else {
 
   if (se.fit) 
-    std.err[,1] <- attr(linkfn, "deriv")(out[,1]) * std.err[,1]
-  out[,1] <- linkfn(out[,1])
+    std.err[, 1] <- attr(linkfn, "deriv")(out[, 1]) * std.err[, 1]
+  out[, 1] <- linkfn(out[, 1])
 
 }
 
@@ -172,7 +178,7 @@ if (type == "qqplot") { ## start qqplot
 
 pit <- !all(apply(out, 2, function(x) all(diff(x) < 1e-12)))
 x <- ppoints(ndat)
-y <- newdata[,response.name]
+y <- newdata[, response.name]
 if (is.null(y))
   stop("No response data.")
   
@@ -192,13 +198,13 @@ if (!pit) {
   if (family == "gev")
     y <- .pgev(y, out[,1], out[,2], out[,3])
   if (family == "gpd")
-    y <- .pgpd(y, 0, out[,1], out[,2])
+    y <- .pgpd(y, 0, out[,1], out[,2], 0)
   if (family == "weibull") 
     y <- .pweibull(y, out[,1], out[,2])
   y <- qexp(y)
 }
 
-qqplot(x, y)
+plot(x, sort(y), xlab = "Theoretical", ylab = "Empirical", main = "Quantile-quantile plot")
 abline(0, 1)
 
 } else { ## end qqplot

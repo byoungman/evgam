@@ -10,10 +10,12 @@ out
 ## negative log-likelihoods
 
 .nllh.nopen <- function(pars, likdata, likfns, newton=TRUE, id=NULL, vals=NULL) {
-if (!is.null(id)) pars <- add_in(pars, id, vals)
+if (!is.null(id)) 
+  pars <- add_in(pars, id, vals)
 pars <- as.vector(likdata$compmode + likdata$CH %*% (pars - likdata$compmode))
 out <- likdata$k * likfns$d0(pars, likdata)
-if (!is.finite(out)) out <- 1e20
+if (!is.finite(out)) 
+  out <- 1e20
 out
 }
 
@@ -26,7 +28,8 @@ out
 ## gradients of negative log-likelihoods
 
 .grad.nopen <- function(pars, likdata, likfns, id=NULL, vals=NULL) {
-if (!is.null(id)) pars <- add_in(pars, id, vals)
+if (!is.null(id)) 
+  pars <- add_in(pars, id, vals)
 .gH.nopen(pars, likdata, likfns, sandwich=FALSE, deriv=1)[[1]][-id]
 }
 
@@ -56,9 +59,10 @@ temp
 }
 
 .Hdata <- function(H) {
+out <- list(H0=H)
 H2 <- .precondition(H)
 H2 <- .perturb(H2)
-out <- list(H=H2)
+out$H <- H2
 out$dH <- attr(H2, "d")
 out$cH <- attr(H2, "chol")
 out$iH <- crossprod(backsolve(out$cH, diag(out$dH), transpose=TRUE))
@@ -97,8 +101,9 @@ temp <- .gH(temp, likdata, sandwich, deriv)
 temp[[1]] <- likdata$k * temp[[1]]
 temp[[1]] <- t(temp[[1]] %*% likdata$CH)
 if (deriv > 1) {
-temp[[2]] <- likdata$k * temp[[2]]
-temp[[2]] <- crossprod(likdata$CH, temp[[2]]) %*% likdata$CH
+  temp[[2]] <- likdata$k * temp[[2]]
+  temp[[2]] <- crossprod(likdata$CH, temp[[2]]) %*% likdata$CH
+  attr(temp, "PP") <- temp[[2]] / norm(temp[[2]], "F")
 }
 temp
 }
@@ -106,35 +111,41 @@ temp
 .gH.pen <- function(pars, likdata, likfns, deriv=2) {
 temp <- .gH.nopen(pars, likdata, likfns, deriv=deriv)
 temp[[1]] <- temp[[1]] + crossprod(pars, likdata$S)[1, ]
-if (deriv > 1) temp[[2]] <- temp[[2]] + likdata$S
+if (deriv > 1) {
+  attr(temp, "PP") <- attr(temp, "PP") + likdata$S / norm(likdata$S, "F")
+  temp[[2]] <- temp[[2]] + likdata$S
+}
 temp
 }
 
 ## Newton search directions
 
 .search.dir <- function(g, H, kept=NULL) {
-if (is.null(kept)) kept <- !logical(length(g))
-if (any(is.na(g))) stop("Some gradient non-finite")
-if (any(is.na(H))) stop("Some Hessian non-finite")
+if (is.null(kept)) 
+  kept <- !logical(length(g))
 H0 <- H
 g0 <- g
 g <- g[kept]
 H <- H[kept, kept, drop=FALSE]
+if (any(!is.finite(g))) 
+  stop("Some gradient non-finite")
+if (any(!is.finite(H))) 
+  stop("Some Hessian non-finite")
 H2 <- .precondition(H)
-okay <- is.finite(attr(H2, "d"))
-bad <- !all(okay)
-if (bad) {
-d <- attr(H2, "d")
-H2 <- H2[okay, okay, drop=FALSE]
-attr(H2, "d") <- d[okay]
-}
+# okay <- is.finite(attr(H2, "d"))
+# bad <- !all(okay)
+# if (bad) {
+#   print("bad")
+#   d <- attr(H2, "d")
+#   H2 <- H2[okay, okay, drop=FALSE]
+#   attr(H2, "d") <- d[okay]
+# }
 H2 <- .perturb(H2)
 R <- attr(H2, "chol")
 d <- attr(H2, "d")
 out <- numeric(length(kept))
 piv <- ipiv <- attr(R, "pivot")
 ipiv[piv] <- seq_len(length(piv))
-if (length(g) != length(d)) browser()
 out[kept] <- d * backsolve(R, forwardsolve(R, (g * d)[piv], upper.tri=TRUE, transpose=TRUE))[ipiv]
 g0[!kept] <- 0
 attr(out, "gradient") <- g0
@@ -145,28 +156,31 @@ out
 }
 
 .search.nopen <- function(pars, likfns, likdata, kept, newton=TRUE, id=NULL, vals=NULL) {
-if (!is.null(id)) pars <- add_in(pars, id, vals)
+if (!is.null(id)) 
+  pars <- add_in(pars, id, vals)
 gH <- .gH.nopen(pars, likdata, likfns)
 if (!is.null(id)) {
   gH[[1]] <- gH[[1]][-id, drop=FALSE]
   gH[[2]] <- gH[[2]][-id, -id, drop=FALSE]
 }
 if (newton) {
-    out <- .search.dir(gH[[1]], gH[[2]], kept)
+  out <- .search.dir(gH[[1]], gH[[2]], kept)
 } else {
-    out <- gH[[1]]
-    attr(out, "gradient") <- gH[[1]]
+  out <- gH[[1]]
+  attr(out, "gradient") <- gH[[1]]
 }
+attr(out, "PP") <- attr(gH, "PP")
 out
 }
 
 .search.pen <- function(pars, likfns, likdata, kept, newton=TRUE) {
 gH <- .gH.pen(pars, likdata, likfns)
 if (newton) {
-    out <- .search.dir(gH[[1]], gH[[2]], kept)
+  out <- .search.dir(gH[[1]], gH[[2]], kept)
 } else {
-    out <- gH[[1]]
-    attr(out, "gradient") <- gH[[1]]
+  out <- gH[[1]]
+  attr(out, "gradient") <- gH[[1]]
 }
+attr(out, "PP") <- attr(gH, "PP")
 out
 }

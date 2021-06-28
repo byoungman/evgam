@@ -32,7 +32,8 @@ return(A)
 .solve_evgam <- function(H) {
 H2 <- .precondition(H)
 H2 <- .perturb(H2)
-D <- diag(attr(H2, "d"), )
+D <- attr(H2, "d")
+D <- diag(D, length(D))
 R <- attr(H2, "chol")
 crossprod(backsolve(R, D, transpose=TRUE))
 }
@@ -51,6 +52,20 @@ g0 <- gr(pars, ...)
 out <- vapply(seq_len(np), function(i) gr(replace(pars, i, pars[i] + eps), ...) - g0, double(np))
 out <- out + t(out)
 out <- .5 * out / eps
+out
+}
+
+.bdiag <- function(x) {
+dims <- sapply(x, dim)
+x <- x[dims[1,] > 0 | dims[2,] > 0]
+dims <- sapply(x, dim)
+row_ends <- cumsum(dims[1,])
+row_starts <- c(1, row_ends + 1)
+col_ends <- cumsum(dims[2,])
+col_starts <- c(1, col_ends + 1)
+out <- matrix(0, tail(row_ends, 1), tail(col_ends, 1))
+for (i in seq_along(x))
+  out[row_starts[i]:row_ends[i], col_starts[i]:col_ends[i]] <- x[[i]]
 out
 }
 
@@ -154,67 +169,6 @@ lsti[[j2]] <- lst0[[i]][[j]]
 lst[[i2]] <- lsti
 }
 lst
-}
-
-## smooth plotting functions
-
-.addmap <- function(mapenv) {
-  if (!requireNamespace("maps", quietly = TRUE)) {
-    stop("Package \"maps\" needed for this function to work. Please install it.",
-      call. = FALSE)
-  }
-  maps::map(mapenv, add=TRUE, col=grey(.5))
-}
-
-.plotSmooth <- function(mod, i, data, prefix=NULL, given.vals=NULL, n.seq=c(50, 20), add.map=FALSE, use.image=add.map, map.env="world") {#, transid=NULL) {
-smth <- mod$smooth[[i]]
-nx <- ncol(data)
-nb <- numeric(length(mod$coefficients))
-for (i in seq_along(smth)) nb[smth$first.para:smth$last.para] <- i
-mu <- coefficients(mod)[nb == i]
-x.rg <- apply(data, 2, range)
-plot.list <- lapply(seq_len(ncol(x.rg)), function(i) seq_between(x.rg[, i], length=n.seq[min(nx, 2)]))
-names(plot.list) <- colnames(x.rg)
-notgiven <- !logical(nx)
-if (nx > 2) {
-notgiven[names(plot.list) %in% names(given.vals)] <- FALSE
-plot.list[!notgiven] <- given.vals
-nx <- 2
-}
-x.df <- expand.grid(plot.list)
-X.plot <- mgcv::PredictMat(smth, x.df)
-z0 <- try(as.vector(X.plot %*% mu))
-sigma <- sqrt(rowSums(X.plot * (X.plot %*% mod$Vp[nb == i, nb == i])))
-if (nx == 1) mult <- 2 else mult <- 1
-for (j in c(-1, 1)) z0 <- cbind(z0, z0 + mult * j * sigma)
-if (nx == 1) {
-matplot(plot.list[[1]], z0, lty=c(1, 2, 2), col=1, type="l", xlab=smth$term[1], ylab=smth$label)
-rug(data[,1])
-}
-if (nx == 2) {
-if (use.image) {
-image(plot.list[notgiven][[1]], plot.list[notgiven][[2]], matrix(z0[,j], nrow=n.seq[nx], ncol=n.seq[nx]))
-points(data[,notgiven], cex=.3, pch=20)
-if (add.map) {
-  .addmap(map.env)
-}
-} else {
-plot(data[,notgiven], xlab=smth$term[notgiven][1], ylab=smth$term[notgiven][2], xlim=x.rg[,notgiven][,1], ylim=x.rg[,notgiven][,2], type="n")
-points(data[,notgiven], cex=.3, pch=20)
-for (j in seq_len(3)) {
-contour(plot.list[notgiven][[1]], plot.list[notgiven][[2]], matrix(z0[,j], nrow=n.seq[nx], ncol=n.seq[nx]), add=TRUE, col=j, lty=1 + as.numeric(j > 1))
-}
-}
-}
-if (length(plot.list) > 2) {
-plot.vals <- sapply(plot.list[!notgiven], function(x) round(x[1], 1))
-plot.names <- names(plot.list[!notgiven])
-after <- paste(paste(plot.names, plot.vals, sep=" = "), collapse=", ")
-before <- paste(prefix, smth$label, sep=": ")
-title(paste(before, after, sep="; "))
-} else {
-title(paste(prefix, smth$label, sep=": "))
-}
 }
 
 ## p-values for smooths
@@ -514,7 +468,8 @@ gradtol <- control$gradtol
 stepmax <- control$stepmax
 
 pars0 <- pars
-if (is.null(kept)) kept <- !logical(length(pars))
+if (is.null(kept)) 
+  kept <- !logical(length(pars))
 
 it <- 1
 okay <- TRUE
@@ -522,74 +477,118 @@ f0 <- fn(pars, ...)
 step1 <- NULL
 
 while (okay) {
-if (it > 1) g0 <- g
-if (!is.null(step1)) {
-step0 <- step1
-g <- attr(step0, "gradient")
-} else {
-attr(pars, "beta") <- attr(f0, "beta")
-step0 <- sfn(pars, ..., kept=kept)
-g <- attr(step0, "gradient")
-}
-if (trace) .itreport(f0, g, it - 1)
-if (mean(abs(g)) < gradtol) {
-report <- c("gradient tolerance reached")
-break
+  if (it > 1) 
+    g0 <- g
+  if (!is.null(step1)) {
+    step0 <- step1
+    g <- attr(step0, "gradient")
+  } else {
+    attr(pars, "beta") <- attr(f0, "beta")
+    step0 <- sfn(pars, ..., kept=kept)
+    g <- attr(step0, "gradient")
+  }
+  if (trace) 
+    .itreport(f0, g, it - 1)
+  if (mean(abs(g)) < gradtol) {
+    report <- c("gradient tolerance reached")
+    break
+  }
+
+  step0 <- sign(step0) * pmin(abs(step0), stepmax)
+  alpha <- alpha0
+  report <- NULL
+  ls <- TRUE
+  while(ls & is.null(report)) {
+    step <- alpha * step0
+    stepokay <- mean(abs(step)) > steptol
+    if (!stepokay) {
+      report <- c("step tolerance reached")
+    } else {
+      theta1 <- pars - step
+      f1 <- fn(theta1, ...)
+      d <- f1 - f0
+      if (!is.finite(d)) 
+        d <- 10
+      if (d < 0) {
+        attr(theta1, "beta") <- attr(f1, "beta")
+        step1 <- try(sfn(theta1, ..., kept=kept), silent=TRUE)
+      if (inherits(step1, "try-error")) 
+        d <- 1
+      if (any(!is.finite(attr(step1, "gradient")))) 
+        d <- 1
+      }  
+      if (d < 0) {
+        f0 <- f1
+        pars <- theta1
+        ls <- FALSE
+      } else {
+        if (d < fntol) 
+          report <- c("function tolerance reached")
+        alpha <- .5 * alpha
+      }
+    }
+  }
+  if (!is.null(report)) 
+    break
+  it <- it + 1
+  if (it == itlim) {
+    report <- c("iteration limit reached")
+    okay <- FALSE
+  }
 }
 
-step0 <- sign(step0) * pmin(abs(step0), stepmax)
-alpha <- alpha0
-report <- NULL
-ls <- TRUE
-while(ls & is.null(report)) {
-step <- alpha * step0
-stepokay <- mean(abs(step)) > steptol
-if (!stepokay) {
-report <- c("step tolerance reached")
-} else {
-theta1 <- pars - step
-f1 <- fn(theta1, ...)
-d <- f1 - f0
-if (!is.finite(d)) d <- 10
-if (d < 0) {
-attr(theta1, "beta") <- attr(f1, "beta")
-step1 <- try(sfn(theta1, ..., kept=kept), silent=TRUE)
-if (inherits(step1, "try-error")) d <- 1
-if (any(!is.finite(attr(step1, "gradient")))) d <- 1
-}
-if (d < 0) {
-f0 <- f1
-pars <- theta1
-ls <- FALSE
-} else {
-if (d < fntol) {
-report <- c("function tolerance reached")
-}
-alpha <- .5 * alpha
-}
-}
-}
-if (!is.null(report)) break
-it <- it + 1
-if (it == itlim) {
-report <- c("iteration limit reached")
-okay <- FALSE
-}
-}
-if (trace) cat(paste("\n ", it, "iterations:", report, "\n"))
+if (trace) 
+  cat(paste("\n ", it, "iterations:", report, "\n"))
 out <- list(pars=as.vector(pars), objective=f0)
 out$gradient <- attr(step0, "gradient")
 out$Hessian <- attr(step0, "Hessian")
-# out$invHessian <- attr(step0, "invHessian")
-out$kept <- attr(step0, "kept")
+# if (!is.null(attr(step0, "PP"))) {
+#   drop <- .rank2drop(attr(step0, "PP"))
+#   if (length(drop) > 0) {
+#     if (any(!kept)) browser()
+#     kept[which(kept)[drop]] <- FALSE
+#   }
+# }
+if (!is.null(attr(step0, "PP")))
+  kept <- .new.kept(attr(step0, "PP"), kept)
+out$kept <- kept  
 out$cholHessian <- attr(step0, "cholH")
 out$diagHessian <- attr(step0, "diagH")
 out$rankHessian <- attr(step0, "rank")
 out$convergence <- 0
 out$report <- report
 out$iterations <- it
-if (!is.null(attr(pars, "beta"))) out$beta <- attr(pars, "beta")
+out$gradconv <- substr(report, 1, 4) == "grad"
+if (!is.null(attr(pars, "beta"))) 
+  out$beta <- attr(pars, "beta")
 out
+}
+
+.rank2drop <- function(x) {
+nc <- ncol(x)
+R <- qr(x)
+r <- R$rank
+if (r < nc) {
+  drop <- R$pivot[-seq_len(r)]
+} else {
+  drop <- integer(0)
+}
+drop
+}
+
+.new.kept <- function(x, kept) {
+x <- x[kept, kept, drop=FALSE]
+nc <- ncol(x)
+R <- qr(x)
+r <- R$rank
+if (r < nc) {
+  drop <- R$pivot[-seq_len(r)]
+} else {
+  drop <- integer(0)
+}
+if (length(drop) > 0)
+  kept[which(kept)[drop]] <- FALSE
+kept
 }
 
 .newton_step <- function(pars, fn, sfn, ..., control, trace=0, alpha0=1) {
@@ -599,9 +598,10 @@ fit0 <- .newton_step_inner(pars, fn, sfn, ..., control=control, trace=trace, alp
 nkept1 <- sum(fit0$kept)
 
 while(nkept > nkept1) {
-nkept <- nkept1
-fit0 <- .newton_step_inner(fit0$par, fn, sfn, ..., control=control, trace=trace, kept=fit0$kept, alpha0=alpha0)
-nkept1 <- sum(fit0$kept)
+  nkept <- nkept1
+  # fit0$par[!fit0$kept] <- 0
+  fit0 <- .newton_step_inner(fit0$par, fn, sfn, ..., control=control, trace=trace, kept=fit0$kept, alpha0=alpha0)
+  nkept1 <- sum(fit0$kept)
 }
 
 fit0

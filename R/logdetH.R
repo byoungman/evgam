@@ -1,228 +1,208 @@
 ## functions for calculating log(|H|)
 
-.makeIndices <- function(K) {
-
-i1 <- array(NA, rep(K, 1))
-i2 <- array(NA, rep(K, 2))
-i3 <- array(NA, rep(K, 3))
-i4 <- array(NA, rep(K, 4))
-
-ii <- ij <- ijk <- ijkl <- 1
-
-for (i in 1:K) {
-i1[i] <- ii
-ii <- ii + 1
-for (j in i:K) {
-i2[i, j] <- i2[j, i] <- ij
-ij <- ij + 1
-for (k in j:K) {
-i3[i, j, k] <- i3[i, k, j] <- i3[j, i, k] <- i3[j, k, i] <- i3[k, i, j] <- i3[k, j, i] <- ijk
-ijk <- ijk + 1
-for (l in k:K) {
-i4[i, j, k, l] <- i4[i, j, l, k] <- i4[i, k, j, l] <- i4[i, k, l, j] <- ijkl
-i4[i, l, j, k] <- i4[i, l, k, j] <- ijkl
-i4[j, i, k, l] <- i4[j, i, l, k] <- i4[j, k, i, l] <- i4[j, k, l, i] <- ijkl
-i4[j, l, i, k] <- i4[j, l, k, i] <- ijkl
-i4[k, i, j, l] <- i4[k, i, l, j] <- i4[k, j, i, l] <- i4[k, j, l, i] <- ijkl
-i4[k, l, i, j] <- i4[k, l, j, i] <- ijkl
-i4[l, i, j, k] <- i4[l, i, k, j] <- i4[l, j, i, k] <- i4[l, j, k, i] <- ijkl
-i4[l, k, i, j] <- i4[l, k, j, i] <- ijkl
-ijkl <- ijkl + 1
+.indices <- function(i) {
+out <- list(list(i1 = structure(1, .Dim = 1L), i2 = structure(2, .Dim = c(1L, 
+1L)), i3 = structure(1, .Dim = c(1L, 1L, 1L)), i4 = structure(2, .Dim = c(1L, 
+1L, 1L, 1L))), list(i1 = structure(c(1, 2), .Dim = 2L), i2 = structure(c(3, 
+4, 4, 5), .Dim = c(2L, 2L)), i3 = structure(c(1, 2, 2, 3, 2, 
+3, 3, 4), .Dim = c(2L, 2L, 2L)), i4 = structure(c(5, 6, 6, 7, 
+6, 7, 7, 8, 6, 7, 7, 8, 7, 8, 8, 9), .Dim = c(2L, 2L, 2L, 2L))), 
+    list(i1 = structure(c(1, 2, 3), .Dim = 3L), i2 = structure(c(4, 
+    5, 6, 5, 7, 8, 6, 8, 9), .Dim = c(3L, 3L)), i3 = structure(c(1, 
+    2, 3, 2, 4, 5, 3, 5, 6, 2, 4, 5, 4, 7, 8, 5, 8, 9, 3, 5, 
+    6, 5, 8, 9, 6, 9, 10), .Dim = c(3L, 3L, 3L)), i4 = structure(c(11, 
+    12, 13, 12, 14, 15, 13, 15, 16, 12, 14, 15, 14, 17, 18, 15, 
+    18, 19, 13, 15, 16, 15, 18, 19, 16, 19, 20, 12, 14, 15, 14, 
+    17, 18, 15, 18, 19, 14, 17, 18, 17, 21, 22, 18, 22, 23, 15, 
+    18, 19, 18, 22, 23, 19, 23, 24, 13, 15, 16, 15, 18, 19, 16, 
+    19, 20, 15, 18, 19, 18, 22, 23, 19, 23, 24, 16, 19, 20, 19, 
+    23, 24, 20, 24, 25), .Dim = c(3L, 3L, 3L, 3L))), list(i1 = structure(c(1, 
+    2, 3, 4), .Dim = 4L), i2 = structure(c(5, 6, 7, 8, 6, 9, 
+    10, 11, 7, 10, 12, 13, 8, 11, 13, 14), .Dim = c(4L, 4L)), 
+        i3 = structure(c(1, 2, 3, 4, 2, 5, 6, 7, 3, 6, 8, 9, 
+        4, 7, 9, 10, 2, 5, 6, 7, 5, 11, 12, 13, 6, 12, 14, 15, 
+        7, 13, 15, 16, 3, 6, 8, 9, 6, 12, 14, 15, 8, 14, 17, 
+        18, 9, 15, 18, 19, 4, 7, 9, 10, 7, 13, 15, 16, 9, 15, 
+        18, 19, 10, 16, 19, 20), .Dim = c(4L, 4L, 4L)), i4 = structure(c(21, 
+        22, 23, 24, 22, 25, 26, 27, 23, 26, 28, 29, 24, 27, 29, 
+        30, 22, 25, 26, 27, 25, 31, 32, 33, 26, 32, 34, 35, 27, 
+        33, 35, 36, 23, 26, 28, 29, 26, 32, 34, 35, 28, 34, 37, 
+        38, 29, 35, 38, 39, 24, 27, 29, 30, 27, 33, 35, 36, 29, 
+        35, 38, 39, 30, 36, 39, 40, 22, 25, 26, 27, 25, 31, 32, 
+        33, 26, 32, 34, 35, 27, 33, 35, 36, 25, 31, 32, 33, 31, 
+        41, 42, 43, 32, 42, 44, 45, 33, 43, 45, 46, 26, 32, 34, 
+        35, 32, 42, 44, 45, 34, 44, 47, 48, 35, 45, 48, 49, 27, 
+        33, 35, 36, 33, 43, 45, 46, 35, 45, 48, 49, 36, 46, 49, 
+        50, 23, 26, 28, 29, 26, 32, 34, 35, 28, 34, 37, 38, 29, 
+        35, 38, 39, 26, 32, 34, 35, 32, 42, 44, 45, 34, 44, 47, 
+        48, 35, 45, 48, 49, 28, 34, 37, 38, 34, 44, 47, 48, 37, 
+        47, 51, 52, 38, 48, 52, 53, 29, 35, 38, 39, 35, 45, 48, 
+        49, 38, 48, 52, 53, 39, 49, 53, 54, 24, 27, 29, 30, 27, 
+        33, 35, 36, 29, 35, 38, 39, 30, 36, 39, 40, 27, 33, 35, 
+        36, 33, 43, 45, 46, 35, 45, 48, 49, 36, 46, 49, 50, 29, 
+        35, 38, 39, 35, 45, 48, 49, 38, 48, 52, 53, 39, 49, 53, 
+        54, 30, 36, 39, 40, 36, 46, 49, 50, 39, 49, 53, 54, 40, 
+        50, 54, 55), .Dim = c(4L, 4L, 4L, 4L))))
+out[[i]]
 }
-}
-}
-}
 
-i2 <- i2 + max(i1)
-i4 <- i4 + max(i3, na.rm=TRUE)
+.d1H0 <- function(dbeta, likdata, likfns) {
 
-list(i1=i1, i2=i2, i3=i3, i4=i4)
-
-}
-
-.d1H0_diag <- function(GH, CH, X, idpars, dbeta, spSl, H) {
+X <- likdata$X
+idpars <- likdata$idpars
+CH <- likdata$CH
 
 nb <- nrow(dbeta$d1)
 nsp <- ncol(dbeta$d1)
 nX <- length(X)
 n <- nrow(X[[1]])
 
-iHtX <- t(.dbind(X))
-iHtX <- t(.precond_solve(H$cH, iHtX))
-VX <- matrix(0, nrow(iHtX), ncol(iHtX))
+ind <- .indices(nX)
 
-X <- lapply(seq_len(nX), function(i) X[[i]] %*% attr(CH, "list")[[i]])
-d1eta <- lapply(seq_len(nX), function(i) X[[i]] %*% dbeta$d1[idpars == i, , drop=FALSE])
+beta <- likdata$compmode + likdata$CH %*% (dbeta$d0 - likdata$compmode)
 
-ind <- .makeIndices(nX)
-
-trd1H <- rep(NA, nsp)
-
-for (k in 1:nsp) {
-for (i in 1:nX) for (j in 1:nX) {
-v <- numeric(n)
-for (r in 1:nX) {
-v <- v + d1eta[[r]][,k] * GH[,ind$i3[i, j, r]]
-}
-if (i == j) {
-    rind <- 1:n + (i-1)*n
-    VX[rind, idpars == i] <- v * X[[i]]
-} else {
-    rind1 <- 1:n + (i-1)*n
-    rind2 <- 1:n + (j-1)*n
-    VX[rind2, idpars == i] <- v * X[[i]]
-    VX[rind1, idpars == j] <- v * X[[j]]
-}
-}
-trd1H[k] <- sum(iHtX * VX)
-}
-
-list(d1=trd1H)
-
-}
-
-
-.d1H0 <- function(GH, CH, X, idpars, dbeta, spSl) {
-
-nb <- nrow(dbeta$d1)
-nsp <- ncol(dbeta$d1)
-nX <- length(X)
-n <- nrow(X[[1]])
+GH <- likdata$k * likfns$d340(beta, likdata)
 
 dbeta$d1 <- CH %*% dbeta$d1
+
 d1H <- array(NA, c(nb, nb, nsp))
 
-ind <- .makeIndices(nX)
-
-for (i in 1:nX) for (j in 1:nX) {
-bX <- matrix(NA, n, nb)
-for (k in 1:nX) {
-bX[,idpars == k] <- X[[k]] * GH[,ind$i3[i, j, k]]
-}
-v <- bX %*% dbeta$d1
-for (l in 1:nsp) {
-d1H[idpars == i, idpars == j, l] <- crossprod(X[[i]], v[,l] * X[[j]])
-}
-}
-for (l in 1:nsp) {
-    d1H[,,l] <- crossprod(CH, as.matrix(d1H[,,l]) %*% CH)
+for (i in 1:nX) {
+  for (j in 1:nX) {
+    bX <- matrix(NA, n, nb)
+    for (k in 1:nX)
+      bX[,idpars == k] <- X[[k]] * GH[,ind$i3[i, j, k]]
+    v <- bX %*% dbeta$d1
+    for (l in 1:nsp)
+      d1H[idpars == i, idpars == j, l] <- crossprod(X[[i]], v[,l] * X[[j]])
+  }
 }
 
-list(d1=d1H)
+d1H <- lapply(1:nsp, function(i) crossprod(CH, d1H[, , i] %*% CH))
+
+list(d1=d1H, GH=GH)
 
 }
 
-.dbind <- function(x) {
-nx <- length(x)
-nc <- sapply(x, ncol)
-nr <- sapply(x, nrow)
-cends <- cumsum(nc)
-cstarts <- c(1, cends[seq_len(nx - 1)] + 1)
-rends <- cumsum(nr)
-rstarts <- c(1, rends[seq_len(nx - 1)] + 1)
-out <- matrix(0, rends[nx], cends[nx])
-for (i in seq_len(nx)) out[rstarts[i]:rends[i], cstarts[i]:cends[i]] <- x[[i]]
-out
-}
+.d1H0_diag <- function(dbeta, likdata, likfns, H) {
 
-.d2H0_diag <- function(GH, CH, X, idpars, dbeta, spSl, H) {
+X <- likdata$X
+idpars <- likdata$idpars
+CH <- likdata$CH
 
 nb <- nrow(dbeta$d1)
 nsp <- ncol(dbeta$d1)
 nX <- length(X)
 n <- nrow(X[[1]])
 
-iHtX <- tcrossprod(t(CH), .dbind(X))
-iHtX <- t(.precond_solve(H$cH, iHtX))
-VX <- matrix(0, nrow(iHtX), ncol(iHtX))
+ind <- .indices(nX)
+
+beta <- likdata$compmode + likdata$CH %*% (dbeta$d0 - likdata$compmode)
+
+GH <- likdata$k * likfns$d340(beta, likdata)
 
 dbeta$d1 <- CH %*% dbeta$d1
-dbeta$d2 <- apply(dbeta$d2, 2:3, function(x) CH %*% x)
+
+d1eta <- lapply(seq_len(nX), function(i) X[[i]] %*% dbeta$d1[idpars == i, , drop=FALSE])
+eH <- eigen(H$H)
+V <- CH %*% eH$vectors
+XV <- lapply(seq_len(nX), function(i) X[[i]] %*% (H$dH[idpars == i] * V[idpars == i, , drop=FALSE]))
+
+d1H <- matrix(0, nb, nsp)
+
+for (i in 1:nX) {
+  for (j in 1:nX) {
+    v <- matrix(0, n, nsp)
+    for (k in 1:nX)
+      v <- v + GH[,ind$i3[i, j, k]] * d1eta[[k]]
+    for (l in 1:nsp)
+      d1H[, l] <- d1H[, l] + colSums(XV[[i]] * XV[[j]] * v[,l])
+  }
+}
+
+trd1H <- colSums(d1H / eH$values)
+
+list(d1 = trd1H)
+
+}
+
+.d2H0_diag <- function(dbeta, likdata, GH, H) {
+
+X <- likdata$X
+idpars <- likdata$idpars
+CH <- likdata$CH
+
+nb <- nrow(dbeta$d1)
+nsp <- ncol(dbeta$d1)
+nX <- length(X)
+n <- nrow(X[[1]])
+
+ind <- .indices(nX)
+
+dbeta$d1 <- CH %*% dbeta$d1
+
 d1eta <- lapply(seq_len(nX), function(i) X[[i]] %*% dbeta$d1[idpars == i, , drop=FALSE])
 d2eta <- lapply(seq_len(nX), function(i) apply(dbeta$d2[idpars == i, , , drop=FALSE], 2:3, function(x) X[[i]] %*% x))
 
-ind <- .makeIndices(nX)
+eH <- eigen(H$H)
+V <- CH %*% eH$vectors
+XV <- lapply(seq_len(nX), function(i) X[[i]] %*% (H$dH[idpars == i] * V[idpars == i, , drop=FALSE]))
 
-trd2H <- matrix(NA, nsp, nsp)
+d2H <- array(0, c(nb, nsp, nsp))
 
-for (k in 1:nsp) for (l in 1:nsp) {
-for (i in 1:nX) for (j in 1:nX) {
-v <- numeric(nrow(GH))
-temp <- matrix(0, nX, nX)
-for (r in 1:nX) {
-v <- v + d2eta[[r]][,k,l] * GH[,ind$i3[i, j, r]]
-for (t in 1:nX) {
-v <- v + d1eta[[r]][,k] * d1eta[[t]][,l] * GH[,ind$i4[i, j, r, t]]
+for (k in 1:nsp) {
+  for (l in 1:k) {
+
+for (i in 1:nX) {
+  for (j in 1:nX) {
+    v <- numeric(n)
+    for (r in 1:nX) {
+      v <- v + GH[,ind$i3[i, j, r]] * d2eta[[r]][, k, l]
+      for (t in 1:nX)
+        v <- v + d1eta[[r]][,k] * d1eta[[t]][,l] * GH[,ind$i4[i, j, r, t]]    
+    }
+    d2H[, k, l] <- d2H[, k, l] + colSums(XV[[i]] * XV[[j]] * v)
+  }
+}
+if (l != k)
+  d2H[, l, k] <- d2H[, k, l]
 }
 }
-if (i == j) {
-    rind <- 1:n + (i-1)*n
-    VX[rind, idpars == i] <- v * X[[i]]
-} else {
-    rind1 <- 1:n + (i-1)*n
-    rind2 <- 1:n + (j-1)*n
-    VX[rind2, idpars == i] <- v * X[[i]]
-    VX[rind1, idpars == j] <- v * X[[j]]
-}
-VX <- VX %*% CH
-}
-trd2H[k,l] <- sum(iHtX * VX)
-}
+
+trd2H <- apply(d2H, 2:3, function(x) sum(x / eH$values))
 
 list(d2=trd2H)
 
 }
 
-.d2H0 <- function(GH, CH, X, idpars, dbeta, spSl) {
+.d1beta <- function(lsp, beta, spSl, H) {
+out <- list(d0 = beta)
+# spSl <- Map("*", attr(Sdata, "Sl"), exp(lsp))
+# beta <- likdata$compmode + likdata$CH %*% (beta - likdata$compmode)
+spSlb <- sapply(spSl, function(x) x %*% beta)
+out$d1 <- -.precond_solve(H$cH, spSlb)
+out$spSlb <- spSlb
+out
+}
 
-nb <- nrow(dbeta$d1)
+.d2beta <- function(dbeta, gradH, spSl, H) {
 nsp <- ncol(dbeta$d1)
-nX <- length(X)
-
-d2H <- array(NA, c(nb, nb, nsp, nsp))
-X <- lapply(seq_len(nX), function(i) X[[i]] %*% attr(CH, "list")[[i]])
-d1eta <- lapply(seq_len(nX), function(i) X[[i]] %*% dbeta$d1[idpars == i, , drop=FALSE])
-d2eta <- lapply(seq_len(nX), function(i) apply(dbeta$d2[idpars == i, , , drop=FALSE], 2:3, function(x) X[[i]] %*% x))
-
-ind <- .makeIndices(nX)
-
-for (k in 1:nsp) for (l in 1:nsp) {
-for (i in 1:nX) for (j in 1:nX) {
-v <- numeric(nrow(GH))
-for (r in 1:nX) {
-v <- v + d2eta[[r]][,k,l] * GH[,ind$i3[i, j, r]]
-for (t in 1:nX) {
-v <- v + d1eta[[r]][,k] * d1eta[[t]][,l] * GH[,ind$i4[i, j, r, t]]
-}
-}
-d2H[idpars == i, idpars == j, k, l] <- crossprod(X[[i]], v * X[[j]])
-}
-}
-
-list(d2=d2H)
-
-}
-
-.dbeta <- function(lsp, spSl, H, beta, likdata, likfns, deriv=1) {
-sp <- exp(lsp)
-nsp <- length(sp)
-beta <- likdata$compmode + likdata$CH %*% (beta - likdata$compmode)
-dbeta <- list()
-dbeta$d1 <- -.precond_solve(H$cH, sapply(spSl, function(x) x %*% beta))
-dbeta$GH <- likdata$k * likfns$d340(beta, likdata)
-if (deriv > 1) {
-  gradH <- .d1H0(dbeta$GH, likdata$CH, likdata$X, likdata$idpars, dbeta, spSl)$d1
-  d2beta <- array(NA, c(length(beta), nsp, nsp))
-  for (k in seq_len(nsp)) for (l in seq_len(k)) {
-    temp0 <- gradH[,,l] %*% dbeta$d1[,k] + spSl[[l]] %*% dbeta$d1[,k] + spSl[[k]] %*% dbeta$d1[,l]
-    temp1 <- -.precond_solve(H$cH, temp0)
-    if (k == l) temp1 <- temp1 + dbeta$d1[,k]
-    d2beta[, k, l] <- temp1
-    if (k != l) d2beta[, l, k] <- d2beta[, k, l]
+nb <- nrow(dbeta$d1)
+d2beta <- array(NA, c(nb, nsp, nsp))
+for (k in 1:nsp) {
+  for (l in 1:k) {
+    temp <- gradH[[k]] %*% dbeta$d1[,l]
+    temp <- temp - spSl[[k]] %*% dbeta$d1[,l]
+    temp <- temp - spSl[[l]] %*% dbeta$d1[,k]
+    if (k == l) 
+      temp <- temp - dbeta$spSlb[[k]]
+    temp <- .precond_solve(H$cH, temp)
+    d2beta[, k, l] <- temp
+    if (l != k)
+      d2beta[, l, k] <- d2beta[, k, l]
   }
-  dbeta$d2 <- d2beta
-  dbeta$gradH <- gradH
 }
+dbeta$d2 <- d2beta
 dbeta
 }
 
@@ -236,44 +216,8 @@ if (is.null(x$cholHessian)) {
 list(d0 = out) 
 }
 
-.d1logdetH <- function(lsp, likdata, likfns, Sdata, H) {
-beta <- attr(lsp, "beta")
-sp <- exp(lsp)
-spSl <- lapply(seq_along(sp), function(i) sp[i] * attr(Sdata, "Sl")[[i]])
-if (!all(H$kept)) browser()
-dbeta <- .dbeta(lsp, spSl, H, beta, likdata, likfns, deriv=1)
-d1 <- .d1H0_diag(dbeta$GH, likdata$CH, likdata$X, likdata$idpars, dbeta, spSl, H)$d1
+.d1logdetH <- function(dbeta, likdata, likfns, spSl, H) {
+d1 <- .d1H0_diag(dbeta, likdata, likfns, H)$d1
 d1 <- d1 + sapply(spSl, function(x) sum(diag(.precond_solve(H$cH, x))))
 list(d1=d1, dbeta=dbeta)
-}
-
-.d1logdetH <- function(lsp, likdata, likfns, Sdata, H) {
-beta <- attr(lsp, "beta")
-sp <- exp(lsp)
-spSl <- lapply(seq_along(sp), function(i) sp[i] * attr(Sdata, "Sl")[[i]])
-if (!all(H$kept)) browser()
-dbeta <- .dbeta(lsp, spSl, H, beta, likdata, likfns, deriv=2)
-dbeta$gradH <- dbeta$gradH + unlist(spSl)
-dbeta$gradH <- array(apply(dbeta$gradH, 3, function(x) .precond_solve(H$cH, x)), dim(dbeta$gradH))
-list(d1=apply(dbeta$gradH, 3, function(x) sum(diag(x))))
-}
-
-.d12logdetH <- function(lsp, likdata, likfns, Sdata, H) {
-beta <- attr(lsp, "beta")
-sp <- exp(lsp)
-spSl <- lapply(seq_along(sp), function(i) sp[i] * attr(Sdata, "Sl")[[i]])
-dbeta <- .dbeta(lsp, spSl, H, beta, likdata, likfns, deriv=2)
-d12 <- .d2H0_diag(dbeta$GH, likdata$CH, likdata$X, likdata$idpars, dbeta, spSl, H)$d2
-diag(d12) <- diag(d12) + sapply(spSl, function(x) sum(diag(.precond_solve(H$cH, x))))
-dbeta$gradH <- dbeta$gradH + unlist(spSl)
-dbeta$gradH <- array(apply(dbeta$gradH, 3, function(x) .precond_solve(H$cH, x)), dim(dbeta$gradH))
-d22 <- matrix(0, length(lsp), length(lsp))
-for (k in seq_along(lsp)) for (l in seq_len(k)) {
-  d22[k, l] <- sum(t(dbeta$gradH[,,l]) * dbeta$gradH[,,k])
-  if (l != k) d22[l, k] <- d22[k, l]
-}
-out <- list(d1=apply(dbeta$gradH, 3, function(x) sum(diag(x))))
-out$d2 <- d12 - d22
-out$dbeta <- dbeta
-out
 }

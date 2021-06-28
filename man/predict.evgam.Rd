@@ -11,7 +11,7 @@
   prob = NULL,
   se.fit = FALSE,
   marginal = TRUE,
-  exi = TRUE,
+  exi = FALSE,
   trace = 0,
   ...
 )
@@ -29,7 +29,7 @@
 
 \item{marginal}{a logical: should uncertainty estimates integrate out smoothing parameter uncertainty? Defaults to \code{TRUE}}
 
-\item{exi}{a logical: if a dependent GEV is fitted should the independent parameters be returned? Defaults to \code{TRUE}}
+\item{exi}{a logical: if a dependent GEV is fitted should the independent parameters be returned? Defaults to \code{FALSE}}
 
 \item{trace}{an integer where higher values give more output. -1 suppresses everything. Defaults to 0}
 

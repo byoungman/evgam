@@ -1,10 +1,10 @@
 ## Setup and fitting functions
 #
-# .setup.family
-# --- identifies family, its # parameters, their names and its functions
-#
 # .setup.formula
 # --- takes evgam formula and returns something useful for fitting
+#
+# .setup.family
+# --- identifies family, its # parameters, their names and its functions
 #
 # .predictable.gam
 # --- takes a gam(..., fit=FALSE) object and adds stuff so that mgcv::predict.gam works
@@ -46,9 +46,79 @@
 # --- adds other useful things to final objects for user functions
 #
 
-############ .setup.family ##########################
+############ .setup.formula ##########################
+
+.setup.formulae <- function(formula, npar, npar2, data, trace) {
+# turn formula into list, which will be repeated.
+if (inherits(formula, "formula"))
+  formula <- list(formula)
+# get variable names
+if (npar == 1) {
+  if (!(length(formula) %in% c(npar, 1)))
+    stop("length(formula) for this family should be 1")
+} else {
+  if (!(length(formula) %in% c(npar, 1)))
+    stop(paste("length(formula) for this family should be", npar, "(or 1 if all parameters are to have the same formula)"))
+}
+pred.vars <- unique(unlist(lapply(formula, all.vars)))
+# check they're all in data
+if (!all(pred.vars %in% names(data))) {
+  missing.vars <- pred.vars[!(pred.vars %in% names(data))]
+  stop(paste("Variable(s) '", paste(missing.vars, collapse=", "), "' not supplied to `data'.", sep=""))
+}
+# check if first element of list has response; otherwise get response name
+terms.list <- lapply(formula, terms.formula, specials=c("s", "te", "ti"))
+got.specials <- sapply(lapply(terms.list, function(x) unlist(attr(x, "specials"))), any)
+termlabels.list <- lapply(terms.list, attr, "term.labels")
+got.intercept <- sapply(terms.list, attr, "intercept") == 1
+for (i in seq_along(termlabels.list)) {
+  if (length(termlabels.list[[i]]) == 0) {
+    if (got.intercept[i]) {
+      termlabels.list[[i]] <- "1"
+    } else {
+      stop(paste("formula element", i, "incorrectly specified"))
+    }
+  }
+}
+got.response <- sapply(terms.list, attr, "response") == 1
+if (!got.response[1]) {
+  stop("formula has no response")
+} else {
+  response.name <- as.character(formula[[1]])[2]
+}
+if (any(!got.response)) {
+  for (i in which(!got.response)) {
+    formula[[i]] <- reformulate(termlabels=termlabels.list[[i]], response=response.name)
+  }
+}
+stripped.formula <- lapply(termlabels.list, function(x) reformulate(termlabels=x))
+censored <- FALSE
+# now allow for the possibility of a [a, b] response
+if (substr(response.name, 1, 5) == "cens(") {
+  response.name <- substr(response.name, 6, nchar(response.name) - 1)
+  response.name <- gsub(" ", "", response.name)
+  response.name <- strsplit(response.name, ",")[[1]]
+  if (length(response.name) > 2)
+    stop("Censored response can only contain two variables.")
+  rr <- response.name[2]
+  formula <- lapply(termlabels.list, function(x) reformulate(termlabels=x, response=rr))
+  censored <- TRUE
+}
+#
+attr(formula, "response.name") <- response.name
+pred.vars <- pred.vars[!(pred.vars %in% response.name)]
+attr(formula, "predictor.names") <- pred.vars
+attr(formula, "stripped") <- stripped.formula
+attr(formula, "censored") <- censored
+attr(formula, "smooths") <- got.specials
+for (i in seq_along(formula)) {
+  attr(formula[[i]], "intercept") <- got.intercept[i]
+  attr(formula[[i]], "smooth") <- got.specials[i]
+}
+formula
+}
   
-.setup.family <- function(family, pp, egpd, formula, likfns) {
+.setup.family <- function(family, pp) {
 if (family == "gev") {
   lik.fns <- .gevfns
   npar <- 3
@@ -121,40 +191,6 @@ if (family == "gauss") {
   lik.fns <- .gaussfns
   npar <- 2
   nms <- c("mu", "logsigma")
-} else {
-if (family == "egpd") {
-  if (is.null(egpd$m))
-    egpd$m <- 1
-  if (egpd$m == 1) {
-    lik.fns <- .egpdfns1
-    npar <- 3
-    nms <- c("lpsi", "xi", "lkappa")
-  } else {
-    if (egpd$m == 2) {
-      lik.fns <- .egpdfns2
-      npar <- 5
-      nms <- c("lpsi", "xi", "lkappa1", "lkappa2", "logitp")
-      stop("Extended GPD with 'egpd.arg$m == 2' currently not available.")
-    } else {
-      if (egpd$m == 3) {
-        lik.fns <- .egpdfns3
-        npar <- 3
-        nms <- c("lpsi", "xi", "ldelta")
-        stop("Extended GPD with 'egpd.arg$m == 3' currently not available.")
-      } else {
-        lik.fns <- .egpdfns4
-        npar <- 4
-        nms <- c("lpsi", "xi", "lkappa", "ldelta")
-        stop("Extended GPD with 'egpd.arg$m == 4' currently not available.")
-      }
-    }
-  }
-} else {
-  if (length(likfns)) {
-    lik.fns <- likfns
-    family <- "custom"
-    npar <- length(formula)
-  }
 }
 }
 }
@@ -168,79 +204,7 @@ if (family == "egpd") {
 }
 }
 }
-out <- list(npar=npar, npar2=npar, lik.fns=lik.fns, nms=nms, family=family)
-}
-
-############ .setup.formulae ##########################
-
-.setup.formulae <- function(formula, npar, npar2, data, trace) {
-# turn formula into list, which will be repeated.
-if (inherits(formula, "formula"))
-  formula <- list(formula)
-# get variable names
-if (npar == 1) {
-  if (!(length(formula) %in% c(npar, 1)))
-    stop("length(formula) for this family should be 1")
-} else {
-  if (!(length(formula) %in% c(npar, 1)))
-    stop(paste("length(formula) for this family should be", npar, "(or 1 if all parameters are to have the same formula)"))
-}
-pred.vars <- unique(unlist(lapply(formula, all.vars)))
-# check they're all in data
-if (!all(pred.vars %in% names(data))) {
-  missing.vars <- pred.vars[!(pred.vars %in% names(data))]
-  stop(paste("Variable(s) '", paste(missing.vars, collapse=", "), "' not supplied to `data'.", sep=""))
-}
-# check if first element of list has response; otherwise get response name
-terms.list <- lapply(formula, terms.formula, specials=c("s", "te", "ti"))
-got.specials <- sapply(lapply(terms.list, function(x) unlist(attr(x, "specials"))), any)
-termlabels.list <- lapply(terms.list, attr, "term.labels")
-got.intercept <- sapply(terms.list, attr, "intercept") == 1
-for (i in seq_along(termlabels.list)) {
-  if (length(termlabels.list[[i]]) == 0) {
-    if (got.intercept[i]) {
-      termlabels.list[[i]] <- "1"
-    } else {
-      stop(paste("formula element", i, "incorrectly specified"))
-    }
-  }
-}
-got.response <- sapply(terms.list, attr, "response") == 1
-if (!got.response[1]) {
-  stop("formula has no response")
-} else {
-  response.name <- as.character(formula[[1]])[2]
-}
-if (any(!got.response)) {
-  for (i in which(!got.response)) {
-    formula[[i]] <- reformulate(termlabels=termlabels.list[[i]], response=response.name)
-  }
-}
-stripped.formula <- lapply(termlabels.list, function(x) reformulate(termlabels=x))
-censored <- FALSE
-# now allow for the possibility of a [a, b] response
-if (substr(response.name, 1, 5) == "cens(") {
-  response.name <- substr(response.name, 6, nchar(response.name) - 1)
-  response.name <- gsub(" ", "", response.name)
-  response.name <- strsplit(response.name, ",")[[1]]
-  if (length(response.name) > 2)
-    stop("Censored response can only contain two variables.")
-  rr <- response.name[2]
-  formula <- lapply(termlabels.list, function(x) reformulate(termlabels=x, response=rr))
-  censored <- TRUE
-}
-#
-attr(formula, "response.name") <- response.name
-pred.vars <- pred.vars[!(pred.vars %in% response.name)]
-attr(formula, "predictor.names") <- pred.vars
-attr(formula, "stripped") <- stripped.formula
-attr(formula, "censored") <- censored
-attr(formula, "smooths") <- got.specials
-for (i in seq_along(formula)) {
-  attr(formula[[i]], "intercept") <- got.intercept[i]
-  attr(formula[[i]], "smooth") <- got.specials[i]
-}
-formula
+out <- list(npar=npar, npar2=npar, lik.fns=lik.fns, nms=nms)
 }
 
 ############ .predictable.gam ##########################
@@ -347,6 +311,10 @@ if (attr(formula, "censored")) {
 if (family == "weibull") {
   if (min(lik.data$y) <= 0) 
     stop(expression("Weibull distribution has support (0, \U221E) in evgam."))
+}
+if (family == "gpd") {
+  if (min(lik.data$y) <= 0) 
+    stop(expression("GPD has support (0, \U221E) in evgam."))
 }
 if (family == "exi") {
 if (is.null(exiargs$id)) stop("no `id' in `exi.args'.")
@@ -483,7 +451,7 @@ nobs2 <- sapply(ds, nrow)
 ## start of original r-largest order statistic stuff
 data.quad <- do.call(rbind, lapply(ds, function(x) x[1,]))
 if (!is.null(pp$r)) {
-enough <- nobs2 > pp$r
+enough <- nobs2 >= pp$r
 if (any(!enough)) warning(paste(sum(!enough), "unique pp.args$id removed for having fewer than r observations."))
 ds <- ds[enough]
 wts <- wts[enough]
@@ -542,43 +510,44 @@ likdata0$S <- diag(0, npar)
 likdata0$idpars <- seq_len(npar)
 
 if (is.null(inits)) {
-if (npar == 1) {
-inits <- 2
-}
-if (npar == 2) {
-if (family == "ald") {
-    inits <- c(quantile(likdata0$y[,1], likdata0$tau), log(sd(likdata0$y[,1])))
+  if (npar == 1) 
+    inits <- 2
+  if (npar == 2) {
+    if (family == "ald") {
+      inits <- c(quantile(likdata0$y[,1], likdata0$tau), log(sd(likdata0$y[,1])))
+    } else {
+      inits <- c(log(mean(likdata$y[,1])), .05)
+      if (family == "transxigpd") 
+        inits[2] <- .9
+    }
+  }
+  if (npar %in% 3:4) {
+    inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
+    inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
+    if (npar == 4) 
+      inits <- c(inits, 1)
+  }
+  if (npar == 6) {
+    inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
+    inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
+    inits <- c(inits, 0, 0, 1)
+  }
+  likdata0$CH <- diag(length(inits))
+  likdata0$compmode <- numeric(length(inits))
+  beta0 <- .newton_step_inner(inits, .nllh.nopen, .search.nopen, likdata=likdata0, likfns=likfns, control=likdata$control$inner)$par
 } else {
-inits <- c(log(mean(likdata$y[,1])), .05)
-if (family == "transxigpd") inits[2] <- .9
-}
-}
-if (npar %in% 3:4) {
-inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
-inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
-if (npar == 4) inits <- c(inits, 1)
-}
-if (npar == 6) {
-inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
-inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
-inits <- c(inits, 0, 0, 1)
-}
-likdata0$CH <- diag(length(inits))
-likdata0$compmode <- numeric(length(inits))
-beta0 <- .newton_step_inner(inits, .nllh.nopen, .search.nopen, likdata=likdata0, likfns=likfns, control=likdata$control$inner)$par
-} else {
-if (is.list(inits)) {
-betamat <- expand.grid(inits)
-betanllh <- numeric(nrow(betamat))
-for (i in seq_len(nrow(betamat))) {
-beta0 <- unlist(betamat[i,])
-betanllh[i] <- likfns$nllh(beta0, likdata0)
-}
-beta0 <- betamat[which.min(betanllh),]
-print(beta0)
-} else {
-beta0 <- inits
-}
+  if (is.list(inits)) {
+    betamat <- expand.grid(inits)
+    betanllh <- numeric(nrow(betamat))
+    for (i in seq_len(nrow(betamat))) {
+      beta0 <- unlist(betamat[i,])
+      betanllh[i] <- likfns$nllh(beta0, likdata0)
+    }
+    beta0 <- betamat[which.min(betanllh),]
+    print(beta0)
+  } else {
+    beta0 <- inits
+  }
 }
 beta0 <- unlist(lapply(seq_len(npar), function(i) c(beta0[i], rep(0, ncol(likdata$X[[i]]) - 1))))
 compmode <- 0 * beta0
@@ -587,65 +556,65 @@ k <- 1
 likdata[c("k", "CH", "compmode")] <- list(k, CH, compmode)
 diagH <- diag(.gH.nopen(beta0, likdata=likdata, likfns=likfns)[[2]])
 if (likdata$sandwich) {
-beta0 <- .newton_step(beta0, .nllh.nopen, .search.nopen, likdata=likdata, likfns=likfns, control=likdata$control$inner)$par
-H <- .gH.nopen(beta0, likdata=likdata, likfns=likfns, sandwich=TRUE)
-if (family == "pp") {
-J0 <- H[[1]]
-J <- J0[,!likdata$ppq]
-J0 <- rowSums(J0[,likdata$ppq])
-J <- split(as.data.frame(t(J)), likdata$sandwich.split)
-wts <- sapply(J, nrow)
-wts <- wts / sum(wts)
-J <- sapply(J, colSums)
-J <- J + J0 %o% wts
-J <- tcrossprod(J)
-} else {
-J <- split(as.data.frame(t(H[[1]])), likdata$sandwich.split)
-J <- sapply(J, colSums)
-J <- tcrossprod(J)
-}
-H <- H[[2]]
-diagH <- diag(H)
-cholH <- try(chol(H), silent=TRUE)
-if (inherits(cholH, "try-error")) {
-    if (!likdata$force) {
-        stop("Hessian of unpenalised MLE not positive definite.\n  Supply `force=TRUE' to `sandwich.args' to perturb it to be positive definite.")
-    } else {
-        if (trace >= 0)
-          message("Hessian perturbed to be positive definite for sandwich adjustment.")
-        iH <- pinv(H)
-    }
-} else {
-    iH <- chol2inv(cholH)
-}
-if (likdata$adjust == 2) {
-  cholJ <- try(chol(J), silent=TRUE)
-  if (inherits(cholJ, "try-error") & likdata$adjust == 2) {
-    HA <- crossprod(backsolve(cholJ, H, transpose=TRUE))
+  beta0 <- .newton_step(beta0, .nllh.nopen, .search.nopen, likdata=likdata, likfns=likfns, control=likdata$control$inner)$par
+  H <- .gH.nopen(beta0, likdata=likdata, likfns=likfns, sandwich=TRUE)
+  if (family == "pp") {
+    J0 <- H[[1]]
+    J <- J0[,!likdata$ppq]
+    J0 <- rowSums(J0[,likdata$ppq])
+    J <- split(as.data.frame(t(J)), likdata$sandwich.split)
+    wts <- sapply(J, nrow)
+    wts <- wts / sum(wts)
+    J <- sapply(J, colSums)
+    J <- J + J0 %o% wts
+    J <- tcrossprod(J)
   } else {
-    iHA <- tcrossprod(crossprod(iH, J), iH)
-    choliHA <- try(chol(iHA), silent=TRUE)
-    if (inherits(choliHA, "try-error")) {
-      if (!likdata$force) {
-        stop("Sandwich variance not positive definite.\n  Supply `force=TRUE' to `sandwich.args' to perturb it to be positive definite.")
-      } else {
-        if (trace >= 0)
-          message("Sandwich variance perturbed to be positive definite.")
-        HA <- pinv(iHA)
-      }
-    } else {
-      HA <- chol2inv(choliHA)
-    }
+    J <- split(as.data.frame(t(H[[1]])), likdata$sandwich.split)
+    J <- sapply(J, colSums)
+    J <- tcrossprod(J)
   }
-sH <- svd(H)
-M <- sqrt(sH$d) * t(sH$v)
-sHA <- svd(HA)
-MA <- sqrt(sHA$d) * t(sHA$v)
-CH <- solve(M, MA)
-compmode <- beta0
-} else {
-k <- 1 / mean(diag(crossprod(iH, J)))
-}
+  H <- H[[2]]
+  diagH <- diag(H)
+  cholH <- try(chol(H), silent=TRUE)
+  if (inherits(cholH, "try-error")) {
+    if (!likdata$force) {
+      stop("Hessian of unpenalised MLE not positive definite.\n  Supply `force=TRUE' to `sandwich.args' to perturb it to be positive definite.")
+    } else {
+      if (trace >= 0)
+        message("Hessian perturbed to be positive definite for sandwich adjustment.")
+      iH <- pinv(H)
+    }
+  } else {
+    iH <- chol2inv(cholH)
+  }
+  if (likdata$adjust == 2) {
+    cholJ <- try(chol(J), silent=TRUE)
+    if (inherits(cholJ, "try-error") & likdata$adjust == 2) {
+      HA <- crossprod(backsolve(cholJ, H, transpose=TRUE))
+    } else {
+      iHA <- tcrossprod(crossprod(iH, J), iH)
+      choliHA <- try(chol(iHA), silent=TRUE)
+      if (inherits(choliHA, "try-error")) {
+        if (!likdata$force) {
+          stop("Sandwich variance not positive definite.\n  Supply `force=TRUE' to `sandwich.args' to perturb it to be positive definite.")
+        } else {
+          if (trace >= 0)
+            message("Sandwich variance perturbed to be positive definite.")
+          HA <- pinv(iHA)
+        }
+      } else {
+        HA <- chol2inv(choliHA)
+      }
+    }
+    sH <- svd(H)
+    M <- sqrt(sH$d) * t(sH$v)
+    sHA <- svd(HA)
+    MA <- sqrt(sHA$d) * t(sHA$v)
+    CH <- solve(M, MA)
+    compmode <- beta0
+  } else {
+    k <- 1 / mean(diag(crossprod(iH, J)))
+  }
 }
 attr(beta0, "k") <- k
 attr(beta0, "CH") <- CH
@@ -701,12 +670,12 @@ fit.reml$invHessian <- .solve_evgam(fit.reml$Hessian)
 fit.reml$trace <- trace
 
 if (trace == 1) {
-    report <- "\n Final max(|grad|))"
-    likdata$S <- .makeS(Sdata, exp(fit.reml$par))
-    report <- c(report, paste("   Inner:", signif(max(abs(.gH.pen(fit.reml$beta, likdata, likfns)[[1]])), 3)))
-    report <- c(report, paste("   Outer:", signif(max(abs(fit.reml$gradient)), 3)))
-    report <- c(report, "", "")
-    cat(paste(report, collapse="\n"))
+  report <- "\n Final max(|grad|))"
+  likdata$S <- .makeS(Sdata, exp(fit.reml$par))
+  report <- c(report, paste("   Inner:", signif(max(abs(.gH.pen(fit.reml$beta, likdata, likfns)[[1]])), 3)))
+  report <- c(report, paste("   Outer:", signif(max(abs(fit.reml$gradient)), 3)))
+  report <- c(report, "", "")
+  cat(paste(report, collapse="\n"))
 }
 
 fit.reml
@@ -744,9 +713,9 @@ cholVp <- try(chol(Vp), silent=TRUE)
 if (inherits(cholVp, "try-error")) {
     cholVp <- attr(.perturb(Vp), "chol")
 }
-spSl <- lapply(seq_along(sp), function(i) sp[i] * attr(Sdata, "Sl")[[i]])
 attr(lsp, "beta") <- fitreml$beta
-dbeta <- .dbeta(lsp, spSl, .Hdata(H), fitreml$beta, likdata, likfns, deriv=1)$d1
+spSl <- Map("*", attr(Sdata, "Sl"), exp(lsp))
+dbeta <- .d1beta(lsp, fitreml$beta, spSl, .Hdata(H))$d1
 Vrho <- fitreml$invHessian
 Vbetarho <- tcrossprod(dbeta %*% Vrho, dbeta)
 # eps <- 1e-4
@@ -802,7 +771,13 @@ if (length(gams) == 2) {
   } else {
     nms <- nms[-1]
 }}
-if (length(gams) == 4) nms <- c(nms, "logitdep")
+if (length(gams) == 4) {
+  if (is.null(likdata$agg)) {
+    nms <- c(nms, "logitdep")
+  } else {
+    nms <- c(nms, "logdep")
+  }
+}
 if (family == "exponential") nms <- "lograte"
 if (family == "weibull") nms[2] <- "logshape"
 if (family == "exi") nms <- paste(attr(likdata$linkfn, "name"), "exi", sep="")
