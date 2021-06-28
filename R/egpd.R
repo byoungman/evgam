@@ -17,7 +17,7 @@ egpd1d0 <- function(pars, X1, X2, X3, y, dupid, duplicate) {
   # interim stuff
   .e1 <- 1/xi
   .e4 <- y * xi/exp(lpsi)
-  if (any(.e4) <= -1) return(1e20)
+  if (any(.e4 <= -1)) return(1e20)
   # neg log lik vector
   out <- -((exp(lkappa) - 1) * log(1 - 1/(1 + .e4)^.e1) + lkappa - ((1 + .e1) * log1p(.e4) + lpsi))
   # overall neg log lik
