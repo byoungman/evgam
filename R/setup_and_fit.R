@@ -129,22 +129,26 @@ if (family == "egpd") {
     lik.fns <- .egpd1fns
     npar <- 3
     nms <- c("lpsi", "xi", "lkappa")
+    attr(family, "type") <- 1
   } else {
     if (egpd$m == 2) {
       lik.fns <- .egpd2fns
       npar <- 5
       nms <- c("lpsi", "xi", "lkappa1", "lkappa2", "logitp")
+      attr(family, "type") <- 2
       stop("Extended GPD with 'egpd.arg$m == 2' currently not available.")
     } else {
       if (egpd$m == 3) {
         lik.fns <- .egpd3fns
         npar <- 3
         nms <- c("lpsi", "xi", "ldelta")
+        attr(family, "type") <- 3
         stop("Extended GPD with 'egpd.arg$m == 3' currently not available.")
       } else {
         lik.fns <- .egpd4fns
         npar <- 4
         nms <- c("lpsi", "xi", "lkappa", "ldelta")
+        attr(family, "type") <- 4
         stop("Extended GPD with 'egpd.arg$m == 4' currently not available.")
       }
     }
@@ -886,6 +890,7 @@ smooth.terms <- unique(unlist(smooth.terms, recursive=FALSE))
 gams$plotdata <- lapply(smooth.terms, function(x) unique(data[,x, drop=FALSE]))
 if (family == "weibull") names(gams)[2] <- "logshape"
 if (family == "exponential") names(gams)[1] <- "lograte"
+if (family == "egpd" & attr(family, "type") == 1) names(gams) <- c("logscale", "shape", "kappa")
 gams$ngam <- length(formula)
 for (i in seq_along(gams[nms])[-gotsmooth])
   gams[[i]]$smooth <- NULL
