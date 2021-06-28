@@ -34,7 +34,7 @@ if (dcate == 1) {
 }
 
 double y, lpsi, xi, lkappa;
-double ee1, ee2;
+double ee1, ee4;
 double nllh=0.0;
 
 for (int j=0; j < nobs; j++) {
@@ -65,6 +65,7 @@ arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec xivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec lkappavec = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
+arma::mat out = arma::mat(nobs, 9);
 
 if (dcate == 1) {
   lpsivec = lpsivec.elem(dupid);
@@ -141,6 +142,7 @@ arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec xivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec lkappavec = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
+arma::mat out = arma::mat(nobs, 25);
 
 if (dcate == 1) {
   lpsivec = lpsivec.elem(dupid);
