@@ -23,6 +23,8 @@
 #' @param exi.args a list of arguments for \code{family="exi"}; see Details
 #' @param pp.args a list of arguments for \code{family="pp"}; see Details
 #' @param sandwich.args a list of arguments for sandwich adjustment; see Details
+#' @param egpd.args a list of arguments for extended GPD; see Details
+#' @param custom.fns a list of functions for a custom family; see Details
 #' 
 #' @details
 #' 
@@ -58,11 +60,25 @@
 #' variable in \code{data} such that independence will be assumed between its values. The
 #' \code{method} for the adjustment is supplied as \code{"magnitude"} (default) or \code{"curvature"};
 #' see Chandler & Bate (2007) for their definitions.
+#'
+#' Arguments for the extended GPD of Naveau et al. (2016) are given by \code{egpd.args}. A scalar \code{m}
+#' can be supplied to the list, which identifies the model: \code{m=1} is \eqn{G(v) = v^\kappa}, \eqn{\kappa > 0}; 
+#' \code{m = 2} is \eqn{G(v) = pv^{\kappa_1} + (1 - p)v^{\kappa_2}}, \eqn{\kappa_1, \kappa_2 > 0}, \eqn{p \in [0, 1]};
+#' \code{m = 3} is \eqn{G(v) = 1 - Q_{\delta}([1 - v]^\delta)}, \eqn{\delta > 0};
+#' \code{m = 4} is \eqn{G(v) = \{1 - Q_{\delta}([1 - v]^\delta)\}^\kappa}, \eqn{\kappa, \delta > 0}.
+#'
+#' Custom likelihood functions can be handled with likfns, a list comprising 'd0', a function to evaluate the 
+#' negative log likelihood, 'd12' and 'd34', functions to evaluate its first a second derivatives, and third and 
+#' fourth derivatives, respectively; see Gumbel example.
 #' 
 #' @references 
 #' 
 #' Chandler, R. E., & Bate, S. (2007). Inference for clustered data
 #' using the independence loglikelihood. Biometrika, 94(1), 167-183.
+#'
+#' Naveau, P., Huser, R., Ribereau, P., and Hannart, A. (2016), Modeling 
+#' jointly low, moderate, and heavy rainfall intensities without a threshold 
+#' selection, Water Resources Research, 52, 2753-2769.
 #'
 #' Oh, H. S., Lee, T. C., & Nychka, D. W. (2011). Fast nonparametric 
 #' quantile regression with arbitrary smoothing methods. Journal of 
@@ -130,10 +146,12 @@
 evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0, 
 inits=NULL, outer="bfgs", control=NULL, removeData=FALSE, trace=0, 
 knots=NULL, maxdata=1e20, maxspline=1e20, compact=FALSE, 
-ald.args=list(), exi.args=list(), pp.args=list(), sandwich.args=list()) {
+ald.args=list(), exi.args=list(), pp.args=list(), sandwich.args=list(),
+egpd.args=list(), custom.fns=list()) {
 
 ## setup family
-family.info <- .setup.family(family, pp.args)
+family.info <- .setup.family(family, pp.args, egpd.args, formula, custom.fns)
+family <- family.info$family
 
 ## setup formulae
 formula <- .setup.formulae(formula, family.info$npar, family.info$npar2, data, trace)
