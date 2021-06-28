@@ -24,7 +24,7 @@ double egpd1d0(const Rcpp::List& pars, const arma::mat& X1, const arma::mat& X2,
     
 arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec xivec = X2 * Rcpp::as<arma::vec>(pars[1]);
-arma::vec lkappa = X3 * Rcpp::as<arma::vec>(pars[2]);
+arma::vec lkappavec = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
 
 if (dcate == 1) {
@@ -63,7 +63,7 @@ arma::mat egpd1d12(const Rcpp::List& pars, arma::mat X1, arma::mat X2, arma::mat
     
 arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec xivec = X2 * Rcpp::as<arma::vec>(pars[1]);
-arma::vec lkappa = X3 * Rcpp::as<arma::vec>(pars[2]);
+arma::vec lkappavec = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
 
 if (dcate == 1) {
@@ -139,7 +139,7 @@ arma::mat egpd1d34(const Rcpp::List& pars, arma::mat X1, arma::mat X2, arma::mat
     
 arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec xivec = X2 * Rcpp::as<arma::vec>(pars[1]);
-arma::vec lkappa = X3 * Rcpp::as<arma::vec>(pars[2]);
+arma::vec lkappavec = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
 
 if (dcate == 1) {
@@ -171,9 +171,9 @@ double ee171, ee172, ee173;
 for (int j=0; j < nobs; j++) {
 
 y = yvec[j];
-mu = muvec[j];
 lpsi = lpsivec[j];
 xi = xivec[j];
+lkappa = lkappavec[j];
 
 ee1 = exp(lpsi);
 ee2 = xi * y;
