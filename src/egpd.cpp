@@ -61,16 +61,15 @@ return(nllh);
 arma::mat egpd1d12(const Rcpp::List& pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::vec yvec, const arma::uvec dupid, int dcate)
 {
     
-arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
-arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
-arma::vec xivec = X3 * Rcpp::as<arma::vec>(pars[2]);
+arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
+arma::vec xivec = X2 * Rcpp::as<arma::vec>(pars[1]);
+arma::vec lkappa = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 9);
 
 if (dcate == 1) {
-    muvec = muvec.elem(dupid);
-    lpsivec = lpsivec.elem(dupid);
-    xivec = xivec.elem(dupid);
+  lpsivec = lpsivec.elem(dupid);
+  xivec = xivec.elem(dupid);
+  lkappavec = lkappavec.elem(dupid);
 }
 
 double y, lpsi, xi, lkappa;
@@ -138,16 +137,15 @@ return out;
 arma::mat egpd1d34(const Rcpp::List& pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::vec yvec, const arma::uvec dupid, int dcate)
 {
     
-arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
-arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
-arma::vec xivec = X3 * Rcpp::as<arma::vec>(pars[2]);
+arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
+arma::vec xivec = X2 * Rcpp::as<arma::vec>(pars[1]);
+arma::vec lkappa = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 9);
 
 if (dcate == 1) {
-    muvec = muvec.elem(dupid);
-    lpsivec = lpsivec.elem(dupid);
-    xivec = xivec.elem(dupid);
+  lpsivec = lpsivec.elem(dupid);
+  xivec = xivec.elem(dupid);
+  lkappavec = lkappavec.elem(dupid);
 }
 
 double y, lpsi, xi, lkappa;
