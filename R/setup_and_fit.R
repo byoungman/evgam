@@ -126,23 +126,23 @@ if (family == "egpd") {
   if (is.null(egpd$m))
     egpd$m <- 1
   if (egpd$m == 1) {
-    lik.fns <- .egpdfns1
+    lik.fns <- .egpd1fns
     npar <- 3
     nms <- c("lpsi", "xi", "lkappa")
   } else {
     if (egpd$m == 2) {
-      lik.fns <- .egpdfns2
+      lik.fns <- .egpd2fns
       npar <- 5
       nms <- c("lpsi", "xi", "lkappa1", "lkappa2", "logitp")
       stop("Extended GPD with 'egpd.arg$m == 2' currently not available.")
     } else {
       if (egpd$m == 3) {
-        lik.fns <- .egpdfns3
+        lik.fns <- .egpd3fns
         npar <- 3
         nms <- c("lpsi", "xi", "ldelta")
         stop("Extended GPD with 'egpd.arg$m == 3' currently not available.")
       } else {
-        lik.fns <- .egpdfns4
+        lik.fns <- .egpd4fns
         npar <- 4
         nms <- c("lpsi", "xi", "lkappa", "ldelta")
         stop("Extended GPD with 'egpd.arg$m == 4' currently not available.")
