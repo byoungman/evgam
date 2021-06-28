@@ -655,5 +655,5 @@ egpd3d12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[
 egpd3d34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y[,1], likdata$dupid, likdata$duplicate)
 }
 
-.egpd3fns <- list(d0=.egpd3.d0, d120=.egpd3.d12, d340=NULL)
+.egpd3fns <- list(d0=.egpd3.d0, d120=.egpd3.d12, d340=.egpd3.d34)
 
