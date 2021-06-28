@@ -143,6 +143,7 @@ if (family == "egpd") {
         npar <- 3
         nms <- c("lpsi", "xi", "ldelta")
         attr(family, "type") <- 3
+        stop("Extended GPD with 'egpd.arg$m == 3' currently not available.")
       } else {
         lik.fns <- .egpd4fns
         npar <- 4
