@@ -890,7 +890,7 @@ smooth.terms <- unique(unlist(smooth.terms, recursive=FALSE))
 gams$plotdata <- lapply(smooth.terms, function(x) unique(data[,x, drop=FALSE]))
 if (family == "weibull") names(gams)[2] <- "logshape"
 if (family == "exponential") names(gams)[1] <- "lograte"
-if (family == "egpd" & attr(family, "type") == 1) names(gams) <- c("logscale", "shape", "kappa")
+if (family == "egpd" & attr(family, "type") == 1) names(gams)[1:3] <- c("logscale", "shape", "logkappa")
 gams$ngam <- length(formula)
 for (i in seq_along(gams[nms])[-gotsmooth])
   gams[[i]]$smooth <- NULL
