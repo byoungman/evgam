@@ -371,3 +371,243 @@ out(j, 24) = ee124;
 return out;
 
 }
+
+// //' Extended generalized Pareto distribution of type 3 (eGPD3) negative log-likelihood
+// //'
+// //' @param pars a list of vectors of coefficients for each eGPD parameter
+// //' @param X1 a design matrix for the eGPD log scale parameter
+// //' @param X2 a design matrix for the eGPD shape parameter
+// //' @param X3 a design matrix for the eGPD log kappa
+// //' @param yvec a vector
+// //' @param dupid a scalar or vector, identifying duplicates in Xs; -1 corresponds to no duplicates
+// //' @return egpd3d0 a scalar, the negative log-liklihood
+// //' @return egpd3d12 a matrix, first then second derivatives w.r.t. eGPD1 parameters
+// //' @return egpd3d34 a matrix, third then fourth derivatives w.r.t. eGPD1 parameters
+// //' @examples
+// //' ## to follow
+// //' @export
+// [[Rcpp::export]]
+double egpd3d0(const Rcpp::List& pars, const arma::mat& X1, const arma::mat& X2, const arma::mat& X3, arma::vec yvec, const arma::uvec& dupid, int dcate)
+{
+    
+arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
+arma::vec xivec = X2 * Rcpp::as<arma::vec>(pars[1]);
+arma::vec ldeltavec = X3 * Rcpp::as<arma::vec>(pars[2]);
+int nobs = yvec.size();
+
+if (dcate == 1) {
+  lpsivec = lpsivec.elem(dupid);
+  xivec = xivec.elem(dupid);
+  ldeltavec = ldeltavec.elem(dupid);
+}
+
+double y, lpsi, xi, ldelta;
+double ee1, ee4;
+double nllh=0.0;
+
+for (int j=0; j < nobs; j++) {
+
+y = yvec[j];
+lpsi = lpsivec[j];
+xi = xivec[j];
+ldelta = ldeltavec[j];
+
+ee1 = exp(ldelta);
+ee2 = exp(lpsi);
+ee3 = 1 + xi * y/ee2;
+ee4 = 1/xi;
+ee6 = 1 + ee1;
+ee7 = 1/R_pow(ee3, ee4);
+
+nllh -= log(-((R_pow(ee7, ee1 - 1)/R_pow(ee3, 1 + 2/xi) - (1 - R_pow(ee7, ee1)/ee6) * 
+ee6/(R_pow(ee3, 1 + ee4) * ee1))/ee2));
+
+}
+
+return(nllh);
+
+}
+
+// //' @rdname egpd3d0
+// [[Rcpp::export]]
+arma::mat egpd3d12(const Rcpp::List& pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::vec yvec, const arma::uvec dupid, int dcate)
+{
+    
+arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
+arma::vec xivec = X2 * Rcpp::as<arma::vec>(pars[1]);
+arma::vec ldeltavec = X3 * Rcpp::as<arma::vec>(pars[2]);
+int nobs = yvec.size();
+arma::mat out = arma::mat(nobs, 9);
+
+if (dcate == 1) {
+  lpsivec = lpsivec.elem(dupid);
+  xivec = xivec.elem(dupid);
+  ldeltavec = ldeltavec.elem(dupid);
+}
+
+double y, lpsi, xi, ldelta;
+double ee1, ee2, ee3, ee4, ee5, ee6, ee7, ee8, ee9;
+double ee10, ee11, ee12, ee13, ee14, ee15, ee16, ee17, ee18, ee19;
+double ee20, ee21, ee22, ee23, ee24, ee25, ee26, ee27, ee28, ee29;
+double ee30, ee32, ee33, ee34, ee35, ee36, ee37, ee38, ee39;
+double ee40, ee49;
+double ee53, ee54, ee55, ee56, ee58, ee59;
+double ee60, ee61, ee62, ee63, ee65, ee66, ee67, ee68, ee69;
+double ee70, ee71, ee74, ee75, ee78;
+double ee80, ee81, ee82, ee83, ee84, ee85;
+double ee92, ee93, ee94, ee97, ee98;
+double ee100, ee101, ee103, ee104, ee105, ee109;
+double ee113, ee116, ee117, ee118;
+double ee122, ee124, ee126, ee127, ee128, ee129;
+double ee130, ee131;
+
+for (int j=0; j < nobs; j++) {
+
+y = yvec[j];
+lpsi = lpsivec[j];
+xi = xivec[j];
+ldelta = ldeltavec[j];
+
+ee1 = exp(lpsi);
+ee2 = xi * y;
+ee3 = ee2/ee1;
+ee4 = 1 + ee3;
+ee5 = 1/xi;
+ee6 = exp(ldelta);
+ee7 = R_pow(ee4, ee5);
+ee8 = 1/ee7;
+ee9 = 2/xi;
+ee10 = 1 + ee5;
+ee11 = 1 + ee9;
+ee12 = ee6 - 1;
+ee13 = 1 + ee6;
+ee14 = R_pow(ee4, ee10);
+ee15 = log1p(ee3);
+ee16 = R_pow(ee8, ee12);
+ee17 = R_pow(ee8, ee6);
+ee18 = ee14 * ee6;
+ee19 = R_pow(ee4, ee11);
+ee20 = ee17/ee13;
+ee21 = 1 - ee20;
+ee22 = ee5 - 1;
+ee23 = R_pow(ee4, ee22);
+ee24 = ee21 * ee13;
+ee25 = R_pow(ee4, ee9);
+ee26 = R_pow(ee18, 2);
+ee27 = ee6 - 2;
+ee28 = R_pow(ee8, ee27);
+ee29 = R_pow(xi, 2);
+ee30 = y * ee23;
+ee32 = ee7 * ee15/xi;
+ee33 = ee30/ee1;
+ee34 = ee33 - ee32;
+ee35 = ee24/ee18;
+ee36 = ee16/ee19;
+ee37 = 2 * ee11;
+ee38 = ee36 - ee35;
+ee39 = ee28 * ee12;
+ee40 = 3/xi;
+ee49 = y * ee10 * ee7/ee1 - ee14 * ee15/ee29;
+ee53 = y * ee11 * ee25/ee1 - 2 * (ee19 * ee15/ee29);
+ee54 = 2 * ee10;
+ee55 = R_pow(ee4, 1 + ee40);
+ee56 = R_pow(ee4, ee37);
+ee58 = ee17 * ee15/xi;
+ee59 = R_pow(ee6, 2);
+ee60 = xi * ee19;
+ee61 = ee58 + 1;
+ee62 = 4/xi;
+ee63 = R_pow(ee4, ee54);
+ee65 = R_pow(ee38/ee1, 2) * R_pow(ee1, 2);
+ee66 = ee24 * ee14;
+ee67 = R_pow(ee4, ee5 - 2);
+ee68 = R_pow(ee4, ee9 - ee37);
+ee69 = ee16 * ee15;
+ee70 = 1 + ee62;
+ee71 = (ee66/ee26 - ee69/ee60) * ee6;
+ee74 = (ee16/ee55 + ee39/R_pow(ee4, ee70)) * ee34/xi + ee16 * ee53/ee56;
+ee75 = ee61/ee14;
+ee78 = ee24 * ee6 * ee49/ee26;
+ee80 = ee11 * ee68 * ee16;
+ee81 = ee4 * ee1;
+ee82 = ee16 * ee6;
+ee83 = ee15/xi;
+ee84 = ee71 - ee75;
+ee85 = ee74 - ee78;
+ee92 = ee35 + y * (ee16/ee63 + ee39/R_pow(ee4, 2 + ee40) + xi * (ee80 - ee21 * ee10 * ee13 * ee7 * ee6/ee26))/ee1 - ee36;
+ee93 = ee23 * ee15;
+ee94 = R_pow(ee34, 2);
+ee97 = y * ee67 * ee22/ee1;
+ee98 = y/ee81;
+ee100 = ee82 * ee15;
+ee101 = R_pow(ee8, ee6 - 3);
+ee103 = 2 * (y * R_pow(ee4, ee9 - 1)/ee1);
+ee104 = 4 * ee11;
+ee105 = ee98 - 2 * ee83;
+ee109 = ee11 * (ee103 - 2 * (ee25 * ee15/xi));
+ee113 = ee63 * ee1;
+ee116 = ee39 * ee15;
+ee117 = ee28 * ee53;
+ee118 = ee101 * ee27;
+ee122 = (ee97 - ee93/ee29)/ee25 - 2 * (ee34/ee60);
+ee124 = (y * (ee97 - (ee23 + ee93/xi)/xi)/ee1 - (ee7 * ee105 + ee15 * ee34/xi)/xi)/ee25 - 2 * (ee94/(xi * R_pow(ee4, ee40)));
+ee126 = 2 * (y/(R_pow(ee4, ee5 + 2) * ee1)) - (ee23 + ee2 * ee67 * ee22/ee1)/ee25;
+ee127 = xi * ee14;
+ee128 = xi * ee55;
+ee129 = xi * ee25;
+ee130 = xi * R_pow(ee4, ee62);
+ee131 = ee2 * ee11;
+
+out(j, 0) = -(ee92/ee38);
+out(j, 1) = ee85/ee38;
+out(j, 2) = -(ee84/ee38);
+out(j, 3) =  - (((y * (((ee16 * ee126 + y * ee28 * ee12/ee113)/ee7 +
+   ee2 * ee10 * ee16 * ee59/(ee26 * ee1) - (2 * (ee16/R_pow(ee4, ee54 -
+   1)) + 2 * (ee39/ee55)))/ee4 + ((ee28 * ee126 +
+   y * ee101 * ee27/ee113)/ee19 + ee131 * R_pow(ee4, ee5 -
+   (1 + ee37)) * ee28/ee1) * ee12 + xi * (((ee7 + 2 * ee7 - y * (2 * (xi * ee10 * ee55 * ee59/ee26) -
+   ee23)/ee1) * ee21 * ee13 +
+   y * ee16 * ee6/ee81) * ee10 * ee6/ee26 + ((ee30 * ee28 * ee12/ee1 -
+   (ee25 + ee103) * ee16)/ee56 + 2 * (ee131 * R_pow(ee4, 1 +
+   6/xi - ee104) * ee16/ee1) - 2 * (ee68 * ee16)) * ee11)) -
+   ee38 * ee1)/ee1 + 2 * ee38)/ee38 - R_pow(ee92, 2)/ee65);
+out(j, 4) =  - (ee85 * ee92/ee65 + (ee74 + y * (((ee122 * ee28 -
+   ee118 * ee34/ee128)/ee19 - ee117/R_pow(ee4, ee10 + ee37)) * ee12 +
+   ((ee109 + ee25) * ee16 - ee11 * ee28 * ee12 * ee34)/ee56 +
+   (ee122 * ee16 - ee39 * ee34/ee128)/ee14 - (((ee10 * ee16 * ee34/ee7 +
+   ee16 * ee49/ee14) * ee6 + (ee10 * (ee33 -
+   (ee32 + 2 * (ee60 * ee59 * ee49/ee26))) + ee7) * ee21 * ee13) * ee6/ee26 +
+   2 * (xi * ee11 * R_pow(ee4, ee70 - ee104) * ee16 * ee53)))/ee1 -
+   ee78)/ee38);
+out(j, 5) =  - ((ee75 + y * (((ee28/ee14 - ee116/ee127)/ee19 -
+   ((ee82 + xi * ((ee7 - 2 * (R_pow(ee4, ee5 + ee54) * ee59/ee26)) * ee21 * ee13 +
+   ee61 * ee7 * ee6) * ee10)/ee26 + ee80 * ee15)) * ee6 +
+   (ee16/ee14 - ee100/ee127)/ee14)/ee1 - ee71)/ee38 -
+   ee84 * ee92/ee65);
+out(j, 6) = ((((ee124 * ee28 - ee118 * ee94/ee130)/ee19 - ee117 * ee34/R_pow(ee4, ee37 +
+   ee9)) * ee12 + (ee124 * ee16 -
+   ee39 * ee94/ee130)/ee14 + (ee16 * (y * (ee109 - 2 * (ee25/xi))/ee1 -
+   (ee19 * (2 * ee98 - 4 * ee83) + 2 * (ee15 * ee53))/xi) -
+   ee39 * ee53 * ee34/ee25)/ee56 - ee16 * ee59 * ee49 * ee34/(ee26 * ee25))/xi -
+   (((ee24 * (y * (ee10 * ee34 - ee7/xi)/ee1 -
+   (ee14 * ee105 + ee15 * ee49)/xi) + ee82 * ee49 * ee34/ee25)/xi -
+   2 * (ee66 * ee59 * R_pow(ee49, 2)/ee26)) * ee6/ee26 +
+   2 * (R_pow(ee4, ee11 - ee104) * ee16 * R_pow(ee53, 2))))/ee38 +
+   R_pow(ee85, 2)/ee65;
+out(j, 7) = ((((ee28/ee25 - ee116/ee129) * ee34/ee19 - ee69 * ee53/ee56)/xi -
+   (ee61 * ee6 + ee21 * (1 - 2 * (ee63 * ee59/ee26)) * ee13) * ee49/ee26) * ee6 +
+   ((ee16/ee25 - ee100/ee129)/ee14 -
+   R_pow(ee4, 1 - ee5) * ee16 * ee59/ee26) * ee34/xi)/ee38 -
+   ee84 * ee85/ee65;
+out(j, 8) =  - (((((ee14 - 2 * (R_pow(ee4, ee10 + ee54) * ee59/ee26)) * ee21 * ee13 +
+   2 * (ee61 * ee14 * ee6))/ee26 + (ee100/xi -
+   ee16) * ee15/ee60) * ee6 - (((ee17 - 2 * ee17) * ee6/ee13 +
+   ee17)/ee13 + ((ee58 + ee20) * ee6 - ee17) * (1/ee13 -
+   ee83) + 1)/ee14)/ee38 - R_pow(ee84, 2)/ee65);
+
+}
+
+return out;
+
+}
+

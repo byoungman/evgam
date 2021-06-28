@@ -639,3 +639,54 @@ egpd1d34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[
 
 .egpd1fns <- list(d0=.egpd1.d0, d120=.egpd1.d12, d340=.egpd1.d34)
 
+## model 2 ##
+
+# Q <- function(v, delta) {
+#   ((1.0 + delta) / delta) * (v^(1.0 / delta)) * (1.0 - v / (1.0 + delta))
+# }
+# 
+# G <- function(v, delta) {
+#   1.0 - Q((1.0 - v)^delta, delta)
+# }
+# 
+# H <- function(y, psi, xi) {
+#   1.0 - (1.0 + xi * y / psi)^(-1.0/xi)
+# }
+# 
+# F <- function(y, lpsi, xi, ldelta) {
+#   G(H(y, exp(lpsi), xi), exp(ldelta))
+# }
+# 
+# f <- Deriv(F, "y")
+# nlf <- function(y, lpsi, xi, ldelta) -log(f(lpsi, xi, ldelta))
+# 
+# F(13.5, 1.1, .1, .8)
+# 
+# 
+# F.expr <- expression(1 - ((1.0 + exp(ldelta)) / exp(ldelta)) * ((1 - (1 + xi * y / exp(lpsi))^(-1/xi))^(1.0 / exp(ldelta))) * (1.0 - (1 - (1 + xi * y / exp(lpsi))^(-1/xi)) / (1.0 + exp(ldelta)))^exp(exp(ldelta)))
+# f.expr <- D(F.expr, "y")
+# F.expr <- expression(-log(-(((1 + exp(ldelta))/exp(ldelta)) * ((1 - (1 + xi * y/exp(lpsi))^(-1/xi))^(1/exp(ldelta))) * 
+#     ((1 - (1 - (1 + xi * y/exp(lpsi))^(-1/xi))/(1 + exp(ldelta)))^(exp(exp(ldelta)) - 
+#         1) * (exp(exp(ldelta)) * ((1 + xi * y/exp(lpsi))^((-1/xi) - 
+#         1) * ((-1/xi) * (xi/exp(lpsi)))/(1 + exp(ldelta))))) - 
+#     ((1 + exp(ldelta))/exp(ldelta)) * ((1 - (1 + xi * y/exp(lpsi))^(-1/xi))^((1/exp(ldelta)) - 
+#         1) * ((1/exp(ldelta)) * ((1 + xi * y/exp(lpsi))^((-1/xi) - 
+#         1) * ((-1/xi) * (xi/exp(lpsi)))))) * (1 - (1 - (1 + xi * 
+#         y/exp(lpsi))^(-1/xi))/(1 + exp(ldelta)))^exp(exp(ldelta)))))
+# 
+# f <- Deriv(F, "y")
+# nlf <- function(y, lpsi, xi, ldelta) -log(f(y, lpsi, xi, ldelta))
+# 
+# F.expr <- expression((1 - (1 + xi * x / exp(lpsi))^(-1/xi))^exp(lkappa))
+
+.egpd3.d0 <- function(pars, likdata) {
+if (likdata$censored)
+  stop("Censored likelihoods not currently available for extended GPDs.")
+egpd3d0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y[,1], likdata$dupid, likdata$duplicate)
+}
+
+.egpd3.d12 <- function(pars, likdata) {
+egpd3d12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y[,1], likdata$dupid, likdata$duplicate)
+}
+
+.egpd3fns <- list(d0=.egpd3.d0, d120=.egpd3.d12, d340=NULL)
