@@ -1,10 +1,10 @@
 ## Setup and fitting functions
 #
-# .setup.formula
-# --- takes evgam formula and returns something useful for fitting
-#
 # .setup.family
 # --- identifies family, its # parameters, their names and its functions
+#
+# .setup.formula
+# --- takes evgam formula and returns something useful for fitting
 #
 # .predictable.gam
 # --- takes a gam(..., fit=FALSE) object and adds stuff so that mgcv::predict.gam works
@@ -46,79 +46,9 @@
 # --- adds other useful things to final objects for user functions
 #
 
-############ .setup.formula ##########################
-
-.setup.formulae <- function(formula, npar, npar2, data, trace) {
-# turn formula into list, which will be repeated.
-if (inherits(formula, "formula"))
-  formula <- list(formula)
-# get variable names
-if (npar == 1) {
-  if (!(length(formula) %in% c(npar, 1)))
-    stop("length(formula) for this family should be 1")
-} else {
-  if (!(length(formula) %in% c(npar, 1)))
-    stop(paste("length(formula) for this family should be", npar, "(or 1 if all parameters are to have the same formula)"))
-}
-pred.vars <- unique(unlist(lapply(formula, all.vars)))
-# check they're all in data
-if (!all(pred.vars %in% names(data))) {
-  missing.vars <- pred.vars[!(pred.vars %in% names(data))]
-  stop(paste("Variable(s) '", paste(missing.vars, collapse=", "), "' not supplied to `data'.", sep=""))
-}
-# check if first element of list has response; otherwise get response name
-terms.list <- lapply(formula, terms.formula, specials=c("s", "te", "ti"))
-got.specials <- sapply(lapply(terms.list, function(x) unlist(attr(x, "specials"))), any)
-termlabels.list <- lapply(terms.list, attr, "term.labels")
-got.intercept <- sapply(terms.list, attr, "intercept") == 1
-for (i in seq_along(termlabels.list)) {
-  if (length(termlabels.list[[i]]) == 0) {
-    if (got.intercept[i]) {
-      termlabels.list[[i]] <- "1"
-    } else {
-      stop(paste("formula element", i, "incorrectly specified"))
-    }
-  }
-}
-got.response <- sapply(terms.list, attr, "response") == 1
-if (!got.response[1]) {
-  stop("formula has no response")
-} else {
-  response.name <- as.character(formula[[1]])[2]
-}
-if (any(!got.response)) {
-  for (i in which(!got.response)) {
-    formula[[i]] <- reformulate(termlabels=termlabels.list[[i]], response=response.name)
-  }
-}
-stripped.formula <- lapply(termlabels.list, function(x) reformulate(termlabels=x))
-censored <- FALSE
-# now allow for the possibility of a [a, b] response
-if (substr(response.name, 1, 5) == "cens(") {
-  response.name <- substr(response.name, 6, nchar(response.name) - 1)
-  response.name <- gsub(" ", "", response.name)
-  response.name <- strsplit(response.name, ",")[[1]]
-  if (length(response.name) > 2)
-    stop("Censored response can only contain two variables.")
-  rr <- response.name[2]
-  formula <- lapply(termlabels.list, function(x) reformulate(termlabels=x, response=rr))
-  censored <- TRUE
-}
-#
-attr(formula, "response.name") <- response.name
-pred.vars <- pred.vars[!(pred.vars %in% response.name)]
-attr(formula, "predictor.names") <- pred.vars
-attr(formula, "stripped") <- stripped.formula
-attr(formula, "censored") <- censored
-attr(formula, "smooths") <- got.specials
-for (i in seq_along(formula)) {
-  attr(formula[[i]], "intercept") <- got.intercept[i]
-  attr(formula[[i]], "smooth") <- got.specials[i]
-}
-formula
-}
+############ .setup.family ##########################
   
-.setup.family <- function(family, pp) {
+.setup.family <- function(family, pp, egpd, formula, likfns) {
 if (family == "gev") {
   lik.fns <- .gevfns
   npar <- 3
@@ -191,6 +121,41 @@ if (family == "gauss") {
   lik.fns <- .gaussfns
   npar <- 2
   nms <- c("mu", "logsigma")
+} else {
+if (family == "egpd") {
+  if (is.null(egpd$m))
+    egpd$m <- 1
+  if (egpd$m == 1) {
+    lik.fns <- .egpdfns1
+    npar <- 3
+    nms <- c("lpsi", "xi", "lkappa")
+  } else {
+    if (egpd$m == 2) {
+      lik.fns <- .egpdfns2
+      npar <- 5
+      nms <- c("lpsi", "xi", "lkappa1", "lkappa2", "logitp")
+      stop("Extended GPD with 'egpd.arg$m == 2' currently not available.")
+    } else {
+      if (egpd$m == 3) {
+        lik.fns <- .egpdfns3
+        npar <- 3
+        nms <- c("lpsi", "xi", "ldelta")
+        stop("Extended GPD with 'egpd.arg$m == 3' currently not available.")
+      } else {
+        lik.fns <- .egpdfns4
+        npar <- 4
+        nms <- c("lpsi", "xi", "lkappa", "ldelta")
+        stop("Extended GPD with 'egpd.arg$m == 4' currently not available.")
+      }
+    }
+  }
+} else {
+  if (length(likfns)) {
+    lik.fns <- likfns
+    family <- "custom"
+    npar <- length(formula)
+  }
+}
 }
 }
 }
@@ -205,6 +170,78 @@ if (family == "gauss") {
 }
 }
 out <- list(npar=npar, npar2=npar, lik.fns=lik.fns, nms=nms)
+}
+
+############ .setup.formula ##########################
+
+.setup.formulae <- function(formula, npar, npar2, data, trace) {
+# turn formula into list, which will be repeated.
+if (inherits(formula, "formula"))
+  formula <- list(formula)
+# get variable names
+if (npar == 1) {
+  if (!(length(formula) %in% c(npar, 1)))
+    stop("length(formula) for this family should be 1")
+} else {
+  if (!(length(formula) %in% c(npar, 1)))
+    stop(paste("length(formula) for this family should be", npar, "(or 1 if all parameters are to have the same formula)"))
+}
+pred.vars <- unique(unlist(lapply(formula, all.vars)))
+# check they're all in data
+if (!all(pred.vars %in% names(data))) {
+  missing.vars <- pred.vars[!(pred.vars %in% names(data))]
+  stop(paste("Variable(s) '", paste(missing.vars, collapse=", "), "' not supplied to `data'.", sep=""))
+}
+# check if first element of list has response; otherwise get response name
+terms.list <- lapply(formula, terms.formula, specials=c("s", "te", "ti"))
+got.specials <- sapply(lapply(terms.list, function(x) unlist(attr(x, "specials"))), any)
+termlabels.list <- lapply(terms.list, attr, "term.labels")
+got.intercept <- sapply(terms.list, attr, "intercept") == 1
+for (i in seq_along(termlabels.list)) {
+  if (length(termlabels.list[[i]]) == 0) {
+    if (got.intercept[i]) {
+      termlabels.list[[i]] <- "1"
+    } else {
+      stop(paste("formula element", i, "incorrectly specified"))
+    }
+  }
+}
+got.response <- sapply(terms.list, attr, "response") == 1
+if (!got.response[1]) {
+  stop("formula has no response")
+} else {
+  response.name <- as.character(formula[[1]])[2]
+}
+if (any(!got.response)) {
+  for (i in which(!got.response)) {
+    formula[[i]] <- reformulate(termlabels=termlabels.list[[i]], response=response.name)
+  }
+}
+stripped.formula <- lapply(termlabels.list, function(x) reformulate(termlabels=x))
+censored <- FALSE
+# now allow for the possibility of a [a, b] response
+if (substr(response.name, 1, 5) == "cens(") {
+  response.name <- substr(response.name, 6, nchar(response.name) - 1)
+  response.name <- gsub(" ", "", response.name)
+  response.name <- strsplit(response.name, ",")[[1]]
+  if (length(response.name) > 2)
+    stop("Censored response can only contain two variables.")
+  rr <- response.name[2]
+  formula <- lapply(termlabels.list, function(x) reformulate(termlabels=x, response=rr))
+  censored <- TRUE
+}
+#
+attr(formula, "response.name") <- response.name
+pred.vars <- pred.vars[!(pred.vars %in% response.name)]
+attr(formula, "predictor.names") <- pred.vars
+attr(formula, "stripped") <- stripped.formula
+attr(formula, "censored") <- censored
+attr(formula, "smooths") <- got.specials
+for (i in seq_along(formula)) {
+  attr(formula[[i]], "intercept") <- got.intercept[i]
+  attr(formula[[i]], "smooth") <- got.specials[i]
+}
+formula
 }
 
 ############ .predictable.gam ##########################

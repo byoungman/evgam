@@ -23,6 +23,8 @@
 #' @param exi.args a list of arguments for \code{family="exi"}; see Details
 #' @param pp.args a list of arguments for \code{family="pp"}; see Details
 #' @param sandwich.args a list of arguments for sandwich adjustment; see Details
+#' @param egpd.args a list of arguments for extended GPD; see Details
+#' @param custom.fns a list of functions for a custom family; see Details
 #' 
 #' @details
 #' 
@@ -63,6 +65,10 @@
 #' 
 #' Chandler, R. E., & Bate, S. (2007). Inference for clustered data
 #' using the independence loglikelihood. Biometrika, 94(1), 167-183.
+#'
+#' Naveau, P., Huser, R., Ribereau, P., and Hannart, A. (2016), Modeling 
+#' jointly low, moderate, and heavy rainfall intensities without a threshold 
+#' selection, Water Resources Research, 52, 2753-2769.
 #'
 #' Oh, H. S., Lee, T. C., & Nychka, D. W. (2011). Fast nonparametric 
 #' quantile regression with arbitrary smoothing methods. Journal of 
@@ -130,10 +136,12 @@
 evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0, 
 inits=NULL, outer="bfgs", control=NULL, removeData=FALSE, trace=0, 
 knots=NULL, maxdata=1e20, maxspline=1e20, compact=FALSE, 
-ald.args=list(), exi.args=list(), pp.args=list(), sandwich.args=list()) {
+ald.args=list(), exi.args=list(), pp.args=list(), sandwich.args=list(),
+egpd.args=list(), custom.fns=list()) {
 
 ## setup family
-family.info <- .setup.family(family, pp.args)
+family.info <- .setup.family(family, pp.args, egpd.args, formula, custom.fns)
+family <- family.info$family
 
 if (is.null(family.info$lik.fns$d340))
   outer <- "fd"
