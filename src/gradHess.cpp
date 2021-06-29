@@ -224,6 +224,8 @@ int e5 = e4 + X5.n_cols;
 
 arma::mat H =  arma::mat(e5 + 1, e5 + 1);
 
+Rcpp::Rcout << "here0" << std::endl;
+
 H.submat(s1, s1, e1, e1) = X1.t() * (X1.each_col() % gh.col(5));
 H.submat(s2, s1, e2, e1) = X2.t() * (X1.each_col() % gh.col(6));
 H.submat(s3, s1, e3, e1) = X3.t() * (X1.each_col() % gh.col(7));
@@ -234,6 +236,8 @@ H.submat(s1, s3, e1, e3) = H.submat(s3, s1, e3, e1).t();
 H.submat(s1, s4, e1, e4) = H.submat(s4, s1, e4, e1).t();
 H.submat(s1, s5, e1, e5) = H.submat(s5, s1, e5, e1).t();
 
+Rcpp::Rcout << "here1" << std::endl;
+
 H.submat(s2, s2, e2, e2) = X2.t() * (X2.each_col() % gh.col(10));
 H.submat(s3, s2, e3, e2) = X3.t() * (X2.each_col() % gh.col(11));
 H.submat(s4, s2, e4, e2) = X4.t() * (X2.each_col() % gh.col(12));
@@ -242,17 +246,25 @@ H.submat(s2, s3, e2, e3) = H.submat(s3, s2, e3, e2).t();
 H.submat(s2, s4, e2, e4) = H.submat(s4, s2, e4, e2).t();
 H.submat(s2, s5, e2, e5) = H.submat(s5, s2, e5, e2).t();
 
+Rcpp::Rcout << "here2" << std::endl;
+
 H.submat(s3, s3, e3, e3) = X3.t() * (X3.each_col() % gh.col(14));
 H.submat(s4, s3, e4, e3) = X4.t() * (X3.each_col() % gh.col(15));
 H.submat(s5, s3, e5, e3) = X5.t() * (X3.each_col() % gh.col(16));
 H.submat(s3, s4, e3, e4) = H.submat(s4, s3, e4, e3).t();
 H.submat(s3, s5, e3, e5) = H.submat(s5, s3, e5, e3).t();
 
+Rcpp::Rcout << "here3" << std::endl;
+
 H.submat(s4, s4, e4, e4) = X4.t() * (X4.each_col() % gh.col(17));
 H.submat(s5, s4, e5, e4) = X5.t() * (X4.each_col() % gh.col(18));
 H.submat(s4, s5, e4, e5) = H.submat(s5, s4, e4, e4).t();
 
+Rcpp::Rcout << "here4" << std::endl;
+
 H.submat(s5, s5, e5, e5) = X5.t() * (X5.each_col() % gh.col(19));
+
+Rcpp::Rcout << "here5" << std::endl;
 
 out(1) = H;
     
