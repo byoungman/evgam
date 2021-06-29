@@ -200,6 +200,10 @@ gpdcd34 <- function(pars, X1, X2, ymat, dupid, dcate) {
     .Call(`_evgam_gH4`, gh, X1, X2, X3, X4, dupid, dcate, sand, deriv)
 }
 
+.gH5 <- function(gh, X1, X2, X3, X4, X5, dupid, dcate, sand, deriv) {
+    .Call(`_evgam_gH5`, gh, X1, X2, X3, X4, X5, dupid, dcate, sand, deriv)
+}
+
 pp1d0 <- function(pars, X1, X2, X3, yvec, wvec) {
     .Call(`_evgam_pp1d0`, pars, X1, X2, X3, yvec, wvec)
 }
