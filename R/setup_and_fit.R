@@ -248,7 +248,7 @@ formula
 ############ .predictable.gam ##########################
 
 .predictable.gam <- function(G, formula) {
-keep <- c("dev.extra", "pterms", "nsdf", "X", "terms", "mf", "smooth", "sp")
+keep <- c("dev.extra", "pterms", "nsdf", "X", "terms", "mf", "smooth", "sp", "term.names")
 G <- G[keep]
 G$nb <- ncol(G$X)
 G$coefficients <- numeric(G$nb)
@@ -271,6 +271,8 @@ if (missing(newdata)) {
   for (i in seq_along(object)) 
     class(object[[i]]) <- "gam"
   X <- lapply(object, mgcv::predict.gam, newdata=newdata, type="lpmatrix")
+  for (i in seq_along(X))
+    colnames(X[[i]]) <- object[[i]]$term.names
 }
 names(X) <- names(object)
 X
