@@ -225,12 +225,12 @@ out <- matrix(NA, ndat, nprob)
 
 if (family == "egpd") {
   if (egpd_m %in% c(1, 3)) {
-    prob <- egpd_iQ(prob, pars[, 3])
+    prob <- egpd_iG(prob, pars[, 3])
   } else {
     if (egpd_m == 2) {
-      prob <- egpd_iQ(prob, pars[, 3], pars[, 4], pars[, 5])
+      prob <- egpd_iG(prob, pars[, 3], pars[, 4], pars[, 5])
     } else {
-      prob <- egpd_iQ(prob, pars[, 3], pars[, 4])
+      prob <- egpd_iG(prob, pars[, 3], pars[, 4])
     }
   }
 }
