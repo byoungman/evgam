@@ -914,16 +914,17 @@ gams$Vp <- Vp
 gams$Vlsp <- VpVc$Vlsp
 gams$negREML <- fitreml$objective
 gams$coefficients <- as.vector(fitreml$beta)
-names(gams$coefficients) <- unlist(lapply, likdata$X, colnames)
 if (family == "ald") gams$tau <- likdata$tau
 if (family == "exi") {
   gams$linkfn <- likdata$linkfn
   gams$exi.name <- likdata$exiname
 }
 for (i in seq_along(likdata$X)) {
-gams[[i]]$X <- likdata$X[[i]]
-if (likdata$duplicate == 1) gams[[i]]$X <- gams[[i]]$X[likdata$dupid + 1,]
-gams[[i]]$fitted <- as.vector(likdata$X[[i]] %*% gams[[i]]$coefficients)
+  gams[[i]]$X <- likdata$X[[i]]
+  if (likdata$duplicate == 1) 
+    gams[[i]]$X <- gams[[i]]$X[likdata$dupid + 1,]
+  gams[[i]]$fitted <- as.vector(likdata$X[[i]] %*% gams[[i]]$coefficients)
+  names(gams[[i]]$coefficients) <- colnames(gams[[i]]$X)
 }
 gams$likdata <- likdata
 gams$likfns <- likfns
@@ -951,6 +952,7 @@ if (family == "egpd") {
     }
   }
 }
+names(gams$coefficients) <- unlist(lapply(seq_along(likdata$X), function(i) paste(names(gams)[i], names(gams[[i]]$coefficients), "_")))
 gams$ngam <- length(formula)
 for (i in seq_along(gams[nms])[-gotsmooth])
   gams[[i]]$smooth <- NULL
