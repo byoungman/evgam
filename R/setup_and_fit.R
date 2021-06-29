@@ -911,7 +911,8 @@ gams$Vc <- Vc
 gams$Vp <- Vp
 gams$Vlsp <- VpVc$Vlsp
 gams$negREML <- fitreml$objective
-gams$coefficients <- fitreml$beta
+gams$coefficients <- as.vector(fitreml$beta)
+names(gams$coefficients) <- unlist(lapply, likdata$X, colnames)
 if (family == "ald") gams$tau <- likdata$tau
 if (family == "exi") {
   gams$linkfn <- likdata$linkfn
