@@ -637,7 +637,7 @@ egpd1d12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[
 egpd1d34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y[,1], likdata$dupid, likdata$duplicate)
 }
 
-.egpd1fns <- list(d0=.egpd1.d0, d120=.egpd1.d12, d340=.egpd1.d34)
+.egpd1fns <- list(d0=.egpd1.d0, d120=.egpd1.d12, d340=.egpd1.d34, m=1)
 
 ## model 2 ##
 
@@ -671,7 +671,7 @@ egpd2d12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[
 }
 
 # .egpd3fns <- list(d0=.egpd3.d0, d120=.egpd3.d12, d340=.egpd3.d34)
-.egpd2fns <- list(d0=.egpd2.d0, d120=.egpd2.d12, d340=NULL)
+.egpd2fns <- list(d0=.egpd2.d0, d120=.egpd2.d12, d340=NULL, m=2)
 
 ## model 3 ##
 
@@ -690,5 +690,19 @@ egpd3d34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[
 }
 
 # .egpd3fns <- list(d0=.egpd3.d0, d120=.egpd3.d12, d340=.egpd3.d34)
-.egpd3fns <- list(d0=.egpd3.d0, d120=.egpd3.d12, d340=NULL)
+.egpd3fns <- list(d0=.egpd3.d0, d120=.egpd3.d12, d340=NULL, m=3)
+
+## model 4 ##
+
+.egpd4.d0 <- function(pars, likdata) {
+if (likdata$censored)
+  stop("Censored likelihoods not currently available for extended GPDs.")
+egpd4d0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], likdata$y[,1], likdata$dupid, likdata$duplicate)
+}
+
+.egpd4.d12 <- function(pars, likdata) {
+egpd4d12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], likdata$y[,1], likdata$dupid, likdata$duplicate)
+}
+
+.egpd4fns <- list(d0=.egpd4.d0, d120=.egpd4.d12, d340=NULL, m=3)
 
