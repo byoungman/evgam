@@ -258,7 +258,7 @@ Rcpp::Rcout << "here3" << std::endl;
 
 H.submat(s4, s4, e4, e4) = X4.t() * (X4.each_col() % gh.col(17));
 H.submat(s5, s4, e5, e4) = X5.t() * (X4.each_col() % gh.col(18));
-H.submat(s4, s5, e4, e5) = H.submat(s5, s4, e4, e4).t();
+H.submat(s4, s5, e4, e5) = H.submat(s5, s4, e5, e4).t();
 
 Rcpp::Rcout << "here4" << std::endl;
 
