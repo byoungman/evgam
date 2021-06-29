@@ -59,6 +59,11 @@ if (family == "pp") {
   }
 }
 
+if (family == "egpd") {
+  egpd_m <- object$likfns$m
+  egpd_iG <- object$likfns$iG
+}
+
 if (!is.null(prob)) 
   type <- "quantile"
 if (type == "quantile" & is.null(prob)) 
@@ -218,6 +223,18 @@ pars <- out
 nprob <- length(prob)
 out <- matrix(NA, ndat, nprob)
 
+if (family == "egpd") {
+  if (egpd_m %in% c(1, 3)) {
+    prob <- egpd_iQ(prob, pars[, 3])
+  } else {
+    if (egpd_m == 2) {
+      prob <- egpd_iQ(prob, pars[, 3], pars[, 4], pars[, 5])
+    } else {
+      prob <- egpd_iQ(prob, pars[, 3], pars[, 4])
+    }
+  }
+}
+
 for (j in seq_len(nprob)) {
   if (family == "gpd") {
     out[, j] <- .qgpd(prob[j], 0, pars[,1], pars[,2])
@@ -235,6 +252,8 @@ for (j in seq_len(nprob)) {
 }
 
 if (se.fit) { ## standard errors for quantile predictions using Delta method
+
+if (family == "egpd") stop("Standard errors not yet available for extended GPD quantiles.")
 
 Sigma <- array(NA, dim=c(ndat, nX, nX))
 idp <- conf.pars[[3]]
