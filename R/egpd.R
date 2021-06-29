@@ -663,7 +663,7 @@ vapply(seq_len(n), function(i) iG2i(v[i], kappa1[i], kappa2[i], p[i]), double(1)
 .egpd2.d0 <- function(pars, likdata) {
 if (likdata$censored)
   stop("Censored likelihoods not currently available for extended GPDs.")
-egpd2d0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y[,1], likdata$dupid, likdata$duplicate)
+egpd2d0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], likdata$X[[5]], likdata$y[,1], likdata$dupid, likdata$duplicate)
 }
 
 .egpd2.d12 <- function(pars, likdata) {
