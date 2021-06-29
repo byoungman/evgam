@@ -372,6 +372,272 @@ return out;
 
 }
 
+// //' Extended generalized Pareto distribution of type 2 (eGPD2) negative log-likelihood
+// //'
+// //' @param pars a list of vectors of coefficients for each eGPD parameter
+// //' @param X1 a design matrix for the eGPD log scale parameter
+// //' @param X2 a design matrix for the eGPD shape parameter
+// //' @param X3 a design matrix for the eGPD log kappa1 parameter
+// //' @param X4 a design matrix for the eGPD log kappa2 parameter
+// //' @param X5 a design matrix for the eGPD logit p parameter
+// //' @param yvec a vector
+// //' @param dupid a scalar or vector, identifying duplicates in Xs; -1 corresponds to no duplicates
+// //' @return egpd3d0 a scalar, the negative log-liklihood
+// //' @return egpd3d12 a matrix, first then second derivatives w.r.t. eGPD1 parameters
+// //' @return egpd3d34 a matrix, third then fourth derivatives w.r.t. eGPD1 parameters
+// //' @examples
+// //' ## to follow
+// //' @export
+// [[Rcpp::export]]
+double egpd2d0(const Rcpp::List& pars, const arma::mat& X1, const arma::mat& X2, const arma::mat& X3, const arma::mat& X4, const arma::mat& X5, arma::vec yvec, const arma::uvec& dupid, int dcate)
+{
+    
+arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
+arma::vec xivec = X2 * Rcpp::as<arma::vec>(pars[1]);
+arma::vec lkappa1vec = X3 * Rcpp::as<arma::vec>(pars[2]);
+arma::vec lkappa2vec = X4 * Rcpp::as<arma::vec>(pars[3]);
+arma::vec logitpvec = X5 * Rcpp::as<arma::vec>(pars[4]);
+int nobs = yvec.size();
+
+if (dcate == 1) {
+  lpsivec = lpsivec.elem(dupid);
+  xivec = xivec.elem(dupid);
+  lkappa1vec = lkappa1vec.elem(dupid);
+  lkappa2vec = lkappa2vec.elem(dupid);
+  logitpvec = logitpvec.elem(dupid);
+}
+
+double y, lpsi, xi, lkappa1, lkappa2, logitp;
+double ee1, ee2, ee4, ee6, ee7, ee8, ee9;
+double nllh=0.0;
+
+for (int j=0; j < nobs; j++) {
+
+y = yvec[j];
+lpsi = lpsivec[j];
+xi = xivec[j];
+lkappa1 = lkappa1vec[j];
+lkappa2 = lkappa2vec[j];
+logitp = logitpvec[j];
+
+ee1 = 1 + xi * y/exp(lpsi);
+ee2 = 1/xi;
+ee4 = R_pow(ee1, 1 + ee2);
+ee6 = 1 - 1/R_pow(ee1, ee2);
+ee7 = 1 + exp(-logitp);
+ee8 = exp(lkappa1);
+ee9 = exp(lkappa2);
+
+nllh -= log((1 - 1/ee7) * R_pow(ee6, ee9 - 1) * ee9/ee4 + R_pow(ee6, ee8 - 1) * ee8/(ee7 * ee4)) - lpsi;
+    
+}
+
+return(nllh);
+
+}
+
+// //' @rdname egpd2d0
+// [[Rcpp::export]]
+arma::mat egpd2d12(const Rcpp::List& pars, const arma::mat& X1, const arma::mat& X2, const arma::mat& X3, const arma::mat& X4, const arma::mat& X5, arma::vec yvec, const arma::uvec& dupid, int dcate)
+{
+    
+arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
+arma::vec xivec = X2 * Rcpp::as<arma::vec>(pars[1]);
+arma::vec lkappa1vec = X3 * Rcpp::as<arma::vec>(pars[2]);
+arma::vec lkappa2vec = X4 * Rcpp::as<arma::vec>(pars[3]);
+arma::vec logitpvec = X5 * Rcpp::as<arma::vec>(pars[4]);
+int nobs = yvec.size();
+arma::mat out = arma::mat(nobs, 20);
+
+if (dcate == 1) {
+  lpsivec = lpsivec.elem(dupid);
+  xivec = xivec.elem(dupid);
+  lkappa1vec = lkappa1vec.elem(dupid);
+  lkappa2vec = lkappa2vec.elem(dupid);
+  logitpvec = logitpvec.elem(dupid);
+}
+
+double y, lpsi, xi, lkappa1, lkappa2, logitp;
+double ee1, ee2, ee3, ee4, ee5, ee6, ee7, ee8, ee9;
+double ee10, ee12, ee13, ee14, ee15, ee16, ee17, ee18, ee19;
+double ee20, ee21, ee22, ee23, ee24, ee25, ee27, ee28;
+double ee31, ee35, ee36, ee37, ee38, ee39;
+double ee40, ee41, ee47, ee48, ee49;
+double ee50, ee51, ee52, ee53, ee54, ee55, ee56, ee57, ee58, ee59;
+double ee60, ee61, ee63, ee64, ee65, ee66, ee68, ee69;
+double ee73, ee76, ee78, ee79;
+double ee80, ee81, ee83, ee85, ee88, ee89;
+double ee90, ee91, ee92, ee93, ee94, ee95, ee96, ee98;
+double ee101, ee103, ee104, ee105, ee106, ee107, ee108;
+double ee114, ee115, ee116, ee117, ee118, ee119;
+double ee121, ee122, ee126, ee127;
+double ee130, ee134, ee136, ee138, ee139;
+double ee140, ee143;
+
+for (int j=0; j < nobs; j++) {
+    
+y = yvec[j];
+lpsi = lpsivec[j];
+xi = xivec[j];
+lkappa1 = lkappa1vec[j];
+lkappa2 = lkappa2vec[j];
+logitp = logitpvec[j];
+
+ee1 = exp(lpsi);
+ee2 = xi * y;
+ee3 = ee2/ee1;
+ee4 = 1/xi;
+ee5 = 1 + ee3;
+ee6 = R_pow(ee5, ee4);
+ee7 = 1 + ee4;
+ee8 = 1 - 1/ee6;
+ee9 = exp(lkappa1);
+ee10 = exp(lkappa2);
+ee12 = exp(-logitp);
+ee13 = 1 + ee12;
+ee14 = R_pow(ee5, ee7);
+ee15 = ee9 - 1;
+ee16 = ee10 - 1;
+ee17 = R_pow(ee8, ee15);
+ee18 = R_pow(ee8, ee16);
+ee19 = log1p(ee3);
+ee20 = ee13 * ee14;
+ee21 = 1 - 1/ee13;
+ee22 = ee4 - 1;
+ee23 = R_pow(ee5, ee22);
+ee24 = 2 * ee7;
+ee25 = ee17 * ee9;
+ee27 = y * ee23/ee1;
+ee28 = R_pow(ee20, 2);
+ee31 = ee27 - ee6 * ee19/xi;
+ee35 = ee21 * ee18 * ee10/ee14 + ee25/ee20;
+ee36 = ee9 - 2;
+ee37 = ee10 - 2;
+ee38 = R_pow(ee5, ee24);
+ee39 = R_pow(xi, 2);
+ee40 = R_pow(ee8, ee36);
+ee41 = R_pow(ee8, ee37);
+ee47 = y * ee7 * ee6/ee1 - ee14 * ee19/ee39;
+ee48 = ee40 * ee15;
+ee49 = 2/xi;
+ee50 = log(ee8);
+ee51 = ee41 * ee16;
+ee52 = 3/xi;
+ee53 = 1 + ee52;
+ee54 = R_pow(ee5, ee53);
+ee55 = R_pow(ee13, 2);
+ee56 = R_pow(ee5, ee49);
+ee57 = ee18 * ee10;
+ee58 = xi * ee54;
+ee59 = ee55 * ee14;
+ee60 = R_pow(ee5, ee4 - ee24);
+ee61 = xi * ee17;
+ee63 = xi * ee18 * ee7;
+ee64 = ee35 * ee1;
+ee65 = ee17 * ee13;
+ee66 = ee17 * ee14;
+ee68 = ee17 + ee25 * ee50;
+ee69 = ee48 * ee31;
+ee73 = ee18 + ee57 * ee50;
+ee76 = ee51 * ee31/ee58 - ee18 * ee47/ee38;
+ee78 = ee51/ee38 - ee63 * ee60;
+ee79 = ee61 * ee7;
+ee80 = xi * ee13;
+ee81 = ee35 * ee13;
+ee83 = (ee69/(ee80 * ee54) - ee65 * ee47/ee28) * ee9 + ee76 *  ee21 * ee10;
+ee85 = (ee48/(ee13 * ee38) - ee79 * ee13 * ee6/ee28) * ee9 +  ee78 * ee21 * ee10;
+ee88 = ee66 * ee9/ee28 - ee57/ee59;
+ee89 = R_pow(ee5, ee4 - 2);
+ee90 = ee5 * ee1;
+ee91 = ee81 * ee14;
+ee92 = ee35 * ee14;
+ee93 = ee7 * ee31;
+ee94 = ee23 * ee19;
+ee95 = R_pow(ee31, 2);
+ee96 = 1 + ee49;
+ee98 = xi * ee7;
+ee101 = y * ee89 * ee22/ee1;
+ee103 = y/ee90 - 2 * (ee19/xi);
+ee104 = ee17 * ee55;
+ee105 = R_pow(ee8, ee9 - 3);
+ee106 = R_pow(ee8, ee10 - 3);
+ee107 = R_pow(ee5, ee96);
+ee108 = 4 * ee7;
+ee114 = ee40 * ee13 * ee47;
+ee115 = ee48 * ee50;
+ee116 = ee105 * ee36;
+ee117 = ee51 * ee50;
+ee118 = ee41 * ee47;
+ee119 = ee106 * ee37;
+ee121 = ee93 + ee6;
+ee122 = R_pow(ee5, ee7 + ee24);
+ee126 = ee6 + ee27;
+ee127 = ee38 * ee1;
+ee130 = R_pow(ee47, 2);
+ee134 = (ee101 - ee94/ee39)/ee56 - 2 * (ee31/(xi * ee107));
+ee136 = (y * (ee101 - (ee23 + ee94/xi)/xi)/ee1 - (ee6 * ee103 + ee19 * ee31/xi)/xi)/ee56 - 2 * (ee95/(xi * R_pow(ee5, ee52)));
+ee138 = 2 * (y/(R_pow(ee5, ee4 + 2) * ee1)) - (ee23 + ee2 * ee89 * ee22/ee1)/ee56;
+ee139 = ee98 * ee13;
+ee140 = xi * R_pow(ee5, 4/xi);
+ee143 = y * (ee93 - ee6/xi)/ee1 - (ee14 * ee103 + ee19 *  ee47)/xi;
+
+out(j, 0) = 1 + y * ee85/ee64;
+out(j, 1) = -(ee83/ee35);
+out(j, 2) = -(ee68 * ee9/ee91);
+out(j, 3) = -(ee73 * ee21 * ee10/ee92);
+out(j, 4) = -(ee88 * ee12/ee35);
+out(j, 5) = y * ((((ee40 * ee138 - y * ee105 * ee36/ee127)/(ee13 * ee6) +
+   ee2 * ee40 * ee7 * ee13/(ee28 * ee1)) * ee15/ee5 -
+   ee139 * (y * (2 * (ee79 * ee55 * ee54/ee28) - ee48/ee5)/ee1 -
+   ee126 * ee17)/ee28) * ee9 + (((ee41 * ee138 - y * ee106 * ee37/ee127)/ee14 +
+   ee2 * ee41 * ee7/(R_pow(ee5, 1 + ee24) * ee1)) * ee16 -
+   ee98 * (2 * (ee2 * ee18 * ee7 * R_pow(ee5, ee53 -
+   ee108)/ee1) - (ee126 * ee18 + y * ee41 * ee16/ee90)/ee38)) * ee21 * ee10 +
+   y * R_pow(ee85, 2)/ee64)/ee64;
+out(j, 6) = y * ((((ee134 * ee40 + ee116 * ee31/ee58)/ee20 -
+   ee114/(ee28 * ee14)) * ee15 - ((ee69/ee6 - 2 * (ee61 * ee55 * ee107 * ee47/ee28)) * ee7 +
+   ee121 * ee17) * ee13/ee28) * ee9 +
+   (((ee134 * ee41 + ee119 * ee31/ee58)/ee14 - ee118/ee122) * ee16 +
+   2 * (ee63 * R_pow(ee5, ee96 - ee108) * ee47) - (ee121 * ee18 +
+   ee41 * ee7 * ee16 * ee31/ee6)/ee38) * ee21 * ee10 -
+   ee83 * ee85/ee35)/ee64;
+out(j, 7) = y * (((ee115/ee14 + ee40/ee14) * ee9 + ee48/ee14)/ee20 -
+   (ee85/ee91 + ee139 * ee6/ee28) * ee68) * ee9/ee64;
+out(j, 8) = y * (((ee117/ee14 + ee41/ee14) * ee10 + ee51/ee14)/ee14 -
+   (ee85/ee92 + ee98 * ee60) * ee73) * ee21 * ee10/ee64;
+out(j, 9) = y * ((ee48 + xi * (ee17 * ee6 - 2 * (ee104 * R_pow(ee5, ee4 +
+   ee24)/ee28)) * ee7) * ee9/ee28 - (ee85 * ee88/ee35 +
+   ee78 * ee10/ee55)) * ee12/ee64;
+out(j, 10) =  - ((((((ee136 * ee41 + ee119 * ee95/ee140)/ee14 -
+   ee118 * ee31/R_pow(ee5, ee24 + ee49)) * ee16 - (ee18 * ee143 +
+   ee51 * ee47 * ee31/ee56)/ee38)/xi + 2 * (ee18 * R_pow(ee5, ee7 -
+   ee108) * ee130)) * ee21 * ee10 + (((ee136 * ee40 +
+   ee116 * ee95/ee140)/ee20 - ee114 * ee31/(ee28 * ee56)) * ee15/xi -
+   ((ee17 * ee143 + ee48 * ee47 * ee31/ee56)/xi - 2 * (ee104 * ee14 * ee130/ee28)) * ee13/ee28) * ee9 -
+   R_pow(ee83, 2)/ee35)/ee35);
+out(j, 11) = -((((ee115/ee56 + ee40/ee56) * ee9 + ee48/ee56) * ee31/(ee80 * ee14) -
+   (ee83/ee91 + ee13 * ee47/ee28) * ee68) * ee9/ee35);
+out(j, 12) = -((((ee117/ee56 + ee41/ee56) * ee10 + ee51/ee56) * ee31/(xi * ee14) -
+   (ee83/ee92 + ee47/ee38) * ee73) * ee21 * ee10/ee35);
+out(j, 13) =  - ((((ee17 - 2 * (ee104 * ee38/ee28)) * ee47 +
+   ee40 * R_pow(ee5, 1 - ee4) * ee15 * ee31/xi) * ee9/ee28 - (ee83 * ee88/ee35 +
+   ee76 * ee10/ee55)) * ee12/ee35);
+out(j, 14) =  - ((((ee68 + 2 * ee17) * ee9 * ee50 + ee17)/ee14 -
+   R_pow(ee68, 2) * ee9/(ee81 * ee38)) * ee9/ee81);
+out(j, 15) = ee68 * ee73 * ee21 * ee9 * ee10/(R_pow(ee35, 2) * ee13 * ee38);
+out(j, 16) = -(ee68 * (ee14/ee28 - ee88/ee91) * ee12 * ee9/ee35);
+out(j, 17) =  - ((((ee73 + 2 * ee18) * ee10 * ee50 + ee18)/ee14 -
+   R_pow(ee73, 2) * ee21 * ee10/(ee35 * ee38)) * ee21 * ee10/ee35);
+out(j, 18) = (ee88 * ee21/ee92 + 1/ee59) * ee73 * ee12 * ee10/ee35;
+out(j, 19) = ((ee66 - 2 * (ee65 * ee122 * ee12/ee28)) * ee9/ee28 +
+   R_pow(ee88, 2) * ee12/ee35 - ee18 * (1 - 2 * (ee12/ee13)) * ee10/ee59) * ee12/ee35;
+   
+}
+
+return out;
+
+}
+
 // //' Extended generalized Pareto distribution of type 3 (eGPD3) negative log-likelihood
 // //'
 // //' @param pars a list of vectors of coefficients for each eGPD parameter

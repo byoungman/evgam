@@ -136,7 +136,6 @@ if (family == "egpd") {
       npar <- 5
       nms <- c("lpsi", "xi", "lkappa1", "lkappa2", "logitp")
       attr(family, "type") <- 2
-      stop("Extended GPD with 'egpd.arg$m == 2' currently not available.")
     } else {
       if (egpd$m == 3) {
         lik.fns <- .egpd3fns
@@ -686,6 +685,42 @@ likdata
 
 ############ .outer ##########################
 
+# .outer <- function(rho0, beta, likfns, likdata, Sdata, control, correctV, outer, trace) {
+# 
+# attr(rho0, "beta") <- beta
+# 
+# if (outer == "newton") {
+#   fit.reml <- .newton_step_inner(rho0, .reml0, .search.reml, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
+# } else {
+#   if (outer == "fd") {
+#     fit.reml <- .BFGS(rho0, .reml0, .reml1.fd, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
+#   } else {
+#     fit.reml <- .BFGS(rho0, .reml0, .reml1, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
+#   }
+#   rho1 <- fit.reml$par
+#   attr(rho1, "beta") <- fit.reml$beta
+#   fit.reml$Hessian <- try(.reml12(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata)[[2]], silent=TRUE)
+#   if (inherits(fit.reml$Hessian, "try-error")) 
+#     fit.reml$Hessian <- .reml2.fd(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata)
+# }
+# 
+# fit.reml$invHessian <- .solve_evgam(fit.reml$Hessian)
+# 
+# fit.reml$trace <- trace
+# 
+# if (trace == 1) {
+#   report <- "\n Final max(|grad|))"
+#   likdata$S <- .makeS(Sdata, exp(fit.reml$par))
+#   report <- c(report, paste("   Inner:", signif(max(abs(.gH.pen(fit.reml$beta, likdata, likfns)[[1]])), 3)))
+#   report <- c(report, paste("   Outer:", signif(max(abs(fit.reml$gradient)), 3)))
+#   report <- c(report, "", "")
+#   cat(paste(report, collapse="\n"))
+# }
+# 
+# fit.reml
+# 
+# }
+
 .outer <- function(rho0, beta, likfns, likdata, Sdata, control, correctV, outer, trace) {
 
 attr(rho0, "beta") <- beta
@@ -700,12 +735,17 @@ if (outer == "newton") {
   }
   rho1 <- fit.reml$par
   attr(rho1, "beta") <- fit.reml$beta
-  fit.reml$Hessian <- try(.reml12(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata)[[2]], silent=TRUE)
-  if (inherits(fit.reml$Hessian, "try-error")) 
-    fit.reml$Hessian <- .reml2.fd(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata)
+  if (correctV) {
+    fit.reml$Hessian <- try(.reml12(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata)[[2]], silent=TRUE)
+    if (inherits(fit.reml$Hessian, "try-error")) 
+      fit.reml$Hessian <- try(.reml2.fd(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata), silent=TRUE)
+    if (inherits(fit.reml$Hessian, "try-error")) 
+      fit.reml$Hessian <- .reml2.fdfd(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata)
+  }
 }
 
-fit.reml$invHessian <- .solve_evgam(fit.reml$Hessian)
+if (correctV)
+  fit.reml$invHessian <- .solve_evgam(fit.reml$Hessian)
 
 fit.reml$trace <- trace
 
@@ -890,6 +930,7 @@ gams$plotdata <- lapply(smooth.terms, function(x) unique(data[,x, drop=FALSE]))
 if (family == "weibull") names(gams)[2] <- "logshape"
 if (family == "exponential") names(gams)[1] <- "lograte"
 if (family == "egpd" & attr(family, "type") == 1) names(gams)[1:3] <- c("logscale", "shape", "logkappa")
+if (family == "egpd" & attr(family, "type") == 3) names(gams)[1:3] <- c("logscale", "shape", "logdelta")
 gams$ngam <- length(formula)
 for (i in seq_along(gams[nms])[-gotsmooth])
   gams[[i]]$smooth <- NULL

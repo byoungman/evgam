@@ -135,6 +135,20 @@ f1 <- (f1 - f0) / eps
 .5 * (f1 + t(f1))
 }
 
+.reml2.fdfd <- function(pars, likfns, likdata, Sdata, H=NULL, beta=NULL, kept=NULL) {
+beta <- attr(pars, "beta")
+eps <- 1e-4
+f0 <- .reml1.fd(pars, likfns, likdata, Sdata, beta=beta, H=H)
+f1 <- matrix(0, length(pars), length(pars))
+for (i in seq_along(pars)) {
+  parsi <- pars
+  parsi[i] <- parsi[i] + eps
+  f1[i,] <- .reml1.fd(parsi, likfns, likdata, Sdata, beta=beta, H=H)
+}
+f1 <- (f1 - f0) / eps
+.5 * (f1 + t(f1))
+}
+
 .search.reml <- function(pars, likfns, likdata, Sdata, H=NULL, kept=NULL) {
 gH <- .reml12(pars, likfns, likdata, Sdata, H=H)
 .search.dir(gH[[1]], gH[[2]], !logical(length(gH[[1]])))

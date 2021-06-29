@@ -25,6 +25,14 @@ egpd1d34 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
     .Call(`_evgam_egpd1d34`, pars, X1, X2, X3, yvec, dupid, dcate)
 }
 
+egpd2d0 <- function(pars, X1, X2, X3, X4, X5, yvec, dupid, dcate) {
+    .Call(`_evgam_egpd2d0`, pars, X1, X2, X3, X4, X5, yvec, dupid, dcate)
+}
+
+egpd2d12 <- function(pars, X1, X2, X3, X4, X5, yvec, dupid, dcate) {
+    .Call(`_evgam_egpd2d12`, pars, X1, X2, X3, X4, X5, yvec, dupid, dcate)
+}
+
 egpd3d0 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
     .Call(`_evgam_egpd3d0`, pars, X1, X2, X3, yvec, dupid, dcate)
 }
