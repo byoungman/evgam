@@ -223,27 +223,30 @@ pars <- out
 nprob <- length(prob)
 out <- matrix(NA, ndat, nprob)
 
-if (family == "egpd") {
-  if (egpd_m %in% c(1, 3)) {
-    prob <- egpd_iG(prob, pars[, 3])
-  } else {
-    if (egpd_m == 2) {
-      prob <- egpd_iG(prob, pars[, 3], pars[, 4], pars[, 5])
+for (j in seq_len(nprob)) {
+  
+  pj <- prob[j]
+  
+  if (family == "egpd") {
+    if (egpd_m %in% c(1, 3)) {
+      pj <- egpd_iG(pj, pars[, 3])
     } else {
-      prob <- egpd_iG(prob, pars[, 3], pars[, 4])
+      if (egpd_m == 2) {
+        pj <- egpd_iG(pj, pars[, 3], pars[, 4], pars[, 5])
+      } else {
+        pj <- egpd_iG(pj, pars[, 3], pars[, 4])
+      }
     }
   }
-}
 
-for (j in seq_len(nprob)) {
   if (family %in% c("gpd", "egpd")) {
-    out[, j] <- .qgpd(prob[j], 0, pars[,1], pars[,2])
+    out[, j] <- .qgpd(pj, 0, pars[,1], pars[,2])
   } else {
     if (family == "gev") {
-      out[, j] <- .qgev(prob[j], pars[,1], pars[,2], pars[,3])
+      out[, j] <- .qgev(pj, pars[,1], pars[,2], pars[,3])
     } else {
       if (family == "weibull") {
-        out[, j] <- .qweibull(prob[j], scale=pars[,1], shape=pars[,2])
+        out[, j] <- .qweibull(pj, scale=pars[,1], shape=pars[,2])
       } else {
         stop("invalid family")
       } 
