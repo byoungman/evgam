@@ -271,9 +271,9 @@ if (missing(newdata)) {
   for (i in seq_along(object)) 
     class(object[[i]]) <- "gam"
   X <- lapply(object, mgcv::predict.gam, newdata=newdata, type="lpmatrix")
-  for (i in seq_along(X))
-    colnames(X[[i]]) <- object[[i]]$term.names
 }
+for (i in seq_along(X))
+    colnames(X[[i]]) <- object[[i]]$term.names
 names(X) <- names(object)
 X
 }
