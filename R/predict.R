@@ -236,7 +236,7 @@ if (family == "egpd") {
 }
 
 for (j in seq_len(nprob)) {
-  if (family == "gpd") {
+  if (family %in% c("gpd", "egpd")) {
     out[, j] <- .qgpd(prob[j], 0, pars[,1], pars[,2])
   } else {
     if (family == "gev") {
