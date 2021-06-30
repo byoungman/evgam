@@ -672,8 +672,12 @@ egpd2d0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[
 egpd2d12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], likdata$X[[5]], likdata$y[,1], likdata$dupid, likdata$duplicate)
 }
 
+.egpd2.d34 <- function(pars, likdata) {
+egpd2d34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], likdata$X[[5]], likdata$y[,1], likdata$dupid, likdata$duplicate)
+}
+
 # .egpd3fns <- list(d0=.egpd3.d0, d120=.egpd3.d12, d340=.egpd3.d34)
-.egpd2fns <- list(d0=.egpd2.d0, d120=.egpd2.d12, d340=NULL, m=2, iG=.iG2)
+.egpd2fns <- list(d0=.egpd2.d0, d120=.egpd2.d12, d340=.egpd2.d34, m=2, iG=.iG2)
 
 ## model 3 ##
 
