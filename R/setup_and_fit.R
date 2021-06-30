@@ -927,7 +927,7 @@ if (family == "egpd") {
     names(gams)[1:3] <- c("logscale", "shape", "logkappa")
   } else {
     if (attr(family, "type") == 2) {
-      names(gams)[1:6] <- c("logscale", "shape", "logkappa1", "logkappa2", "logitp")
+      names(gams)[1:5] <- c("logscale", "shape", "logkappa1", "logkappa2", "logitp")
     } else {
       if (attr(family, "type") == 3) {
         names(gams)[1:3] <- c("logscale", "shape", "logdelta")
