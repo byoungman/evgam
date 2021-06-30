@@ -149,6 +149,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// egpd2d34
+arma::mat egpd2d34(const Rcpp::List& pars, const arma::mat& X1, const arma::mat& X2, const arma::mat& X3, const arma::mat& X4, const arma::mat& X5, arma::vec yvec, const arma::uvec& dupid, int dcate);
+RcppExport SEXP _evgam_egpd2d34(SEXP parsSEXP, SEXP X1SEXP, SEXP X2SEXP, SEXP X3SEXP, SEXP X4SEXP, SEXP X5SEXP, SEXP yvecSEXP, SEXP dupidSEXP, SEXP dcateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X1(X1SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X2(X2SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X3(X3SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X4(X4SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X5(X5SEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type yvec(yvecSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type dupid(dupidSEXP);
+    Rcpp::traits::input_parameter< int >::type dcate(dcateSEXP);
+    rcpp_result_gen = Rcpp::wrap(egpd2d34(pars, X1, X2, X3, X4, X5, yvec, dupid, dcate));
+    return rcpp_result_gen;
+END_RCPP
+}
 // egpd3d0
 double egpd3d0(const Rcpp::List& pars, const arma::mat& X1, const arma::mat& X2, const arma::mat& X3, arma::vec yvec, const arma::uvec& dupid, int dcate);
 RcppExport SEXP _evgam_egpd3d0(SEXP parsSEXP, SEXP X1SEXP, SEXP X2SEXP, SEXP X3SEXP, SEXP yvecSEXP, SEXP dupidSEXP, SEXP dcateSEXP) {
@@ -1101,6 +1120,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_evgam_egpd1d34", (DL_FUNC) &_evgam_egpd1d34, 7},
     {"_evgam_egpd2d0", (DL_FUNC) &_evgam_egpd2d0, 9},
     {"_evgam_egpd2d12", (DL_FUNC) &_evgam_egpd2d12, 9},
+    {"_evgam_egpd2d34", (DL_FUNC) &_evgam_egpd2d34, 9},
     {"_evgam_egpd3d0", (DL_FUNC) &_evgam_egpd3d0, 7},
     {"_evgam_egpd3d12", (DL_FUNC) &_evgam_egpd3d12, 7},
     {"_evgam_egpd3d34", (DL_FUNC) &_evgam_egpd3d34, 7},
