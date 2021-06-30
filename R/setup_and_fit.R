@@ -839,7 +839,7 @@ if (family == "exi")
 if (family == "egpd") {
   nms <- c("logscale", "shape")
   if (attr(family, "type") == 1) {
-    nm <- c(nm, "logkappa")
+    nms <- c(nms, "logkappa")
   } else {
     if (attr(family, "type") == 2) {
       nms <- c(nms, "logkappa1", "logkappa2", "logitp")
