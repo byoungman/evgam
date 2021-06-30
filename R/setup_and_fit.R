@@ -830,9 +830,12 @@ if (length(gams) == 4) {
     nms <- c(nms, "logdep")
   }
 }
-if (family == "exponential") nms <- "lograte"
-if (family == "weibull") nms[2] <- "logshape"
-if (family == "exi") nms <- paste(attr(likdata$linkfn, "name"), "exi", sep="")
+if (family == "exponential") 
+  nms <- "lograte"
+if (family == "weibull") 
+  nms[2] <- "logshape"
+if (family == "exi") 
+  nms <- paste(attr(likdata$linkfn, "name"), "exi", sep="")
 if (family == "egpd") {
   nms <- c("logscale", "shape")
   if (attr(family, "type") == 1) {
@@ -849,7 +852,6 @@ if (family == "egpd") {
     }
   }
 }
-nms <- paste(attr(likdata$linkfn, "name"), "exi", sep="")
 names(gams) <- nms
 smooths <- length(gotsmooth) > 0
 Vp <- VpVc$Vp
