@@ -693,42 +693,6 @@ likdata
 
 ############ .outer ##########################
 
-# .outer <- function(rho0, beta, likfns, likdata, Sdata, control, correctV, outer, trace) {
-# 
-# attr(rho0, "beta") <- beta
-# 
-# if (outer == "newton") {
-#   fit.reml <- .newton_step_inner(rho0, .reml0, .search.reml, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
-# } else {
-#   if (outer == "fd") {
-#     fit.reml <- .BFGS(rho0, .reml0, .reml1.fd, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
-#   } else {
-#     fit.reml <- .BFGS(rho0, .reml0, .reml1, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
-#   }
-#   rho1 <- fit.reml$par
-#   attr(rho1, "beta") <- fit.reml$beta
-#   fit.reml$Hessian <- try(.reml12(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata)[[2]], silent=TRUE)
-#   if (inherits(fit.reml$Hessian, "try-error")) 
-#     fit.reml$Hessian <- .reml2.fd(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata)
-# }
-# 
-# fit.reml$invHessian <- .solve_evgam(fit.reml$Hessian)
-# 
-# fit.reml$trace <- trace
-# 
-# if (trace == 1) {
-#   report <- "\n Final max(|grad|))"
-#   likdata$S <- .makeS(Sdata, exp(fit.reml$par))
-#   report <- c(report, paste("   Inner:", signif(max(abs(.gH.pen(fit.reml$beta, likdata, likfns)[[1]])), 3)))
-#   report <- c(report, paste("   Outer:", signif(max(abs(fit.reml$gradient)), 3)))
-#   report <- c(report, "", "")
-#   cat(paste(report, collapse="\n"))
-# }
-# 
-# fit.reml
-# 
-# }
-
 .outer <- function(rho0, beta, likfns, likdata, Sdata, control, correctV, outer, trace) {
 
 attr(rho0, "beta") <- beta
@@ -869,6 +833,23 @@ if (length(gams) == 4) {
 if (family == "exponential") nms <- "lograte"
 if (family == "weibull") nms[2] <- "logshape"
 if (family == "exi") nms <- paste(attr(likdata$linkfn, "name"), "exi", sep="")
+if (family == "egpd") {
+  nms <- c("logscale", "shape")
+  if (attr(family, "type") == 1) {
+    nm <- c(nm, "logkappa")
+  } else {
+    if (attr(family, "type") == 2) {
+      nms <- c(nms, "logkappa1", "logkappa2", "logitprob")
+    } else {
+      if (attr(family, "type") == 3) {
+        nms <- c(nms, "logdelta")
+      } else {
+        nms <- c(nms, "logdelta", "logkappa")
+      }
+    }
+  }
+}
+nms <- paste(attr(likdata$linkfn, "name"), "exi", sep="")
 names(gams) <- nms
 smooths <- length(gotsmooth) > 0
 Vp <- VpVc$Vp
@@ -888,7 +869,6 @@ gams$family <- family
 gams$idpars <- likdata$idpars
 # tidy up print names a bit
 nms <- names(gams)[seq_along(formula)]
-browser()
 logits <- substr(nms, 1, 5) == "logit"
 if (any(logits))
   nms[logits] <- gsub("logit", "", nms[logits])
