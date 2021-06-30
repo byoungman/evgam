@@ -952,7 +952,7 @@ if (family == "egpd") {
     }
   }
 }
-names(gams$coefficients) <- unlist(lapply(seq_along(likdata$X), function(i) paste(names(gams)[i], names(gams[[i]]$coefficients), "_")))
+names(gams$coefficients) <- unlist(lapply(seq_along(likdata$X), function(i) paste(names(gams)[i], names(gams[[i]]$coefficients), sep = "_")))
 gams$ngam <- length(formula)
 for (i in seq_along(gams[nms])[-gotsmooth])
   gams[[i]]$smooth <- NULL
