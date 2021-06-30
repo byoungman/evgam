@@ -553,6 +553,8 @@ if (is.null(inits)) {
   if (family == "egpd") {
     inits <- numeric(npar)
     inits[1:2] <- c(log(mean(likdata$y[,1])), .05)
+    if (attr(family, "type") == 2)
+      inits <- c(inits[1:2], -1, 1, .25)
   } else {
     if (npar == 1) 
       inits <- 2
@@ -886,6 +888,7 @@ gams$family <- family
 gams$idpars <- likdata$idpars
 # tidy up print names a bit
 nms <- names(gams)[seq_along(formula)]
+browser()
 logits <- substr(nms, 1, 5) == "logit"
 if (any(logits))
   nms[logits] <- gsub("logit", "", nms[logits])
