@@ -839,7 +839,7 @@ if (family == "egpd") {
     nm <- c(nm, "logkappa")
   } else {
     if (attr(family, "type") == 2) {
-      nms <- c(nms, "logkappa1", "logkappa2", "logitprob")
+      nms <- c(nms, "logkappa1", "logkappa2", "logitp")
     } else {
       if (attr(family, "type") == 3) {
         nms <- c(nms, "logdelta")
