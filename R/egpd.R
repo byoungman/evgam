@@ -693,8 +693,7 @@ egpd3d34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[
 
 .iG3 <- function(v, delta) 1 - qbeta(1 -v, 1/delta, 2)^(1/delta)
 
-# .egpd3fns <- list(d0=.egpd3.d0, d120=.egpd3.d12, d340=.egpd3.d34)
-.egpd3fns <- list(d0=.egpd3.d0, d120=.egpd3.d12, d340=NULL, m=3, iG=.iG3)
+.egpd3fns <- list(d0=.egpd3.d0, d120=.egpd3.d12, d340=.egpd3.d12, m=3, iG=.iG3)
 
 ## model 4 ##
 
