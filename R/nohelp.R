@@ -579,8 +579,6 @@ drop
 .new.kept <- function(x, kept) {
 x <- x[kept, kept, drop=FALSE]
 nc <- ncol(x)
-if (any(!is.finite(x)))
-  browser()
 R <- qr(x)
 r <- R$rank
 if (r < nc) {
