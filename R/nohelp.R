@@ -514,7 +514,7 @@ while (okay) {
         step1 <- try(sfn(theta1, ..., kept=kept), silent=TRUE)
       if (inherits(step1, "try-error")) 
         d <- 1
-      if (any(!is.finite(attr(step1, "gradient"))) | any(!is.finite(attr(step1, "Hessian")))) 
+      if (any(!is.finite(attr(step1, "gradient"))) | any(!is.finite(attr(step1, "PP")))) 
         d <- 1
       }  
       if (d < 0) {
