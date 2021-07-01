@@ -57,6 +57,10 @@ egpd4d12 <- function(pars, X1, X2, X3, X4, yvec, dupid, dcate) {
     .Call(`_evgam_egpd4d12`, pars, X1, X2, X3, X4, yvec, dupid, dcate)
 }
 
+egpd4d34 <- function(pars, X1, X2, X3, X4, yvec, dupid, dcate) {
+    .Call(`_evgam_egpd4d34`, pars, X1, X2, X3, X4, yvec, dupid, dcate)
+}
+
 exid0 <- function(yvec, zvec, pars, nmax, X, dupid, dcate, link) {
     .Call(`_evgam_exid0`, yvec, zvec, pars, nmax, X, dupid, dcate, link)
 }
