@@ -186,5 +186,6 @@ if (newton) {
   attr(out, "gradient") <- gH[[1]]
 }
 attr(out, "PP") <- attr(gH, "PP")
+attr(out, "Hessian") <- attr(gH, "Hessian")
 out
 }
