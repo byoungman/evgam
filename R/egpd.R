@@ -716,5 +716,5 @@ egpd4d34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[
 
 .iG4 <- function(v, delta, kappa) 1 - qbeta(1 - v^(2/kappa), 1/delta, 2)^(1/delta)
 
-.egpd4fns <- list(d0=.egpd4.d0, d120=.egpd4.d12, d340=.egpd4.d34, m=4, iG=.iG4)
+.egpd4fns <- list(d0=.egpd4.d0, d120=.egpd4.d12, d340=NULL, m=4, iG=.iG4)
 
