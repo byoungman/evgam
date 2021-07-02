@@ -47,6 +47,11 @@ lkappa = lkappavec[j];
 ee1 = 1.0 / xi;
 ee4 = xi * y / exp(lpsi);
 
+if (ee4 <= -1.0) {
+    nllh = 1e20;
+    break;
+}
+
 nllh += (1.0 - exp(lkappa)) * log(1.0 - 1.0 / R_pow(1.0 + ee4, ee1)) + 
           (1.0 + ee1) * log1p(ee4) + lpsi - lkappa;
     
@@ -423,6 +428,12 @@ logitp = logitpvec[j];
 
 ee1 = 1/xi;
 ee4 = xi * y/exp(lpsi);
+
+if (ee4 <= -1.0) {
+    nllh = 1e20;
+    break;
+}
+
 ee7 = 1 - 1/R_pow(1 + ee4, ee1);
 ee8 = 1 + exp(-logitp);
 ee9 = exp(lkappa1);
@@ -1875,6 +1886,11 @@ ldelta = ldeltavec[j];
 ee1 = exp(ldelta);
 ee4 = xi * y/exp(lpsi);
 
+if (ee4 <= -1.0) {
+    nllh = 1e20;
+    break;
+}
+
 nllh += (1 + 1/xi) * log1p(ee4) + ldelta + lpsi - (log(1 - 1/R_pow(1 + ee4, ee1/xi)) + log1p(ee1));
     
 }
@@ -3146,6 +3162,12 @@ ee1)) * R_pow(1 - ee8/(ee5 * ee1), ee9/2 - 1) * ee9/(2 * ee2)));
 
 ee1 = exp(ldelta);
 ee4 = xi * y/exp(lpsi);
+
+if (ee4 <= -1.0) {
+    nllh = 1e20;
+    break;
+}
+
 ee5 = 1 + ee4;
 ee6 = R_pow(ee5, ee1/xi);
 ee7 = 1 + ee1;
