@@ -884,17 +884,18 @@ gams$simulate <- list(mu=fitreml$beta, Sigma=Vp)
 gams$family <- family
 gams$idpars <- likdata$idpars
 # tidy up print names a bit
-nms <- names(gams)[seq_along(formula)]
-logits <- substr(nms, 1, 5) == "logit"
-if (any(logits))
-  nms[logits] <- gsub("logit", "", nms[logits])
-logs <- substr(nms, 1, 3) == "log"
-if (any(logs))
-  nms[logs] <- gsub("log", "", nms[logs])
-probits <- substr(nms, 1, 6) == "probit"
-if (any(probits))
-  nms[probits] <- gsub("probit", "", nms[probits])
-# end name tidying
+if (family != "custom") {
+  nms <- names(gams)[seq_along(formula)]
+  logits <- substr(nms, 1, 5) == "logit"
+  if (any(logits))
+    nms[logits] <- gsub("logit", "", nms[logits])
+  logs <- substr(nms, 1, 3) == "log"
+  if (any(logs))
+    nms[logs] <- gsub("log", "", nms[logs])
+  probits <- substr(nms, 1, 6) == "probit"
+  if (any(probits))
+    nms[probits] <- gsub("probit", "", nms[probits])
+} # end name tidying
 gams$predictor.names <- attr(formula, "predictor.names")
 formula <- attr(formula, "stripped")
 names(formula) <- nms
@@ -934,9 +935,12 @@ if (gams$compacted) gams$compactid <- likdata$dupid + 1
 smooth.terms <- unique(lapply(lapply(gams[gotsmooth], function(x) x$smooth), function(y) lapply(y, function(z) z$term)))
 smooth.terms <- unique(unlist(smooth.terms, recursive=FALSE))
 gams$plotdata <- lapply(smooth.terms, function(x) unique(data[,x, drop=FALSE]))
-if (family == "custom") names(gams)[seq_along(formula)] <- names(formula)
-if (family == "weibull") names(gams)[2] <- "logshape"
-if (family == "exponential") names(gams)[1] <- "lograte"
+if (family == "custom")
+  names(gams)[seq_along(formula)] <- names(formula)
+if (family == "weibull") 
+  names(gams)[2] <- "logshape"
+if (family == "exponential") 
+  names(gams)[1] <- "lograte"
 if (family == "egpd") {
   if (attr(family, "type") == 1) {
     names(gams)[1:3] <- c("logscale", "shape", "logkappa")

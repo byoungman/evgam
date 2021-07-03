@@ -64,10 +64,21 @@ if (family == "egpd") {
   egpd_iG <- object$likfns$iG
 }
 
+if (family == "custom") {
+  q_fn <- object$likfns$q
+  unlink_fns <- object$likfns$unlink
+}
+
 if (!is.null(prob)) 
   type <- "quantile"
 if (type == "quantile" & is.null(prob)) 
   stop("non-NULL `prob' required if `type = quantile'")
+if (type %in% "quantile" & family == "custom") {
+  if (is.null(q_fn))
+    stop("custom.fns$q needs supplying for type = 'quantile' and family = 'custom'.")
+  if (is.null(unlink_fns))
+    stop("custom.fns$unlink needs supplying for type = 'response' and family = 'custom'.")
+}
 
 ## end checks
 
@@ -140,37 +151,56 @@ if (type != "quantile") {
 
 if (type %in% c("response", "quantile", "qqplot")) {
 
-if (type == "qqplot") se.fit <- FALSE
+if (type == "qqplot") 
+  se.fit <- FALSE
 
-if (family != "exi") {
+if (family == "custom") {
 
-unlink <- which(substr(nms, 1, 3) == "log")
-for (i in unlink) {
-  out[, i] <- exp(out[, i])
-  if (substr(nms[i], 1, 5) == "logit") {
-    temp <- exp(-out[, i])
-    out[, i] <- 1 / (1 + temp)
-    if (se.fit & type == "response")
-      std.err[, i] <- temp * out[, i] * std.err[, i] / (1 + temp)
+  for (i in seq_along(nms)) {
+  
+    if (se.fit) {
+      if (!is.null(attr(unlink_fns[[i]], "deriv")))
+        std.err[, i] <- attr(unlink_fns[[i]], "deriv")(out[, i]) * std.err[, i]
+    }
+    
+    if (!is.null(unlink_fns[[i]]))
+      out[, i] <- unlink_fns[[i]](out[, i])
+      
   }
-  if (se.fit & type == "response")
-    std.err[, i] <- out[, i] * std.err[, i]
-}
-
-if (exi & ncol(out) == 4) {
-  out[, 4] <- out[, 4] ^ out[, 3]
-  out[, 1] <- out[, 1] - out[, 2] * (1 - out[, 4]) / out[, 3]
-  out[, 2] <- out[, 2] * out[, 4]
-  out <- out[, 1:3, drop = FALSE]
-  nms <- nms[1:3]
-}
 
 } else {
 
-  if (se.fit) 
-    std.err[, 1] <- attr(linkfn, "deriv")(out[, 1]) * std.err[, 1]
-  out[, 1] <- linkfn(out[, 1])
+  if (family != "exi") {
 
+  unlink <- which(substr(nms, 1, 3) == "log")
+  for (i in unlink) {
+    out[, i] <- exp(out[, i])
+    if (substr(nms[i], 1, 5) == "logit") {
+      temp <- exp(-out[, i])
+      out[, i] <- 1 / (1 + temp)
+      if (se.fit & type == "response")
+        std.err[, i] <- temp * out[, i] * std.err[, i] / (1 + temp)
+    }
+    if (se.fit & type == "response")
+      std.err[, i] <- out[, i] * std.err[, i]
+  }
+
+  if (exi & ncol(out) == 4) {
+    out[, 4] <- out[, 4] ^ out[, 3]
+    out[, 1] <- out[, 1] - out[, 2] * (1 - out[, 4]) / out[, 3]
+    out[, 2] <- out[, 2] * out[, 4]
+    out <- out[, 1:3, drop = FALSE]
+    nms <- nms[1:3]
+  }
+
+  } else {
+
+    if (se.fit) 
+      std.err[, 1] <- attr(linkfn, "deriv")(out[, 1]) * std.err[, 1]
+    out[, 1] <- linkfn(out[, 1])
+
+  }
+  
 }
 
 nms <- gsub("cloglog", "", nms)
@@ -238,25 +268,49 @@ for (j in seq_len(nprob)) {
       }
     }
   }
-
-  if (family %in% c("gpd", "egpd")) {
-    out[, j] <- .qgpd(pj, 0, pars[,1], pars[,2])
-  } else {
-    if (family == "gev") {
-      out[, j] <- .qgev(pj, pars[,1], pars[,2], pars[,3])
+  
+  if (family == "custom") {
+  
+    if (length(nms) > 4)
+      stop ("Currently on predictions with non-NULL prob and family = 'custom' only possible for fewer than five parameters.")
+  
+    if (length(nms == 1)) {
+      out[, j] <- q_fn(pj, pars[,1])
     } else {
-      if (family == "weibull") {
-        out[, j] <- .qweibull(pj, scale=pars[,1], shape=pars[,2])
+      if (length(nms == 2)) {
+        out[, j] <- q_fn(pj, pars[,1], pars[,2])
       } else {
-        stop("invalid family")
-      } 
+        if (length(nms == 3)) {
+          out[, j] <- q_fn(pj, pars[,1], pars[,2], pars[,3])
+        } else {
+          out[, j] <- q_fn(pj, pars[,1], pars[,2], pars[,3], pars[,4])
+        }
+      }
+    }
+  
+  } else {
+
+    if (family %in% c("gpd", "egpd")) {
+      out[, j] <- .qgpd(pj, 0, pars[,1], pars[,2])
+    } else {
+      if (family == "gev") {
+        out[, j] <- .qgev(pj, pars[,1], pars[,2], pars[,3])
+      } else {
+        if (family == "weibull") {
+          out[, j] <- .qweibull(pj, scale=pars[,1], shape=pars[,2])
+        } else {
+          stop("invalid family")
+        } 
+      }
     }
   }
+  
 }
 
 if (se.fit) { ## standard errors for quantile predictions using Delta method
 
-if (family == "egpd") stop("Standard errors not yet available for extended GPD quantiles.")
+if (family %in% c("egpd", "custom")) 
+  stop("Standard errors not yet available for this family.")
 
 Sigma <- array(NA, dim=c(ndat, nX, nX))
 idp <- conf.pars[[3]]
