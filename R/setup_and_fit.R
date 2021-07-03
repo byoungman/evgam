@@ -180,7 +180,7 @@ out <- list(npar=npar, npar2=npar, lik.fns=lik.fns, nms=nms, family=family)
 
 ############ .setup.formula ##########################
 
-.setup.formulae <- function(formula, npar, npar2, data, trace) {
+.setup.formulae <- function(formula, npar, npar2, data, trace, nms) {
 # turn formula into list, which will be repeated.
 if (inherits(formula, "formula"))
   formula <- list(formula)
@@ -243,10 +243,12 @@ attr(formula, "predictor.names") <- pred.vars
 attr(formula, "stripped") <- stripped.formula
 attr(formula, "censored") <- censored
 attr(formula, "smooths") <- got.specials
+attr(formula, "npar") <- npar
 for (i in seq_along(formula)) {
   attr(formula[[i]], "intercept") <- got.intercept[i]
   attr(formula[[i]], "smooth") <- got.specials[i]
 }
+names(formula) <- nms
 formula
 }
 
@@ -467,6 +469,7 @@ if (is.null(sargs$id)) {
 if (is.null(sargs$force)) 
   sargs$force <- FALSE
 lik.data$force <- sargs$force
+lik.data$npar <- attr(formula, "npar")
 list(lik.data=lik.data, gotsmooth=gotsmooth, data=data, gams=gams, sandwich=lik.data$adjust > 0)
 }
 
@@ -824,43 +827,46 @@ gams
 
 .finalise <- function(gams, data, likfns, likdata, Sdata, fitreml, VpVc, family, gotsmooth,
 formula, responsenm, removeData, edf) {
-nms <- c("location", "logscale", "shape")
-if (length(gams) == 2) {
-  if (family %in% c("ald", "gauss")) {
-    nms <- nms[1:2]
-  } else {
-    nms <- nms[-1]
-}}
-if (length(gams) == 4) {
-  if (is.null(likdata$agg)) {
-    nms <- c(nms, "logitdep")
-  } else {
-    nms <- c(nms, "logdep")
-  }
-}
-if (family == "exponential") 
-  nms <- "lograte"
-if (family == "weibull") 
-  nms[2] <- "logshape"
-if (family == "exi") 
-  nms <- paste(attr(likdata$linkfn, "name"), "exi", sep="")
-if (family == "egpd") {
-  nms <- c("logscale", "shape")
-  if (attr(family, "type") == 1) {
-    nms <- c(nms, "logkappa")
-  } else {
-    if (attr(family, "type") == 2) {
-      nms <- c(nms, "logkappa1", "logkappa2", "logitp")
-    } else {
-      if (attr(family, "type") == 3) {
-        nms <- c(nms, "logdelta")
-      } else {
-        nms <- c(nms, "logdelta", "logkappa")
-      }
-    }
-  }
-}
-names(gams) <- nms
+# nms <- c("location", "logscale", "shape")
+# if (length(gams) == 2) {
+#   if (family %in% c("ald", "gauss")) {
+#     nms <- nms[1:2]
+#   } else {
+#     nms <- nms[-1]
+# }}
+# if (length(gams) == 4) {
+#   if (is.null(likdata$agg)) {
+#     nms <- c(nms, "logitdep")
+#   } else {
+#     nms <- c(nms, "logdep")
+#   }
+# }
+# if (family == "exponential") 
+#   nms <- "lograte"
+# if (family == "weibull") 
+#   nms[2] <- "logshape"
+# if (family == "exi") 
+#   nms <- paste(attr(likdata$linkfn, "name"), "exi", sep="")
+# if (family == "egpd") {
+#   nms <- c("logscale", "shape")
+#   if (attr(family, "type") == 1) {
+#     nms <- c(nms, "logkappa")
+#   } else {
+#     if (attr(family, "type") == 2) {
+#       nms <- c(nms, "logkappa1", "logkappa2", "logitp")
+#     } else {
+#       if (attr(family, "type") == 3) {
+#         nms <- c(nms, "logdelta")
+#       } else {
+#         nms <- c(nms, "logdelta", "logkappa")
+#       }
+#     }
+#   }
+# }
+# if (family == "custom") {
+#   nms <- attr(formula, "nms")
+# }
+names(gams) <- names(formula)#nms
 smooths <- length(gotsmooth) > 0
 Vp <- VpVc$Vp
 Vc <- VpVc$Vc
@@ -928,7 +934,7 @@ if (gams$compacted) gams$compactid <- likdata$dupid + 1
 smooth.terms <- unique(lapply(lapply(gams[gotsmooth], function(x) x$smooth), function(y) lapply(y, function(z) z$term)))
 smooth.terms <- unique(unlist(smooth.terms, recursive=FALSE))
 gams$plotdata <- lapply(smooth.terms, function(x) unique(data[,x, drop=FALSE]))
-if (family == "custom") names(gams)[seq_len(family.info$npar)] <- family.info$nms
+if (family == "custom") names(gams)[seq_along(formula)] <- names(formula)
 if (family == "weibull") names(gams)[2] <- "logshape"
 if (family == "exponential") names(gams)[1] <- "lograte"
 if (family == "egpd") {
