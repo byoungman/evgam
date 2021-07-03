@@ -155,6 +155,11 @@ if (family == "egpd") {
     lik.fns <- likfns
     family <- "custom"
     npar <- length(formula)
+    if (is.null(names(formula))) {
+      nms <- paste("par", seq_along(formula), sep = "_")
+    } else {
+      nms <- names(formula)
+    }
   }
 }
 }
@@ -696,6 +701,9 @@ likdata
 .outer <- function(rho0, beta, likfns, likdata, Sdata, control, correctV, outer, trace) {
 
 attr(rho0, "beta") <- beta
+
+if (is.null(likfns$d340) & outer != "fd")
+  outer <- "fd"
 
 if (outer == "newton") {
   fit.reml <- .newton_step_inner(rho0, .reml0, .search.reml, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
