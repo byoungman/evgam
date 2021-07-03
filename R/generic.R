@@ -144,7 +144,7 @@ family.info <- .setup.family(family, pp.args, egpd.args, formula, custom.fns)
 family <- family.info$family
 
 ## setup formulae
-formula <- .setup.formulae(formula, family.info$npar, family.info$npar2, data, trace)
+formula <- .setup.formulae(formula, family.info$npar, family.info$npar2, data, trace, family.info$nms)
 response.name <- attr(formula, "response.name")
 
 ## setup mgcv objects and data
