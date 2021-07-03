@@ -883,9 +883,9 @@ attr(gams, "df") <- sum(edf)
 gams$simulate <- list(mu=fitreml$beta, Sigma=Vp)
 gams$family <- family
 gams$idpars <- likdata$idpars
+nms <- names(gams)[seq_along(formula)]
 # tidy up print names a bit
 if (family != "custom") {
-  nms <- names(gams)[seq_along(formula)]
   logits <- substr(nms, 1, 5) == "logit"
   if (any(logits))
     nms[logits] <- gsub("logit", "", nms[logits])
