@@ -143,7 +143,7 @@ egpd.args=list(), custom.fns=list()) {
 family.info <- .setup.family(family, pp.args, egpd.args, formula, custom.fns)
 family <- family.info$family
 
-Q## setup formulae
+## setup formulae
 formula <- .setup.formulae(formula, family.info$npar, family.info$npar2, data, trace)
 response.name <- attr(formula, "response.name")
 
