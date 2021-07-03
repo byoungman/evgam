@@ -274,13 +274,13 @@ for (j in seq_len(nprob)) {
     if (length(nms) > 4)
       stop ("Currently on predictions with non-NULL prob and family = 'custom' only possible for fewer than five parameters.")
   
-    if (length(nms == 1)) {
+    if (length(nms) == 1) {
       out[, j] <- q_fn(pj, pars[,1])
     } else {
-      if (length(nms == 2)) {
+      if (length(nms) == 2) {
         out[, j] <- q_fn(pj, pars[,1], pars[,2])
       } else {
-        if (length(nms == 3)) {
+        if (length(nms) == 3) {
           out[, j] <- q_fn(pj, pars[,1], pars[,2], pars[,3])
         } else {
           out[, j] <- q_fn(pj, pars[,1], pars[,2], pars[,3], pars[,4])
