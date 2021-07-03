@@ -928,6 +928,7 @@ if (gams$compacted) gams$compactid <- likdata$dupid + 1
 smooth.terms <- unique(lapply(lapply(gams[gotsmooth], function(x) x$smooth), function(y) lapply(y, function(z) z$term)))
 smooth.terms <- unique(unlist(smooth.terms, recursive=FALSE))
 gams$plotdata <- lapply(smooth.terms, function(x) unique(data[,x, drop=FALSE]))
+if (family == "custom") names(gams)[seq_len(family.info$npar)] <- family.info$nms
 if (family == "weibull") names(gams)[2] <- "logshape"
 if (family == "exponential") names(gams)[1] <- "lograte"
 if (family == "egpd") {
