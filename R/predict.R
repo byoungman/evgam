@@ -340,6 +340,9 @@ for (j in seq_len(nprob)) {
   if (family == "weibull") {
     jac <- .dqweibull(prob[j], log(pars[,2]), pars[,3])
   }
+  if (family == "custom" & !is.null(attr(q_fn, "deriv"))) {
+    jac <- attr(q_fn, "deriv")(prob[j], log(pars[,2]), pars[,3])
+  }
   for (i in seq_len(ndat)) {
     std.err[i, j] <- sum(jac[i,] * (Sigma[i,,] %*% jac[i,]))
   }
@@ -363,7 +366,15 @@ out <- list(fitted = out, se.fit = std.err)
 
 } ## end not qqplot
 
-} ## end of not link
+} else { ## end of not link
+
+if (se.fit) {
+
+out <- list(fitted = out, se.fit = std.err)
+
+}
+
+}
 
 if (type != "qqplot") return(out)
 
