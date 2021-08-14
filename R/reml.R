@@ -169,5 +169,5 @@ if (!fitbeta$gradconv) {
   likdata$control$inner$itlim <- it0
   fitbeta <- .newton_step(fitbeta$par, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
 }
-list(beta = fitbeta$par)
+list(beta = fitbeta$par, par = pars)
 }
