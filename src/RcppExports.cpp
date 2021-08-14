@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // aldd0
 double aldd0(const Rcpp::List& pars, const arma::mat& X1, const arma::mat& X2, const arma::vec& yvec, const arma::vec& tau, const arma::vec& C, const arma::uvec& dupid, int dcate);
 RcppExport SEXP _evgam_aldd0(SEXP parsSEXP, SEXP X1SEXP, SEXP X2SEXP, SEXP yvecSEXP, SEXP tauSEXP, SEXP CSEXP, SEXP dupidSEXP, SEXP dcateSEXP) {

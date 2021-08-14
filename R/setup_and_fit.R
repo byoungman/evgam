@@ -192,7 +192,8 @@ if (npar == 1) {
   if (!(length(formula) %in% c(npar, 1)))
     stop(paste("length(formula) for this family should be", npar, "(or 1 if all parameters are to have the same formula)"))
 }
-pred.vars <- unique(unlist(lapply(formula, all.vars)))
+pred.vars <- unique(unlist(lapply(lapply(formula, mgcv::interpret.gam), "[[", "fake.names")))
+# pred.vars <- unique(unlist(lapply(formula, all.vars)))
 # check they're all in data
 if (!all(pred.vars %in% names(data))) {
   missing.vars <- pred.vars[!(pred.vars %in% names(data))]
