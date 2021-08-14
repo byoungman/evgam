@@ -18,12 +18,12 @@ out
 
 .perturb <- function(A) {
 d <- attr(A, "d")
-eps <- 1e-16
+eps <- 1e-12
 cholA <- suppressWarnings(chol(A, pivot=TRUE))
 while(attr(cholA, "rank") < nrow(A)) {
-diag(A) <- diag(A) + eps
-cholA <- suppressWarnings(chol(A, pivot=TRUE))
-eps <- 1e2 * eps
+  diag(A) <- diag(A) + eps
+  cholA <- suppressWarnings(chol(A, pivot=TRUE))
+  eps <- 1e2 * eps
 }
 attr(A, "chol") <- cholA
 return(A)
