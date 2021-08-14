@@ -796,6 +796,8 @@ VR <- matrix(0, nrow=likdata$nb, ncol=likdata$nb)
 # for (k in seq_along(sp)) for (l in seq_along(sp)) VR <- VR + crossprod(dR[[k]] * Vrho[k, l], dR[[l]])
 # VR <- .5 * (VR + t(VR))
 Vc <- .perturb(Vp + Vbetarho + VR)
+} else {
+  Vrho <- 0
 }
 } else {
   Vrho <- 0
