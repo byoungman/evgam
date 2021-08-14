@@ -25,6 +25,7 @@
 #' @param sandwich.args a list of arguments for sandwich adjustment; see Details
 #' @param egpd.args a list of arguments for extended GPD; see Details
 #' @param custom.fns a list of functions for a custom family; see Details
+#' @param sp a vector of fixed smoothing parameters
 #' 
 #' @details
 #' 
@@ -137,7 +138,7 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
 inits=NULL, outer="bfgs", control=NULL, removeData=FALSE, trace=0, 
 knots=NULL, maxdata=1e20, maxspline=1e20, compact=FALSE, 
 ald.args=list(), exi.args=list(), pp.args=list(), sandwich.args=list(),
-egpd.args=list(), custom.fns=list()) {
+egpd.args=list(), custom.fns=list(), sp = NULL) {
 
 ## setup family
 family.info <- .setup.family(family, pp.args, egpd.args, formula, custom.fns)
@@ -172,6 +173,12 @@ if (is.null(rho0)) {
     rho0 <- apply(diagSl, 2, function(y) uniroot(.guess, c(-1e2, 1e2), d=attr(beta, "diagH"), s=y)$root)
 } else {
     if (length(rho0) == 1) rho0 <- rep(rho0, nsp)
+}
+
+## check for fixed smoothing parameters
+if (!is.null(sp)) {
+  rho0 <- log(sp)
+  lik.data$outer <- "fixed"
 }
 
 lik.data$S <- .makeS(S.data, exp(rho0))
