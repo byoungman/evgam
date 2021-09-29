@@ -13,54 +13,6 @@ aldd34 <- function(pars, X1, X2, yvec, tau, C, dupid, dcate) {
     .Call(`_evgam_aldd34`, pars, X1, X2, yvec, tau, C, dupid, dcate)
 }
 
-egpd1d0 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
-    .Call(`_evgam_egpd1d0`, pars, X1, X2, X3, yvec, dupid, dcate)
-}
-
-egpd1d12 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
-    .Call(`_evgam_egpd1d12`, pars, X1, X2, X3, yvec, dupid, dcate)
-}
-
-egpd1d34 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
-    .Call(`_evgam_egpd1d34`, pars, X1, X2, X3, yvec, dupid, dcate)
-}
-
-egpd2d0 <- function(pars, X1, X2, X3, X4, X5, yvec, dupid, dcate) {
-    .Call(`_evgam_egpd2d0`, pars, X1, X2, X3, X4, X5, yvec, dupid, dcate)
-}
-
-egpd2d12 <- function(pars, X1, X2, X3, X4, X5, yvec, dupid, dcate) {
-    .Call(`_evgam_egpd2d12`, pars, X1, X2, X3, X4, X5, yvec, dupid, dcate)
-}
-
-egpd2d34 <- function(pars, X1, X2, X3, X4, X5, yvec, dupid, dcate) {
-    .Call(`_evgam_egpd2d34`, pars, X1, X2, X3, X4, X5, yvec, dupid, dcate)
-}
-
-egpd3d0 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
-    .Call(`_evgam_egpd3d0`, pars, X1, X2, X3, yvec, dupid, dcate)
-}
-
-egpd3d12 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
-    .Call(`_evgam_egpd3d12`, pars, X1, X2, X3, yvec, dupid, dcate)
-}
-
-egpd3d34 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
-    .Call(`_evgam_egpd3d34`, pars, X1, X2, X3, yvec, dupid, dcate)
-}
-
-egpd4d0 <- function(pars, X1, X2, X3, X4, yvec, dupid, dcate) {
-    .Call(`_evgam_egpd4d0`, pars, X1, X2, X3, X4, yvec, dupid, dcate)
-}
-
-egpd4d12 <- function(pars, X1, X2, X3, X4, yvec, dupid, dcate) {
-    .Call(`_evgam_egpd4d12`, pars, X1, X2, X3, X4, yvec, dupid, dcate)
-}
-
-egpd4d34 <- function(pars, X1, X2, X3, X4, yvec, dupid, dcate) {
-    .Call(`_evgam_egpd4d34`, pars, X1, X2, X3, X4, yvec, dupid, dcate)
-}
-
 exid0 <- function(yvec, zvec, pars, nmax, X, dupid, dcate, link) {
     .Call(`_evgam_exid0`, yvec, zvec, pars, nmax, X, dupid, dcate, link)
 }
@@ -214,10 +166,6 @@ gpdcd34 <- function(pars, X1, X2, ymat, dupid, dcate) {
 
 .gH4 <- function(gh, X1, X2, X3, X4, dupid, dcate, sand, deriv) {
     .Call(`_evgam_gH4`, gh, X1, X2, X3, X4, dupid, dcate, sand, deriv)
-}
-
-.gH5 <- function(gh, X1, X2, X3, X4, X5, dupid, dcate, sand, deriv) {
-    .Call(`_evgam_gH5`, gh, X1, X2, X3, X4, X5, dupid, dcate, sand, deriv)
 }
 
 pp1d0 <- function(pars, X1, X2, X3, yvec, wvec) {
