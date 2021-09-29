@@ -292,7 +292,10 @@ exiargs, aldargs, pp, knots, maxdata, maxspline, compact, sargs,
 outer, trace) {
 
 ## data
-for (i in seq_along(responsename)) data <- data[!is.na(data[,responsename[i]]),]
+for (i in seq_along(responsename)) {
+  dm <- as.matrix(data[,responsename[i]])
+  data <- data[rowSums(!is.na(dm)) == ncol(dm), ]
+}
 
 if (nrow(data) > maxdata) {
     id <- sort(sample(nrow(data), maxdata))
