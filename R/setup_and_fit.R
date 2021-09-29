@@ -192,8 +192,7 @@ if (npar == 1) {
   if (!(length(formula) %in% c(npar, 1)))
     stop(paste("length(formula) for this family should be", npar, "(or 1 if all parameters are to have the same formula)"))
 }
-pred.vars <- unique(unlist(lapply(lapply(formula, mgcv::interpret.gam), "[[", "fake.names")))
-# pred.vars <- unique(unlist(lapply(formula, all.vars)))
+pred.vars <- unique(unlist(lapply(formula, all.vars)))
 # check they're all in data
 if (!all(pred.vars %in% names(data))) {
   missing.vars <- pred.vars[!(pred.vars %in% names(data))]
@@ -706,12 +705,6 @@ likdata
 
 attr(rho0, "beta") <- beta
 
-if (outer == "fixed") {
-  
-  fit.reml <- .reml0_fixed(rho0, likfns=likfns, likdata=likdata, Sdata=Sdata)
-  
-} else {
-
 if (is.null(likfns$d340) & outer != "fd")
   outer <- "fd"
 
@@ -746,8 +739,6 @@ if (trace == 1) {
   report <- c(report, paste("   Outer:", signif(max(abs(fit.reml$gradient)), 3)))
   report <- c(report, "", "")
   cat(paste(report, collapse="\n"))
-}
-
 }
 
 fit.reml
@@ -797,8 +788,6 @@ VR <- matrix(0, nrow=likdata$nb, ncol=likdata$nb)
 # for (k in seq_along(sp)) for (l in seq_along(sp)) VR <- VR + crossprod(dR[[k]] * Vrho[k, l], dR[[l]])
 # VR <- .5 * (VR + t(VR))
 Vc <- .perturb(Vp + Vbetarho + VR)
-} else {
-  Vrho <- 0
 }
 } else {
   Vrho <- 0
