@@ -153,3 +153,21 @@ f1 <- (f1 - f0) / eps
 gH <- .reml12(pars, likfns, likdata, Sdata, H=H)
 .search.dir(gH[[1]], gH[[2]], !logical(length(gH[[1]])))
 }
+
+## fixed smoothing parameters
+
+.reml0_fixed <- function(pars, likfns, likdata, Sdata, beta=NULL) {
+if (is.null(beta)) 
+  beta <- attr(pars, "beta")
+sp <- exp(pars)
+likdata$S <- .makeS(Sdata, sp)
+fitbeta <- .newton_step(beta, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
+if (!fitbeta$gradconv) {
+  it0 <- likdata$control$inner$itlim
+  likdata$control$inner$itlim <- 10
+  fitbeta <- .newton_step(fitbeta$par, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner, newton=FALSE, alpha0=.05)
+  likdata$control$inner$itlim <- it0
+  fitbeta <- .newton_step(fitbeta$par, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
+}
+list(beta = fitbeta$par, par = pars)
+}
