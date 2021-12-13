@@ -290,7 +290,7 @@ X
 
 .setup.data <- function(data, responsename, formula, family, nms, removeData, 
 exiargs, aldargs, pp, knots, maxdata, maxspline, compact, sargs, 
-outer, trace) {
+outer, trace, gamma) {
 
 ## data
 for (i in seq_along(responsename)) {
@@ -454,10 +454,12 @@ lik.data$idpars <- rep(seq_along(lik.data$X), nbk)
 lik.data$LAid <- lik.data$idpars > 0
 lik.data$subsampling <- subsampling
 gotsmooth <- which(sapply(gams, function(x) length(x$sp)) > 0)
-lik.data$k <- 1
+lik.data$k <- 1 / gamma
 if (is.null(sargs$id)) {
   lik.data$adjust <- 0
 } else {
+  if (gamma != 1)
+    stop("Can't have gamma != 1 and sandwich adjustment.")
   if (is.null(sargs$method)) 
     sargs$method <- "magnitude"
   if (sargs$method == "curvature") {
@@ -611,7 +613,7 @@ if (is.null(inits)) {
 beta0 <- unlist(lapply(seq_len(npar), function(i) c(beta0[i], rep(0, ncol(likdata$X[[i]]) - 1))))
 compmode <- 0 * beta0
 CH <- diag(compmode + 1)
-k <- 1
+k <- likdata$k
 likdata[c("k", "CH", "compmode")] <- list(k, CH, compmode)
 diagH <- diag(.gH.nopen(beta0, likdata=likdata, likfns=likfns)[[2]])
 if (likdata$sandwich) {

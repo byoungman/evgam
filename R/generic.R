@@ -26,6 +26,7 @@
 #' @param egpd.args a list of arguments for extended GPD; see Details
 #' @param custom.fns a list of functions for a custom family; see Details
 #' @param sp a vector of fixed smoothing parameters
+#' @param gamma a total penalty adjustment, such that higher values (>1) give smoother overall fits; defaults to 1 (no adjustment)
 #' 
 #' @details
 #' 
@@ -138,7 +139,7 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
 inits=NULL, outer="bfgs", control=NULL, removeData=FALSE, trace=0, 
 knots=NULL, maxdata=1e20, maxspline=1e20, compact=FALSE, 
 ald.args=list(), exi.args=list(), pp.args=list(), sandwich.args=list(),
-egpd.args=list(), custom.fns=list(), sp = NULL) {
+egpd.args=list(), custom.fns=list(), sp = NULL, gamma = 1) {
 
 ## setup family
 family.info <- .setup.family(family, pp.args, egpd.args, formula, custom.fns)
@@ -151,7 +152,7 @@ response.name <- attr(formula, "response.name")
 ## setup mgcv objects and data
 temp.data <- .setup.data(data, response.name, formula, family, family.info$nms, 
   removeData, exi.args, ald.args, pp.args, knots, maxdata, 
-  maxspline, compact, sandwich.args, tolower(outer), trace)
+  maxspline, compact, sandwich.args, tolower(outer), trace, gamma)
 data <- temp.data$data
 
 ## initialise inner iteration

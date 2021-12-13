@@ -2,7 +2,11 @@
 
 ### Changes:
 
-* None.
+* 'gamma' argument
+
+* custom likelihoods
+
+* extended GPD
 
 ### Bug fixes:
 
