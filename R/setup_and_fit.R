@@ -183,7 +183,9 @@ out <- list(npar=npar, npar2=npar, lik.fns=lik.fns, nms=nms, family=family)
 .setup.formulae <- function(formula, npar, npar2, data, trace, nms) {
 # turn formula into list, which will be repeated.
 if (inherits(formula, "formula"))
-  formula <- list(formula)
+  formula <- lapply(seq_len(npar), function(i) formula)
+# if (inherits(formula, "formula"))
+#   formula <- list(formula)
 # get variable names
 if (npar == 1) {
   if (!(length(formula) %in% c(npar, 1)))
