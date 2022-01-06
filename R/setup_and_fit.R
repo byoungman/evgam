@@ -53,11 +53,13 @@ if (family == "gev") {
   lik.fns <- .gevfns
   npar <- 3
   nms <- c("mu", "lpsi", "xi")
+  nms2 <- c('location', 'logscale', 'shape')
 } else {
 if (family == "gpd") {
   lik.fns <- .gpdfns
   npar <- 2
   nms <- c("lpsi", "xi")
+  nms2 <- c('logscale', 'shape')
 } else {
 if (family == "modgpd") {
 stop("'family='modgpd'' will return; in the mean time use `family='gpd''")
@@ -65,31 +67,37 @@ stop("'family='modgpd'' will return; in the mean time use `family='gpd''")
   lik.fns <- NULL
   npar <- 2
   nms <- c("lmodpsi", "xi")
+  nms2 <- c('logscale', 'shape')
 } else {
 if (family == "pp") {
   lik.fns <- .ppfns
   npar <- 3
   nms <- c("mu", "lpsi", "xi")
+  nms2 <- c('location', 'logscale', 'shape')
 } else {
 if (family == "weibull") {
   lik.fns <- .weibfns
   npar <- 2
   nms <- c("llambda", "lk")
+  nms2 <- c('logscale', 'logshape')
 } else {
 if (family == "exi") {
   lik.fns <- .exifns
   npar <- 1
   nms <- c("location")
+  nms2 <- c('translocation')
 } else { 
 if (family == "ald") {
   lik.fns <- .aldfns
   npar <- 2
   nms <- c("mu", "lsigma")
+  nms2 <- c('location', 'logscale')
 } else {
 if (family == "gamma") {
   lik.fns <- NULL#gammafns
   npar <- 2
   nms <- c("ltheta", "lk")
+  nms2 <- c('logscale', 'logshape')
 } else {
 if (family == "orthoggpd") {
 stop("'family='orthoggpd'' may not return return")
@@ -97,6 +105,7 @@ stop("'family='orthoggpd'' may not return return")
   lik.fns <- NULL#ogpdfns
   npar <- 2
   nms <- c("lnu", "xi")
+  nms2 <- c('logscale', 'shape')
 } else {
 if (family == "transxigpd") {
 stop("'family='transxigpd'' may not return")
@@ -111,16 +120,19 @@ stop("'family='transgev'' may not return")
   lik.fns <- NULL#transgevfns
   npar <- 6
   nms <- c("mu", "lpsi", "xi", "A", "lB", "C")
+  nms2 <- c('location', 'logscale', 'shape', 'A', 'logB', 'C')
 } else {
 if (family == "exponential") {
   lik.fns <- .expfns
   npar <- 1
   nms <- c("llambda")
+  nms2 <- c('lograte')
 } else {
 if (family == "gauss") {
   lik.fns <- .gaussfns
   npar <- 2
   nms <- c("mu", "logsigma")
+  nms2 <- c('location', 'logscale', 'shape')
 } else {
 if (family == "egpd") {
   if (is.null(egpd$m))
@@ -129,23 +141,27 @@ if (family == "egpd") {
     lik.fns <- .egpd1fns
     npar <- 3
     nms <- c("lpsi", "xi", "lkappa")
+    nms2 <- c('logscale', 'shape', 'logkappa')
     attr(family, "type") <- 1
   } else {
     if (egpd$m == 2) {
       lik.fns <- .egpd2fns
       npar <- 5
       nms <- c("lpsi", "xi", "lkappa1", "lkappa2", "logitp")
+      nms2 <- c('logscale', 'shape', 'logkappa1', 'logkappa2', 'logitp')
       attr(family, "type") <- 2
     } else {
       if (egpd$m == 3) {
         lik.fns <- .egpd3fns
         npar <- 3
         nms <- c("lpsi", "xi", "ldelta")
+        nms2 <- c('logscale', 'shape', 'logdelta')
         attr(family, "type") <- 3
       } else {
         lik.fns <- .egpd4fns
         npar <- 4
         nms <- c("lpsi", "xi", "ldelta", "lkappa")
+        nms2 <- c('logscale', 'shape', 'logdelta', 'logkappa')
         attr(family, "type") <- 4
       }
     }
@@ -175,7 +191,7 @@ if (family == "egpd") {
 }
 }
 }
-out <- list(npar=npar, npar2=npar, lik.fns=lik.fns, nms=nms, family=family)
+out <- list(npar=npar, npar2=npar, lik.fns=lik.fns, nms=nms, family=family, nms2 = nms2)
 }
 
 ############ .setup.formula ##########################
@@ -844,7 +860,7 @@ gams
 ############ .finalise ##########################
 
 .finalise <- function(gams, data, likfns, likdata, Sdata, fitreml, VpVc, family, gotsmooth,
-formula, responsenm, removeData, edf) {
+formula, responsenm, removeData, edf, linkNames) {
 # nms <- c("location", "logscale", "shape")
 # if (length(gams) == 2) {
 #   if (family %in% c("ald", "gauss")) {
@@ -884,7 +900,7 @@ formula, responsenm, removeData, edf) {
 # if (family == "custom") {
 #   nms <- attr(formula, "nms")
 # }
-names(gams) <- names(formula)#nms
+names(gams) <- linkNames
 smooths <- length(gotsmooth) > 0
 Vp <- VpVc$Vp
 Vc <- VpVc$Vc
@@ -953,27 +969,27 @@ if (gams$compacted) gams$compactid <- likdata$dupid + 1
 smooth.terms <- unique(lapply(lapply(gams[gotsmooth], function(x) x$smooth), function(y) lapply(y, function(z) z$term)))
 smooth.terms <- unique(unlist(smooth.terms, recursive=FALSE))
 gams$plotdata <- lapply(smooth.terms, function(x) unique(data[,x, drop=FALSE]))
-if (family == "custom")
-  names(gams)[seq_along(formula)] <- names(formula)
-if (family == "weibull") 
-  names(gams)[2] <- "logshape"
-if (family == "exponential") 
-  names(gams)[1] <- "lograte"
-if (family == "egpd") {
-  if (attr(family, "type") == 1) {
-    names(gams)[1:3] <- c("logscale", "shape", "logkappa")
-  } else {
-    if (attr(family, "type") == 2) {
-      names(gams)[1:5] <- c("logscale", "shape", "logkappa1", "logkappa2", "logitp")
-    } else {
-      if (attr(family, "type") == 3) {
-        names(gams)[1:3] <- c("logscale", "shape", "logdelta")
-      } else {
-        names(gams)[1:4] <- c("logscale", "shape", "logdelta", "logkappa")
-      }
-    }
-  }
-}
+# if (family == "custom")
+#   names(gams)[seq_along(formula)] <- names(formula)
+# if (family == "weibull") 
+#   names(gams)[2] <- "logshape"
+# if (family == "exponential") 
+#   names(gams)[1] <- "lograte"
+# if (family == "egpd") {
+#   if (attr(family, "type") == 1) {
+#     names(gams)[1:3] <- c("logscale", "shape", "logkappa")
+#   } else {
+#     if (attr(family, "type") == 2) {
+#       names(gams)[1:5] <- c("logscale", "shape", "logkappa1", "logkappa2", "logitp")
+#     } else {
+#       if (attr(family, "type") == 3) {
+#         names(gams)[1:3] <- c("logscale", "shape", "logdelta")
+#       } else {
+#         names(gams)[1:4] <- c("logscale", "shape", "logdelta", "logkappa")
+#       }
+#     }
+#   }
+# }
 names(gams$coefficients) <- unlist(lapply(seq_along(likdata$X), function(i) paste(names(gams)[i], names(gams[[i]]$coefficients), sep = "_")))
 gams$ngam <- length(formula)
 for (i in seq_along(gams[nms])[-gotsmooth])
