@@ -176,6 +176,7 @@ if (family == "egpd") {
     } else {
       nms <- names(formula)
     }
+    nms2 <- nms
   }
 }
 }
