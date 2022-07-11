@@ -1863,7 +1863,7 @@ if (dcate == 1) {
 }
 
 double y, lpsi, xi, ldelta;
-double ee1, ee2, ee3, ee4, ee6, ee7;
+double ee1, ee4;
 double nllh=0.0;
 
 for (int j=0; j < nobs; j++) {

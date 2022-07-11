@@ -4,7 +4,7 @@
 exid0(likdata$y[[1]], likdata$y[[2]], pars, likdata$nexi, likdata$X[[1]], likdata$dupid, likdata$duplicate, likdata$exilink)
 }
 
-.exi.d12 <- function(pars, likdata) {
+.exi.d12 <- function(pars, likdata, sandwich = FALSE) {
 exid12(likdata$y[[1]], likdata$y[[2]], pars, likdata$nexi, likdata$X[[1]], likdata$dupid, likdata$duplicate, likdata$exilink)
 }
 

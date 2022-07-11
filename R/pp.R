@@ -33,7 +33,7 @@ if (!is.finite(out)) out <- 1e20
 out
 }
 
-.pp.d12 <- function(pars, likdata) {
+.pp.d12 <- function(pars, likdata, sandwich = FALSE) {
 ny <- ncol(likdata$y)
 prs <- split(pars, likdata$idpars)
 X <- lapply(likdata$X, function(x) x[likdata$ppq, , drop=FALSE])

@@ -18,6 +18,11 @@
 #' estimates of distribution quantile(s); and 5) "qqplot" a quantile-quantile
 #' plot.
 #'
+#' @references 
+#'
+#' Youngman, B. D. (2022). evgam: An R Package for Generalized Additive Extreme
+#' Value Modules. Journal of Statistical Software. To appear. \doi{10.18637/jss.v103.i03}
+#'
 #' @return A data frame or list of predictions, or a plot if \code{type == "qqplot"}
 #'
 #' @examples

@@ -7,7 +7,7 @@ out <- Reduce("+", out) / ny
 out
 }
 
-.exp.d12 <- function(pars, likdata) {
+.exp.d12 <- function(pars, likdata, sandwich = FALSE) {
 ny <- ncol(likdata$y)
 out <- lapply(seq_len(ny), function(i) expd12(split(pars, likdata$idpars), likdata$X[[1]], likdata$y[,i], likdata$dupid, likdata$duplicate))
 out <- Reduce("+", out) / ny

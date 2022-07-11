@@ -8,7 +8,7 @@ if (!is.finite(out)) out <- 1e20
 out
 }
 
-.ald.d12 <- function(pars, likdata) {
+.ald.d12 <- function(pars, likdata, sandwich = FALSE) {
 ny <- ncol(likdata$y)
 out <- lapply(seq_len(ny), function(i) aldd12(split(pars, likdata$idpars), X1=likdata$X[[1]], X2=likdata$X[[2]], yvec=likdata$y[,i], tau=likdata$tau, C=likdata$C, dupid=likdata$dupid, dcate=likdata$duplicate))
 out <- Reduce("+", out) / ny

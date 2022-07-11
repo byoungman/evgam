@@ -30,33 +30,12 @@
 #' 
 #' @details
 #' 
-#' The following families are currently available: \code{"ald"}, the asymmetric Laplace distribution,
-#' primarily intended for quantile regression, as in Yu & Moyeed (2001); \code{"gev"} (default), the
-#' generalised extreme valued distribution; \code{"exp"}, the exponential distribution; \code{"gpd"},
-#' the generalised Pareto distribution; \code{"gauss"}, the Gaussian distribution; \code{"pp"}, the 
-#' point process model for extremes, implemented through \eqn{r}-largest order statistics; \code{"weibull"}, the Weibull distribution; \code{"exi"}, estimation if the
-#' extremal index, as in Schlather & Tawn (2003).
+#' See \code{\link{family.evgam}} for details of distributions that can be fitted with 
+#' \code{evgam} using \code{family = "..."} and details of \code{ald.args}, 
+#' \code{exi.args}, \code{pp.args} and \code{egpd.args} and see 
+#' \code{\link{custom.family.evgam}} for details of using \code{family = "custom"}
+#' with \code{custom.fns}.
 #' 
-#' Arguments for the asymmetric Laplace distribution are given by \code{ald.args}. A 
-#' scalar \code{tau} defines the quantile sought, which has no default. The scalar
-#' \code{C} specifies the curvature parameter of Oh et al. (2011).
-#'
-#' Arguments for extremal index estimation are given by \code{exi.args}. A character
-#' string \code{id} specifies the variable in \code{data}over which an \code{nexi}
-#' (default 2) running max. has been taken. The \code{link} is specified as a character string,
-#' which is one of \code{"logistic"}, \code{"probit"}, \code{"cloglog"}; defaults to \code{"logistic"}.
-#' 
-#' Arguments for the point process model are given by \code{pp.args}. An integer \code{r}
-#' specifies the number of order statistics from which the model will be estimated.
-#' If \code{r = -1}, all \code{data} will be used. The character string \code{id} specifies the variable 
-#' in \code{data} over which the point process isn't integrated; e.g. if a map 
-#' of parameter estimates related to extremes over time is sought, integration isn't 
-#' over locations. The scalar \code{nper} number of data per period of interest; scalar or
-#' integer vector \code{ny} specifies the number of periods; if \code{length(ny) > 1}
-#' then \code{names(ny)} must ne supplied and must match to every unique \code{id}. 
-#' logical \code{correctny} specifies whether \code{ny} is 
-#' corrected to adjust proportionally for data missingness.
-#'
 #' Arguments for the sandwich adjustment are given by \code{sandwich.args}. A character
 #' string \code{id} can be supplied to the list, which identifies the name of the 
 #' variable in \code{data} such that independence will be assumed between its values. The
@@ -68,24 +47,13 @@
 #' Chandler, R. E., & Bate, S. (2007). Inference for clustered data
 #' using the independence loglikelihood. Biometrika, 94(1), 167-183.
 #'
-#' Naveau, P., Huser, R., Ribereau, P., and Hannart, A. (2016), Modeling 
-#' jointly low, moderate, and heavy rainfall intensities without a threshold 
-#' selection, Water Resources Research, 52, 2753-2769.
-#'
-#' Oh, H. S., Lee, T. C., & Nychka, D. W. (2011). Fast nonparametric 
-#' quantile regression with arbitrary smoothing methods. Journal of 
-#' Computational and Graphical Statistics, 20(2), 510-526.
-#'
-#' Schlather, M., & Tawn, J. A. (2003). A dependence measure for multivariate and 
-#' spatial extreme values: Properties and inference. Biometrika, 90(1), 139-156.
-#'
 #' Wood, S. N., Pya, N., & Safken, B. (2016). Smoothing parameter and model 
 #' selection for general smooth models. Journal of the American Statistical 
 #' Association, 111(516), 1548-1563.
 #'
-#' Yu, K., & Moyeed, R. A. (2001). Bayesian quantile regression. 
-#' Statistics & Probability Letters, 54(4), 437-447.
-#' 
+#' Youngman, B. D. (2022). evgam: An R Package for Generalized Additive Extreme
+#' Value Modules. Journal of Statistical Software. To appear. \doi{10.18637/jss.v103.i03}
+#'
 #' @examples
 #'
 #' data(fremantle)

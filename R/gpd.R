@@ -12,7 +12,7 @@ if (!likdata$censored) {
 out
 }
 
-.gpd.d12 <- function(pars, likdata) {
+.gpd.d12 <- function(pars, likdata, sandwich = FALSE) {
 if (!likdata$censored) {
   out <- gpdd12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y[,1], likdata$dupid, likdata$duplicate)
 } else {
