@@ -981,155 +981,155 @@ attr(beta0, "diagH") <- diagH
 beta0
 }
 
-.setup.inner.inits <- function(inits, likdata, likfns, npar, family) {
-
-likdata0 <- likdata
-likdata0$X <- lapply(seq_along(likdata$X), function(i) matrix(1, nrow=nrow(likdata$X[[i]]), ncol=1))
-if (!is.null(likdata$agg)) 
-  likdata0$agg$X <- lapply(seq_along(likdata$agg$X), function(i) matrix(1, nrow=nrow(likdata$agg$X[[i]]), ncol=1))
-# likdata0$pp$X <- lapply(seq_along(likdata$pp$X), function(x) matrix(1, nrow=nrow(likdata$pp$X[[x]]), ncol=1))
-likdata0$S <- diag(0, npar)
-likdata0$idpars <- seq_len(npar)
-
-if (is.null(inits)) {
-  if (family == "egpd") {
-    inits <- numeric(npar)
-    inits[1:2] <- c(log(mean(likdata$y[,1])), .05)
-    if (attr(family, "type") == 2)
-      inits <- c(inits[1:2], -1, 1, .25)
-  } else {
-    if (npar == 1) 
-      inits <- 2
-    if (npar == 2) {
-      if (family == "ald") {
-        inits <- c(quantile(likdata0$y[,1], likdata0$tau), log(sd(likdata0$y[,1])))
-      } else {
-        inits <- c(log(mean(likdata$y[,1])), .05)
-        if (family == "transxigpd") 
-          inits[2] <- .9
-      }
-    }
-    if (npar %in% 3:4) {
-      inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
-      inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
-      if (npar == 4) 
-        inits <- c(inits, 1)
-    }
-    if (npar == 6) {
-      inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
-      inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
-      inits <- c(inits, 0, 0, 1)
-    }
-  }
-  likdata0$CH <- diag(length(inits))
-  likdata0$compmode <- numeric(length(inits))
-  beta0 <- .newton_step_inner(inits, .nllh.nopen, .search.nopen, likdata=likdata0, likfns=likfns, control=likdata$control$inner)$par
-} else {
-  if (is.list(inits)) {
-    betamat <- expand.grid(inits)
-    betanllh <- numeric(nrow(betamat))
-    for (i in seq_len(nrow(betamat))) {
-      beta0 <- unlist(betamat[i,])
-      betanllh[i] <- likfns$nllh(beta0, likdata0)
-    }
-    beta0 <- betamat[which.min(betanllh),]
-    print(beta0)
-  } else {
-    beta0 <- inits
-  }
-}
-beta0 <- unlist(lapply(seq_len(npar), function(i) c(beta0[i], rep(0, ncol(likdata$X[[i]]) - 1))))
-compmode <- 0 * beta0
-CH <- diag(compmode + 1)
-k <- 1
-likdata[c("k", "CH", "compmode")] <- list(k, CH, compmode)
-diagH <- diag(.gH.nopen(beta0, likdata=likdata, likfns=likfns)[[2]])
-if (likdata$sandwich) {
-  if (is.null(likdata$sandwich.lambda)) {
-    beta0 <- .newton_step(beta0, .nllh.nopen, .search.nopen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
-    kept <- beta0$kept
-#     if (any(max(abs(beta0$gradient)) > 1)) {
-#       beta0 <- nlm(.nllh.nopen.nlm, beta0$par, likdata = likdata, likfns = likfns, check.analyticals = FALSE, print.level = 1, iterlim = 1e3)
-#       beta0 <- nlminb(beta0$estimate, .nllh.nopen, .grad.nopen, .hess.nopen, likdata = likdata, likfns = likfns)
-# #     g <- .gH.nopen(beta0$par, likdata=likdata, likfns=likfns)[[1]]
-# #     if (any(max(abs(g)) > 1)) {
-# #      
-# #       beta0 <- nlminb(beta0$estimate, .nllh.nopen, .grad.nopen, .hess.nopen, likdata = likdata, likfns = likfns)
-# #     }
+# .setup.inner.inits <- function(inits, likdata, likfns, npar, family) {
+# 
+# likdata0 <- likdata
+# likdata0$X <- lapply(seq_along(likdata$X), function(i) matrix(1, nrow=nrow(likdata$X[[i]]), ncol=1))
+# if (!is.null(likdata$agg)) 
+#   likdata0$agg$X <- lapply(seq_along(likdata$agg$X), function(i) matrix(1, nrow=nrow(likdata$agg$X[[i]]), ncol=1))
+# # likdata0$pp$X <- lapply(seq_along(likdata$pp$X), function(x) matrix(1, nrow=nrow(likdata$pp$X[[x]]), ncol=1))
+# likdata0$S <- diag(0, npar)
+# likdata0$idpars <- seq_len(npar)
+# 
+# if (is.null(inits)) {
+#   if (family == "egpd") {
+#     inits <- numeric(npar)
+#     inits[1:2] <- c(log(mean(likdata$y[,1])), .05)
+#     if (attr(family, "type") == 2)
+#       inits <- c(inits[1:2], -1, 1, .25)
+#   } else {
+#     if (npar == 1) 
+#       inits <- 2
+#     if (npar == 2) {
+#       if (family == "ald") {
+#         inits <- c(quantile(likdata0$y[,1], likdata0$tau), log(sd(likdata0$y[,1])))
+#       } else {
+#         inits <- c(log(mean(likdata$y[,1])), .05)
+#         if (family == "transxigpd") 
+#           inits[2] <- .9
+#       }
 #     }
-    beta0 <- beta0$par
-    H <- .gH.nopen(beta0, likdata=likdata, likfns=likfns, sandwich=TRUE)
-    g <- rowSums(H[[1]])
-    if (family == "pp") {
-      J0 <- H[[1]]
-      J <- J0[,!likdata$ppq]
-      J0 <- rowSums(J0[,likdata$ppq])
-      J <- split(as.data.frame(t(J)), likdata$sandwich.split)
-      wts <- sapply(J, nrow)
-      wts <- wts / sum(wts)
-      J <- sapply(J, colSums)
-      J <- J + J0 %o% wts
-      J <- tcrossprod(J)
-    } else {
-      J <- split(as.data.frame(t(H[[1]])), likdata$sandwich.split)
-      J <- sapply(J, colSums)
-      J <- tcrossprod(J - rowSums(J))
-    }
-    H <- H[[2]]
-    diagH <- diag(H)
-    cholH <- try(chol(H), silent=TRUE)
-    if (inherits(cholH, "try-error")) {
-      if (!likdata$force) {
-        stop("Hessian of unpenalised MLE not positive definite.\n  Supply `force=TRUE' to `sandwich.args' to perturb it to be positive definite.")
-      } else {
-        if (trace >= 0)
-          message("Hessian perturbed to be positive definite for sandwich adjustment.")
-        iH <- pinv(H)
-      }
-    } else {
-      iH <- chol2inv(cholH)
-    }
-    if (likdata$adjust == 2) {
-      cholJ <- try(chol(J), silent=TRUE)
-      if (inherits(cholJ, "try-error") & likdata$adjust == 2) {
-        HA <- crossprod(backsolve(cholJ, H, transpose=TRUE))
-      } else {
-        iHA <- tcrossprod(crossprod(iH, J), iH)
-        choliHA <- try(chol(iHA), silent=TRUE)
-        if (inherits(choliHA, "try-error")) {
-          if (!likdata$force) {
-            stop("Sandwich variance not positive definite.\n  Supply `force=TRUE' to `sandwich.args' to perturb it to be positive definite.")
-          } else {
-            if (trace >= 0)
-              message("Sandwich variance perturbed to be positive definite.")
-            HA <- pinv(iHA)
-          }
-        } else {
-          HA <- chol2inv(choliHA)
-        }
-      }
-      sH <- svd(H)
-      M <- sqrt(sH$d) * t(sH$v)
-      sHA <- svd(HA)
-      MA <- sqrt(sHA$d) * t(sHA$v)
-      CH <- solve(M, MA)
-      compmode <- beta0
-    } else {
-      k <- 1 / mean(diag(crossprod(iH, J)))
-    }
-  } else {
-  k <- likdata$sandwich.lambda
-  g <- NA
-  }
-}
-attr(beta0, "k") <- k
-attr(beta0, "CH") <- CH
-attr(beta0, "compmode") <- compmode
-attr(beta0, "diagH") <- diagH
-if (likdata$sandwich)
-  attr(beta0, "inner_grad") <- g
-beta0
-}
+#     if (npar %in% 3:4) {
+#       inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
+#       inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
+#       if (npar == 4) 
+#         inits <- c(inits, 1)
+#     }
+#     if (npar == 6) {
+#       inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
+#       inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
+#       inits <- c(inits, 0, 0, 1)
+#     }
+#   }
+#   likdata0$CH <- diag(length(inits))
+#   likdata0$compmode <- numeric(length(inits))
+#   beta0 <- .newton_step_inner(inits, .nllh.nopen, .search.nopen, likdata=likdata0, likfns=likfns, control=likdata$control$inner)$par
+# } else {
+#   if (is.list(inits)) {
+#     betamat <- expand.grid(inits)
+#     betanllh <- numeric(nrow(betamat))
+#     for (i in seq_len(nrow(betamat))) {
+#       beta0 <- unlist(betamat[i,])
+#       betanllh[i] <- likfns$nllh(beta0, likdata0)
+#     }
+#     beta0 <- betamat[which.min(betanllh),]
+#     print(beta0)
+#   } else {
+#     beta0 <- inits
+#   }
+# }
+# beta0 <- unlist(lapply(seq_len(npar), function(i) c(beta0[i], rep(0, ncol(likdata$X[[i]]) - 1))))
+# compmode <- 0 * beta0
+# CH <- diag(compmode + 1)
+# k <- 1
+# likdata[c("k", "CH", "compmode")] <- list(k, CH, compmode)
+# diagH <- diag(.gH.nopen(beta0, likdata=likdata, likfns=likfns)[[2]])
+# if (likdata$sandwich) {
+#   if (is.null(likdata$sandwich.lambda)) {
+#     beta0 <- .newton_step(beta0, .nllh.nopen, .search.nopen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
+#     kept <- beta0$kept
+# #     if (any(max(abs(beta0$gradient)) > 1)) {
+# #       beta0 <- nlm(.nllh.nopen.nlm, beta0$par, likdata = likdata, likfns = likfns, check.analyticals = FALSE, print.level = 1, iterlim = 1e3)
+# #       beta0 <- nlminb(beta0$estimate, .nllh.nopen, .grad.nopen, .hess.nopen, likdata = likdata, likfns = likfns)
+# # #     g <- .gH.nopen(beta0$par, likdata=likdata, likfns=likfns)[[1]]
+# # #     if (any(max(abs(g)) > 1)) {
+# # #      
+# # #       beta0 <- nlminb(beta0$estimate, .nllh.nopen, .grad.nopen, .hess.nopen, likdata = likdata, likfns = likfns)
+# # #     }
+# #     }
+#     beta0 <- beta0$par
+#     H <- .gH.nopen(beta0, likdata=likdata, likfns=likfns, sandwich=TRUE)
+#     g <- rowSums(H[[1]])
+#     if (family == "pp") {
+#       J0 <- H[[1]]
+#       J <- J0[,!likdata$ppq]
+#       J0 <- rowSums(J0[,likdata$ppq])
+#       J <- split(as.data.frame(t(J)), likdata$sandwich.split)
+#       wts <- sapply(J, nrow)
+#       wts <- wts / sum(wts)
+#       J <- sapply(J, colSums)
+#       J <- J + J0 %o% wts
+#       J <- tcrossprod(J)
+#     } else {
+#       J <- split(as.data.frame(t(H[[1]])), likdata$sandwich.split)
+#       J <- sapply(J, colSums)
+#       J <- tcrossprod(J - rowSums(J))
+#     }
+#     H <- H[[2]]
+#     diagH <- diag(H)
+#     cholH <- try(chol(H), silent=TRUE)
+#     if (inherits(cholH, "try-error")) {
+#       if (!likdata$force) {
+#         stop("Hessian of unpenalised MLE not positive definite.\n  Supply `force=TRUE' to `sandwich.args' to perturb it to be positive definite.")
+#       } else {
+#         if (trace >= 0)
+#           message("Hessian perturbed to be positive definite for sandwich adjustment.")
+#         iH <- pinv(H)
+#       }
+#     } else {
+#       iH <- chol2inv(cholH)
+#     }
+#     if (likdata$adjust == 2) {
+#       cholJ <- try(chol(J), silent=TRUE)
+#       if (inherits(cholJ, "try-error") & likdata$adjust == 2) {
+#         HA <- crossprod(backsolve(cholJ, H, transpose=TRUE))
+#       } else {
+#         iHA <- tcrossprod(crossprod(iH, J), iH)
+#         choliHA <- try(chol(iHA), silent=TRUE)
+#         if (inherits(choliHA, "try-error")) {
+#           if (!likdata$force) {
+#             stop("Sandwich variance not positive definite.\n  Supply `force=TRUE' to `sandwich.args' to perturb it to be positive definite.")
+#           } else {
+#             if (trace >= 0)
+#               message("Sandwich variance perturbed to be positive definite.")
+#             HA <- pinv(iHA)
+#           }
+#         } else {
+#           HA <- chol2inv(choliHA)
+#         }
+#       }
+#       sH <- svd(H)
+#       M <- sqrt(sH$d) * t(sH$v)
+#       sHA <- svd(HA)
+#       MA <- sqrt(sHA$d) * t(sHA$v)
+#       CH <- solve(M, MA)
+#       compmode <- beta0
+#     } else {
+#       k <- 1 / mean(diag(crossprod(iH, J)))
+#     }
+#   } else {
+#   k <- likdata$sandwich.lambda
+#   g <- NA
+#   }
+# }
+# attr(beta0, "k") <- k
+# attr(beta0, "CH") <- CH
+# attr(beta0, "compmode") <- compmode
+# attr(beta0, "diagH") <- diagH
+# if (likdata$sandwich)
+#   attr(beta0, "inner_grad") <- g
+# beta0
+# }
 
 ############ .guess ##########################
 
