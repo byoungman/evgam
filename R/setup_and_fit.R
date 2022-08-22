@@ -992,36 +992,38 @@ likdata0$S <- diag(0, npar)
 likdata0$idpars <- seq_len(npar)
 
 if (is.null(inits)) {
-  if (npar == 1) 
-    inits <- 2
-  if (npar == 2) {
-    if (family == "ald") {
-      inits <- c(quantile(likdata0$y[,1], likdata0$tau), log(sd(likdata0$y[,1])))
-    } else {
-      inits <- c(log(mean(likdata$y[,1])), .05)
-      if (family == "transxigpd") 
-        inits[2] <- .9
+  if (family == "egpd") {
+    inits <- numeric(npar)
+    inits[1:2] <- c(log(mean(likdata$y[,1])), .05)
+    if (attr(family, "type") == 2)
+      inits <- c(inits[1:2], -1, 1, .25)
+  } else {
+    if (npar == 1) 
+      inits <- 2
+    if (npar == 2) {
+      if (family == "ald") {
+        inits <- c(quantile(likdata0$y[,1], likdata0$tau), log(sd(likdata0$y[,1])))
+      } else {
+        inits <- c(log(mean(likdata$y[,1])), .05)
+        if (family == "transxigpd") 
+          inits[2] <- .9
+      }
     }
-  }
-  if (npar %in% 3:4) {
-    inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
-    inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
-    if (npar == 4) 
-      inits <- c(inits, 0)
-  }
-  if (npar == 6) {
-    inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
-    inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
-    inits <- c(inits, 0, 0, 1)
+    if (npar %in% 3:4) {
+      inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
+      inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
+      if (npar == 4) 
+        inits <- c(inits, 1)
+    }
+    if (npar == 6) {
+      inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
+      inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
+      inits <- c(inits, 0, 0, 1)
+    }
   }
   likdata0$CH <- diag(length(inits))
   likdata0$compmode <- numeric(length(inits))
-  if (!is.null(likdata$agg))
-    inits[3] <- -.663
-  test.finite <- .nllh.nopen(inits, likdata0, likfns)
-  if (npar >= 3 & test.finite == 1e20)
-    inits[1] <- min(likdata$y[,1]) - .1 * diff(range(likdata$y[,1]))
-  beta0 <- .newton_step(inits, .nllh.nopen, .search.nopen, likdata=likdata0, likfns=likfns, control=likdata$control$inner)$par
+  beta0 <- .newton_step_inner(inits, .nllh.nopen, .search.nopen, likdata=likdata0, likfns=likfns, control=likdata$control$inner)$par
 } else {
   if (is.list(inits)) {
     betamat <- expand.grid(inits)
