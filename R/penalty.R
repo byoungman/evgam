@@ -98,20 +98,6 @@ if (nX == 1) {
 out
 }
 
-# .gH.nopen <- function(pars, likdata, likfns, sandwich=FALSE, deriv=2) {
-# pars <- as.vector(likdata$compmode + likdata$CH %*% (as.vector(pars) - likdata$compmode))
-# temp <- likfns$d120(pars, likdata)
-# temp <- .gH(temp, likdata, sandwich, deriv)
-# temp[[1]] <- likdata$k * temp[[1]]
-# temp[[1]] <- t(temp[[1]] %*% likdata$CH)
-# if (deriv > 1) {
-#   temp[[2]] <- likdata$k * temp[[2]]
-#   temp[[2]] <- crossprod(likdata$CH, temp[[2]]) %*% likdata$CH
-#   attr(temp, "PP") <- temp[[2]] / norm(temp[[2]], "F")
-# }
-# temp
-# }
-
 .gH.nopen <- function(pars, likdata, likfns, sandwich=FALSE, deriv=2) {
 pars <- as.vector(likdata$compmode + likdata$CH %*% (as.vector(pars) - likdata$compmode))
 if ('sandwich' %in% names(formals(likfns$d120))) {
