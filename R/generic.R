@@ -19,6 +19,7 @@
 #' @param maxdata an integer specifying the maximum number of \code{data} rows. \code{data} is sampled if its number of rows exceeds \code{maxdata}; defaults to \code{1e20}
 #' @param maxspline an integer specifying the maximum number of \code{data} rows used for spline construction; defaults to \code{1e20}
 #' @param compact logical: should duplicated \code{data} rows be compacted? Defaults to \code{FALSE}
+#' @param gpd.args a list of arguments for \code{family="gpd"}; see Details
 #' @param ald.args a list of arguments for \code{family="ald"}; see Details
 #' @param exi.args a list of arguments for \code{family="exi"}; see Details
 #' @param pp.args a list of arguments for \code{family="pp"}; see Details
@@ -105,12 +106,12 @@
 #' 
 evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0, 
 inits=NULL, outer="bfgs", control=NULL, removeData=FALSE, trace=0, 
-knots=NULL, maxdata=1e20, maxspline=1e20, compact=FALSE, 
+knots=NULL, maxdata=1e20, maxspline=1e20, compact=FALSE, gpd.args = list(),
 ald.args=list(), exi.args=list(), pp.args=list(), sandwich.args=list(),
-egpd.args=list(), custom.fns=list(), sp = NULL, gamma = 1) {
+egpd.args=list(), custom.fns=list(), aggregated.args = list(), sp = NULL, gamma = 1) {
 
 ## setup family
-family.info <- .setup.family(family, pp.args, egpd.args, formula, custom.fns)
+family.info <- .setup.family(family, gpd.args, pp.args, egpd.args, formula, custom.fns, length(aggregated.args))
 family <- family.info$family
 
 ## setup formulae
@@ -119,9 +120,22 @@ response.name <- attr(formula, "response.name")
 
 ## setup mgcv objects and data
 temp.data <- .setup.data(data, response.name, formula, family, family.info$nms, 
-  removeData, exi.args, ald.args, pp.args, knots, maxdata, 
+  removeData, gpd.args, exi.args, ald.args, pp.args, knots, maxdata, 
   maxspline, compact, sandwich.args, tolower(outer), trace, gamma)
 data <- temp.data$data
+
+## aggregation
+# would prefer this within .setup.data
+if (length(aggregated.args)) {
+  agg <- list(agg = data[, aggregated.args$id])
+  if (sum(agg$agg) != length(aggregated.args$data))
+    stop("sum(data[,aggregated.args]) != length(aggregated.args$data)")
+  agg$nxy <- sapply(aggregated.args$data, nrow)
+  agg$index <- rep(seq_along(agg$nxy), agg$nxy)
+  agg$weights <- rep(1 / agg$nxy, agg$nxy)
+  agg$X <- .X.evgam(temp.data$gams, dfbind(aggregated.args$data))
+  temp.data$lik.data$agg <- agg
+}
 
 ## initialise inner iteration
 beta <- .setup.inner.inits(inits, temp.data$lik.data, family.info$lik.fns, family.info$npar, family)

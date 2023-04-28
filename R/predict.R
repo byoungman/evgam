@@ -107,6 +107,9 @@ if (type == "qqplot")
 if (family == "exi")
   linkfn <- object$linkfn
   
+if (family == 'gpdab')
+  gpdab <- matrix(object$gpdab, 2)
+
 got.newdata <- !missing(newdata)
 
 if (got.newdata) {
@@ -179,15 +182,21 @@ if (family == "custom") {
 
   unlink <- which(substr(nms, 1, 3) == "log")
   for (i in unlink) {
-    out[, i] <- exp(out[, i])
     if (substr(nms[i], 1, 5) == "logit") {
       temp <- exp(-out[, i])
       out[, i] <- 1 / (1 + temp)
       if (se.fit & type == "response")
         std.err[, i] <- temp * out[, i] * std.err[, i] / (1 + temp)
+      if (family == "gpdab")
+        out[, i] <- gpdab[i, 1] + gpdab[i, 2] * out[, i]
+    } else {
+      out[, i] <- exp(out[, i])
     }
-    if (se.fit & type == "response")
+    if (se.fit & type == "response") {
       std.err[, i] <- out[, i] * std.err[, i]
+      if (family == "gpdab")
+        std.err[, i] <- gpdab[i, 2] * std.err[, i]
+    }
   }
 
   if (exi & ncol(out) == 4) {
@@ -223,11 +232,11 @@ if (is.null(y))
   stop("No response data.")
   
 if (!pit) {
-  if (!(family %in% c("gev", "gpd", "weibull")))
+  if (!(family %in% c("gev", "gpd", "gpdab", "weibull")))
     stop("Unsuitable `family' for `type == 'qqplot''")
   if (family == "gev")
     x <- .qgev(x, out[,1], out[,2], out[,3])
-  if (family == "gpd")
+  if (family %in% c("gpd", "gpdab"))
     x <- .qgpd(x, 0, out[,1], out[,2])
   if (family == "weibull") 
     x <- .qweibull(x, out[,1], out[,2])
@@ -237,7 +246,7 @@ if (!pit) {
   x <- qexp(x)
   if (family == "gev")
     y <- .pgev(y, out[,1], out[,2], out[,3])
-  if (family == "gpd")
+  if (family %in% c("gpd", "gpdab"))
     y <- .pgpd(y, 0, out[,1], out[,2], 0)
   if (family == "weibull") 
     y <- .pweibull(y, out[,1], out[,2])
@@ -295,7 +304,7 @@ for (j in seq_len(nprob)) {
   
   } else {
 
-    if (family %in% c("gpd", "egpd")) {
+    if (family %in% c("gpd", "egpd", "gpdab")) {
       out[, j] <- .qgpd(pj, 0, pars[,1], pars[,2])
     } else {
       if (family == "gev") {

@@ -89,7 +89,11 @@ if (nX == 1) {
         if (nX == 5) { # added with evgam_0.1.5 (29/06/2021)
           out <- .gH5(x, likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], likdata$X[[5]], likdata$dupid, likdata$duplicate, as.integer(sandwich), deriv)
         } else {
-          stop("Number of model parameters not in {1, 2, 3, 4, 5}")
+          if (nX == 6) { # added with evgam_1.0.1 (31/08/2022)
+            out <- .gH6(x, likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], likdata$X[[5]], likdata$X[[6]], likdata$dupid, likdata$duplicate, as.integer(sandwich), deriv)
+          } else {
+            stop("Number of model parameters not in {1, 2, 3, 4, 5, 6}")
+          }
         }
       }
     }

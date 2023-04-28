@@ -24,6 +24,11 @@
 #'   \item \code{"custom"}, custom distributions. See \code{custom.evgam} for an example of use. 
 #' }
 #'
+#' Arguments for the generalised Pareto distribution are given by \code{gpd.args}. In general
+#' \code{gpd.args} does not need to be given. However, if a 2-vectors \code{lower} and \code{upper}
+#' are supplied then \code{lower} defines lower bounds for the GPD's scale and shape parameters
+#' and \code{upper} defines corresponding upper bounds.
+#'
 #' Arguments for the asymmetric Laplace distribution are given by \code{ald.args}. A 
 #' scalar \code{tau} defines the quantile sought, which has no default. The scalar
 #' \code{C} specifies the curvature parameter of Oh et al. (2011).
@@ -121,7 +126,7 @@ NULL
 #' y <- likdata$y
 #' 
 #' y <- (y - mu) * exp(-lsigma)
-#' nllh <- sum(lsigma - y + exp(y))
+#' nllh <- sum(lsigma + y + exp(y))
 #' 
 #' return(nllh)
 #' 

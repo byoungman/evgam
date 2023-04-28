@@ -48,7 +48,19 @@
 
 ############ .setup.family ##########################
   
-.setup.family <- function(family, pp, egpd, formula, likfns) {
+.setup.family <- function(family, gpd, pp, egpd, formula, likfns, aggregated = FALSE) {
+
+big_list <- list()
+
+# family = 'gev'
+big_list$gev <- list(
+  lik.fns = .gevfns, 
+  npar = 3, 
+  nms = c("mu", "lpsi", "xi"), 
+  nms2 = nms2 <- c('location', 'logscale', 'shape')
+)
+
+if (!aggregated) {
 if (family == "gev") {
   lik.fns <- .gevfns
   npar <- 3
@@ -56,10 +68,18 @@ if (family == "gev") {
   nms2 <- c('location', 'logscale', 'shape')
 } else {
 if (family == "gpd") {
-  lik.fns <- .gpdfns
-  npar <- 2
-  nms <- c("lpsi", "xi")
-  nms2 <- c('logscale', 'shape')
+  if (is.null(gpd$lower)) {
+    lik.fns <- .gpdfns
+    npar <- 2
+    nms <- c("lpsi", "xi")
+    nms2 <- c('logscale', 'shape')
+  } else {
+    family <- 'gpdab'
+    lik.fns <- .gpdabfns
+    npar <- 2
+    nms <- c("psi0", "xi0")
+    nms2 <- c('logitscale', 'logitshape')
+  }  
 } else {
 if (family == "modgpd") {
 stop("'family='modgpd'' will return; in the mean time use `family='gpd''")
@@ -192,6 +212,12 @@ if (family == "egpd") {
 }
 }
 }
+} else {
+  lik.fns <- .gevaggfns
+  npar <- npar2 <- 4
+  nms <- c("mu", "lpsi", "xi", "ltheta")
+  nms2 <- c("location", "logscale", "shape", "logitdep")
+}
 out <- list(npar=npar, npar2=npar, lik.fns=lik.fns, nms=nms, family=family, nms2 = nms2)
 }
 
@@ -308,7 +334,7 @@ X
 ############ .setup.data ##########################
 
 .setup.data <- function(data, responsename, formula, family, nms, removeData, 
-exiargs, aldargs, pp, knots, maxdata, maxspline, compact, sargs, 
+gpdargs, exiargs, aldargs, pp, knots, maxdata, maxspline, compact, sargs, 
 outer, trace, gamma) {
 
 ## data
@@ -385,6 +411,10 @@ if (family == "weibull") {
 if (family == "gpd") {
   if (min(lik.data$y) <= 0) 
     stop(expression("GPD has support (0, \U221E) in evgam."))
+}
+if (family == "gpdab") {
+  lik.data$gpdlohi <- c(gpdargs$lower, gpdargs$upper)
+  lik.data$gpdab <- c(lik.data$gpdlohi[1:2], lik.data$gpdlohi[3:4] - lik.data$gpdlohi[1:2])
 }
 if (family == "exi") {
 if (is.null(exiargs$id)) stop("no `id' in `exi.args'.")
@@ -857,6 +887,8 @@ solve(M, MA)
 likdata0 <- likdata
 likdata0$X <- lapply(seq_along(likdata$X), function(i) matrix(1, nrow=nrow(likdata$X[[i]]), ncol=1))
 # likdata0$pp$X <- lapply(seq_along(likdata$pp$X), function(x) matrix(1, nrow=nrow(likdata$pp$X[[x]]), ncol=1))
+if (!is.null(likdata$agg)) 
+  likdata0$agg$X <- lapply(seq_along(likdata$agg$X), function(i) matrix(1, nrow=nrow(likdata$agg$X[[i]]), ncol=1))
 likdata0$S <- diag(0, npar)
 likdata0$idpars <- seq_len(npar)
 
@@ -876,13 +908,22 @@ if (is.null(inits)) {
         inits <- c(log(mean(likdata$y[,1])), .05)
         if (family == "transxigpd") 
           inits[2] <- .9
+        if (family == "gpdab") {
+          if (inits[1] < likdata$gpdlohi[1] | inits[1] > likdata$gpdlohi[3])
+            inits[1] <- mean(likdata$gpdlohi[c(1, 3)])
+          if (inits[2] < likdata$gpdlohi[2] | inits[2] > likdata$gpdlohi[4])
+            inits[2] <- mean(likdata$gpdlohi[c(2, 4)])
+          likdata$ab <- c(likdata$gpdlohi[1:2], likdata$gpdlohi[3:4] - likdata$gpdlohi[1:2])
+          inits[1] <- exp(inits[1])
+          inits <- -log(likdata$ab[3:4] / (inits - likdata$ab[1:2]) - 1)
+        }
       }
     }
     if (npar %in% 3:4) {
       inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
       inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
       if (npar == 4) 
-        inits <- c(inits, 1)
+        inits <- c(inits, .1)
     }
     if (npar == 6) {
       inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
@@ -1378,6 +1419,7 @@ gams$Vlsp <- VpVc$Vlsp
 gams$negREML <- fitreml$objective
 gams$coefficients <- as.vector(fitreml$beta)
 if (family == "ald") gams$tau <- likdata$tau
+if (family == "gpdab") gams$gpdab <- likdata$gpdab
 if (family == "exi") {
   gams$linkfn <- likdata$linkfn
   gams$exi.name <- likdata$exiname

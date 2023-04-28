@@ -156,6 +156,14 @@ ldgev12 <- function(yvec, muvec, lpsivec, xivec) {
     .Call(`_evgam_ldgev12`, yvec, muvec, lpsivec, xivec)
 }
 
+ldgevagg_logit <- function(yvec, muvec, lpsivec, xivec, thetavec) {
+    .Call(`_evgam_ldgevagg_logit`, yvec, muvec, lpsivec, xivec, thetavec)
+}
+
+ldgevagg12_logit <- function(yvec, muvec, lpsivec, xivec, thetavec) {
+    .Call(`_evgam_ldgevagg12_logit`, yvec, muvec, lpsivec, xivec, thetavec)
+}
+
 ldgevagg <- function(yvec, muvec, lpsivec, xivec, thetavec) {
     .Call(`_evgam_ldgevagg`, yvec, muvec, lpsivec, xivec, thetavec)
 }
@@ -188,6 +196,18 @@ gpdd34 <- function(pars, X1, X2, yvec, dupid, dcate) {
     .Call(`_evgam_gpdd34`, pars, X1, X2, yvec, dupid, dcate)
 }
 
+gpdabd0 <- function(pars, X1, X2, yvec, ab, dupid, dcate) {
+    .Call(`_evgam_gpdabd0`, pars, X1, X2, yvec, ab, dupid, dcate)
+}
+
+gpdabd12 <- function(pars, X1, X2, yvec, ab, dupid, dcate) {
+    .Call(`_evgam_gpdabd12`, pars, X1, X2, yvec, ab, dupid, dcate)
+}
+
+gpdabd34 <- function(pars, X1, X2, yvec, ab, dupid, dcate) {
+    .Call(`_evgam_gpdabd34`, pars, X1, X2, yvec, ab, dupid, dcate)
+}
+
 gpdcd0 <- function(pars, X1, X2, ymat, dupid, dcate) {
     .Call(`_evgam_gpdcd0`, pars, X1, X2, ymat, dupid, dcate)
 }
@@ -218,6 +238,10 @@ gpdcd34 <- function(pars, X1, X2, ymat, dupid, dcate) {
 
 .gH5 <- function(gh, X1, X2, X3, X4, X5, dupid, dcate, sand, deriv) {
     .Call(`_evgam_gH5`, gh, X1, X2, X3, X4, X5, dupid, dcate, sand, deriv)
+}
+
+.gH6 <- function(gh, X1, X2, X3, X4, X5, X6, dupid, dcate, sand, deriv) {
+    .Call(`_evgam_gH6`, gh, X1, X2, X3, X4, X5, X6, dupid, dcate, sand, deriv)
 }
 
 pp1d0 <- function(pars, X1, X2, X3, yvec, wvec) {
