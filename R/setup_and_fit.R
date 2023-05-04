@@ -913,8 +913,12 @@ if (is.null(inits)) {
             inits[1] <- mean(likdata$gpdlohi[c(1, 3)])
           if (inits[2] < likdata$gpdlohi[2] | inits[2] > likdata$gpdlohi[4])
             inits[2] <- mean(likdata$gpdlohi[c(2, 4)])
-          likdata$ab <- c(likdata$gpdlohi[1:2], likdata$gpdlohi[3:4] - likdata$gpdlohi[1:2])
           inits[1] <- exp(inits[1])
+          if (likdata$gpdlohi[4] < 0) {
+            inits[2] <- likdata$gpdlohi[2] + .95 * (likdata$gpdlohi[4] - likdata$gpdlohi[2])
+            inits[1] <- -1.1 * inits[2] * max(likdata$y[, 1])
+          }
+          likdata$ab <- c(likdata$gpdlohi[1:2], likdata$gpdlohi[3:4] - likdata$gpdlohi[1:2])
           inits <- -log(likdata$ab[3:4] / (inits - likdata$ab[1:2]) - 1)
         }
       }
@@ -933,6 +937,14 @@ if (is.null(inits)) {
   }
   likdata0$CH <- diag(length(inits))
   likdata0$compmode <- numeric(length(inits))
+  # if (family == 'gpdab') {
+  #   test <- .nllh.nopen(inits, likdata0, likfns)
+  #   while(test == 1e20 & inits[2] < 30) {
+  #     browser()
+  #     inits[2] <- inits[2] + 1
+  #     test <- .nllh.nopen(inits, likdata0, likfns)
+  #   }
+  # }
   beta0 <- .newton_step_inner(inits, .nllh.nopen, .search.nopen, likdata=likdata0, likfns=likfns, control=likdata$control$inner)$par
 } else {
   if (is.list(inits)) {
