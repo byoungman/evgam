@@ -79,7 +79,7 @@
           npar <- 2
           nms <- c("psi0", "xi0")
           nms2 <- c('logitscale', 'logitshape')
-        }  
+        } 
       } else {
         if (family == "modgpd") {
           stop("'family='modgpd'' will return; in the mean time use `family='gpd''")
@@ -154,49 +154,56 @@
                               nms <- c("mu", "logsigma")
                               nms2 <- c('location', 'logscale', 'shape')
                             } else {
-                              if (family == "egpd") {
-                                if (is.null(egpd$model))
-                                  egpd$model <- 1
-                                if (egpd$model == 1) {
-                                  lik.fns <- .egpd1fns
-                                  npar <- 3
-                                  nms <- c("lpsi", "xi", "lkappa")
-                                  nms2 <- c('logscale', 'shape', 'logkappa')
-                                  attr(family, "type") <- 1
-                                } else {
-                                  if (egpd$model == 2) {
-                                    lik.fns <- .egpd2fns
-                                    npar <- 5
-                                    nms <- c("lpsi", "xi", "lkappa1", "lkappa2", "logitp")
-                                    nms2 <- c('logscale', 'shape', 'logkappa1', 'logkappa2', 'logitp')
-                                    attr(family, "type") <- 2
+                              if (family == 'bgev') {
+                                lik.fns <- .bgevfns
+                                npar <- 3
+                                nms <- c("qalpha", "lsbeta", "transxi")
+                                nms2 <- c('location', 'logscale', 'transshape')
+                              } else {
+                                if (family == "egpd") {
+                                  if (is.null(egpd$model))
+                                    egpd$model <- 1
+                                  if (egpd$model == 1) {
+                                    lik.fns <- .egpd1fns
+                                    npar <- 3
+                                    nms <- c("lpsi", "xi", "lkappa")
+                                    nms2 <- c('logscale', 'shape', 'logkappa')
+                                    attr(family, "type") <- 1
                                   } else {
-                                    if (egpd$model == 3) {
-                                      lik.fns <- .egpd3fns
-                                      npar <- 3
-                                      nms <- c("lpsi", "xi", "ldelta")
-                                      nms2 <- c('logscale', 'shape', 'logdelta')
-                                      attr(family, "type") <- 3
+                                    if (egpd$model == 2) {
+                                      lik.fns <- .egpd2fns
+                                      npar <- 5
+                                      nms <- c("lpsi", "xi", "lkappa1", "lkappa2", "logitp")
+                                      nms2 <- c('logscale', 'shape', 'logkappa1', 'logkappa2', 'logitp')
+                                      attr(family, "type") <- 2
                                     } else {
-                                      lik.fns <- .egpd4fns
-                                      npar <- 4
-                                      nms <- c("lpsi", "xi", "ldelta", "lkappa")
-                                      nms2 <- c('logscale', 'shape', 'logdelta', 'logkappa')
-                                      attr(family, "type") <- 4
+                                      if (egpd$model == 3) {
+                                        lik.fns <- .egpd3fns
+                                        npar <- 3
+                                        nms <- c("lpsi", "xi", "ldelta")
+                                        nms2 <- c('logscale', 'shape', 'logdelta')
+                                        attr(family, "type") <- 3
+                                      } else {
+                                        lik.fns <- .egpd4fns
+                                        npar <- 4
+                                        nms <- c("lpsi", "xi", "ldelta", "lkappa")
+                                        nms2 <- c('logscale', 'shape', 'logdelta', 'logkappa')
+                                        attr(family, "type") <- 4
+                                      }
                                     }
                                   }
-                                }
-                              } else {
-                                if (length(likfns)) {
-                                  lik.fns <- likfns
-                                  family <- "custom"
-                                  npar <- length(formula)
-                                  if (is.null(names(formula))) {
-                                    nms <- paste("par", seq_along(formula), sep = "_")
-                                  } else {
-                                    nms <- names(formula)
+                                } else {
+                                  if (length(likfns)) {
+                                    lik.fns <- likfns
+                                    family <- "custom"
+                                    npar <- length(formula)
+                                    if (is.null(names(formula))) {
+                                      nms <- paste("par", seq_along(formula), sep = "_")
+                                    } else {
+                                      nms <- names(formula)
+                                    }
+                                    nms2 <- nms
                                   }
-                                  nms2 <- nms
                                 }
                               }
                             }
@@ -335,7 +342,7 @@
 
 .setup.data <- function(data, responsename, formula, family, nms, removeData, 
                         gpdargs, exiargs, aldargs, pp, knots, maxdata, maxspline, compact, sargs, 
-                        outer, trace, gamma) {
+                        outer, trace, gamma, bgevargs) {
   
   ## data
   for (i in seq_along(responsename)) {
@@ -463,6 +470,18 @@
       aldargs$C <- .5
     lik.data$tau <- aldargs$tau
     lik.data$C <- aldargs$C
+  }
+  if (family == "bgev") {
+    # defaults
+    if (is.null(bgevargs$pa)) 
+      bgevargs$pa <- .05
+    if (is.null(bgevargs$pb)) 
+      bgevargs$pb <- .2
+    if (is.null(bgevargs$alpha)) 
+      bgevargs$alpha <- .5
+    if (is.null(bgevargs$beta)) 
+      bgevargs$beta <- .5
+    lik.data$other <- unlist(bgevargs[c('pa', 'pb', 'alpha', 'beta')])
   }
   lik.data$sandwich <- !is.null(sargs$id)
   if (lik.data$sandwich) 
@@ -908,19 +927,6 @@
           inits <- c(log(mean(likdata$y[,1])), .05)
           if (family == "transxigpd") 
             inits[2] <- .9
-          if (family == "gpdab") {
-            if (inits[1] < likdata$gpdlohi[1] | inits[1] > likdata$gpdlohi[3])
-              inits[1] <- mean(likdata$gpdlohi[c(1, 3)])
-            if (inits[2] < likdata$gpdlohi[2] | inits[2] > likdata$gpdlohi[4])
-              inits[2] <- mean(likdata$gpdlohi[c(2, 4)])
-            inits[1] <- exp(inits[1])
-            if (likdata$gpdlohi[4] < 0) {
-              inits[2] <- likdata$gpdlohi[2] + .95 * (likdata$gpdlohi[4] - likdata$gpdlohi[2])
-              inits[1] <- -1.1 * inits[2] * max(likdata$y[, 1])
-            }
-            likdata$ab <- c(likdata$gpdlohi[1:2], likdata$gpdlohi[3:4] - likdata$gpdlohi[1:2])
-            inits <- -log(likdata$ab[3:4] / (inits - likdata$ab[1:2]) - 1)
-          }
         }
       }
       if (npar %in% 3:4) {
@@ -937,14 +943,6 @@
     }
     likdata0$CH <- diag(length(inits))
     likdata0$compmode <- numeric(length(inits))
-    # if (family == 'gpdab') {
-    #   test <- .nllh.nopen(inits, likdata0, likfns)
-    #   while(test == 1e20 & inits[2] < 30) {
-    #     browser()
-    #     inits[2] <- inits[2] + 1
-    #     test <- .nllh.nopen(inits, likdata0, likfns)
-    #   }
-    # }
     beta0 <- .newton_step_inner(inits, .nllh.nopen, .search.nopen, likdata=likdata0, likfns=likfns, control=likdata$control$inner)$par
   } else {
     if (is.list(inits)) {
