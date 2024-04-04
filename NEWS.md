@@ -1,12 +1,26 @@
-## evgam 0.1.5
+## evgam 1.0.1
 
 ### Changes:
 
-* 'gamma' argument
+* Added functionality for extended generalised Pareto distribution through `evgam(..., family = "egpd")`. See Naveau et al. (Water Resour. Res., 2016, (https://doi.org/10.1002/2015WR018552)) and `family.evgam`.
 
-* custom likelihoods
+* Added functionality for blended GEV distribution through `evgam(..., family = "bgev")`. See Naveau et al. (Water Resour. Res., 2016, (https://doi.org/10.1002/2015WR018552)) and `family.evgam`. (Thanks to Jordan Richards for the suggestion.)
 
-* extended GPD
+* Added functionality for custom likelihood functions, i.e. extending those available in `evgam` through `family = ...`. See `custom.family.evgam`.
+
+* Added functionality to constrain both GPD parameters using `gpd.args = list(lower = ..., upper = ...)`. (Thanks to Callum Murphy-Barltrop for the suggestion.)
+
+### Bug fixes:
+
+* That only variables are checked as being supplied to `data` is now properly detected. (Thanks, Simon Brown.)
+
+## evgam 1.0.0
+
+### Changes:
+
+* Version increased to 1.0.0 to reflect publication of Youngman (2022, JSS, \doi{10.18637/jss.v103.i03}).
+
+* References to Youngman (2022, JSS, \doi{10.18637/jss.v103.i03}) added, where appropriate.
 
 ### Bug fixes:
 
