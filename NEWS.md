@@ -10,6 +10,8 @@
 
 * Added functionality to constrain both GPD parameters using `gpd.args = list(lower = ..., upper = ...)`. (Thanks to Callum Murphy-Barltrop for the suggestion.)
 
+* GEV model with shape parameter constrained to [-0.5, 1.0] added with family = "gev2".
+
 ### Bug fixes:
 
 * That only variables are checked as being supplied to `data` is now properly detected. (Thanks, Simon Brown.)

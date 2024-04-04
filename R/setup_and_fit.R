@@ -160,6 +160,12 @@
                                 nms <- c("qalpha", "lsbeta", "transxi")
                                 nms2 <- c('location', 'logscale', 'transshape')
                               } else {
+                                if (family == 'gev2') {
+                                  lik.fns <- .gev2fns
+                                  npar <- 3
+                                  nms <- c("mu", "lpsi", "txi")
+                                  nms2 <- c('location', 'logscale', 'transshape')
+                                } else {
                                 if (family == "egpd") {
                                   if (is.null(egpd$model))
                                     egpd$model <- 1
@@ -203,6 +209,7 @@
                                       nms <- names(formula)
                                     }
                                     nms2 <- nms
+                                  }
                                   }
                                 }
                               }
@@ -945,6 +952,8 @@
       if (npar %in% 3:4) {
         inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
         inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
+        if (family == "gev2")
+          inits[3] <- -.5
         if (npar == 4) 
           inits <- c(inits, .1)
       }
