@@ -152,7 +152,7 @@
                               lik.fns <- .gaussfns
                               npar <- 2
                               nms <- c("mu", "logsigma")
-                              nms2 <- c('location', 'logscale', 'shape')
+                              nms2 <- c('location', 'logscale')
                             } else {
                               if (family == 'bgev') {
                                 lik.fns <- .bgevfns
@@ -927,6 +927,19 @@
           inits <- c(log(mean(likdata$y[,1])), .05)
           if (family == "transxigpd") 
             inits[2] <- .9
+          if (family == "gpdab") {
+            if (inits[1] < likdata$gpdlohi[1] | inits[1] > likdata$gpdlohi[3])
+              inits[1] <- mean(likdata$gpdlohi[c(1, 3)])
+            if (inits[2] < likdata$gpdlohi[2] | inits[2] > likdata$gpdlohi[4])
+              inits[2] <- mean(likdata$gpdlohi[c(2, 4)])
+            inits[1] <- exp(inits[1])
+            if (likdata$gpdlohi[4] < 0) {
+              inits[2] <- likdata$gpdlohi[2] + .95 * (likdata$gpdlohi[4] - likdata$gpdlohi[2])
+              inits[1] <- -1.1 * inits[2] * max(likdata$y[, 1])
+            }
+            likdata$ab <- c(likdata$gpdlohi[1:2], likdata$gpdlohi[3:4] - likdata$gpdlohi[1:2])
+            inits <- -log(likdata$ab[3:4] / (inits - likdata$ab[1:2]) - 1)
+          }
         }
       }
       if (npar %in% 3:4) {
