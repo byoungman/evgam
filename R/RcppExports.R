@@ -13,6 +13,18 @@ aldd34 <- function(pars, X1, X2, yvec, tau, C, dupid, dcate) {
     .Call(`_evgam_aldd34`, pars, X1, X2, yvec, tau, C, dupid, dcate)
 }
 
+bgevd0 <- function(pars, X1, X2, X3, yvec, dupid, dcate, other) {
+    .Call(`_evgam_bgevd0`, pars, X1, X2, X3, yvec, dupid, dcate, other)
+}
+
+bgevd12 <- function(pars, X1, X2, X3, yvec, dupid, dcate, other) {
+    .Call(`_evgam_bgevd12`, pars, X1, X2, X3, yvec, dupid, dcate, other)
+}
+
+bgevd34 <- function(pars, X1, X2, X3, yvec, dupid, dcate, other) {
+    .Call(`_evgam_bgevd34`, pars, X1, X2, X3, yvec, dupid, dcate, other)
+}
+
 egpd1d0 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
     .Call(`_evgam_egpd1d0`, pars, X1, X2, X3, yvec, dupid, dcate)
 }
@@ -122,6 +134,18 @@ gaussd12 <- function(pars, X1, X2, yvec, dupid, dcate) {
 
 gaussd34 <- function(pars, X1, X2, yvec, dupid, dcate) {
     .Call(`_evgam_gaussd34`, pars, X1, X2, yvec, dupid, dcate)
+}
+
+gev2d0 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
+    .Call(`_evgam_gev2d0`, pars, X1, X2, X3, yvec, dupid, dcate)
+}
+
+gev2d12 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
+    .Call(`_evgam_gev2d12`, pars, X1, X2, X3, yvec, dupid, dcate)
+}
+
+gev2d34 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
+    .Call(`_evgam_gev2d34`, pars, X1, X2, X3, yvec, dupid, dcate)
 }
 
 gevd0 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
