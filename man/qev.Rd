@@ -14,7 +14,9 @@ qev(
   theta = 1,
   family,
   tau = 0,
-  start = NULL
+  bgev.args = list(pa = 0.05, pb = 0.2, alpha = 0.5, beta = 0.5),
+  start = NULL,
+  method = "uniroot"
 )
 }
 \arguments{
@@ -36,7 +38,11 @@ qev(
 
 \item{tau}{a scalar, vector or matrix of values giving the threshold quantile for the GPD (i.e. 1 - probability of exceedance)}
 
+\item{bgev.args}{a list specifying parameters of the blended GEV distribution; see Details}
+
 \item{start}{a 2-vector giving starting values that bound the return level}
+
+\item{method}{a character string giving the numerical estimation procedure; defaults to \code{"uniroot"}}
 }
 \value{
 A scalar or vector of estimates of \code{p}
@@ -45,20 +51,34 @@ A scalar or vector of estimates of \code{p}
 Quantile estimation of a composite extreme value distribution
 }
 \details{
-If \eqn{F} is the generalised extreme value or generalised Pareto
-distribution, \code{qev} solves 
-\deqn{\prod_{j=1}^n \big\{F(z)\}^{m \alpha_j \theta_j} = p.}
+If \eqn{F} is the generalised extreme value, generalised Pareto or blended
+GEV distribution, \code{qev} solves 
+\deqn{\prod_{j=1}^n \big\{F_i(z)\}^{m \alpha_j \theta_j} = p.}
+for \eqn{i = 1, \ldots, k}. So vectors are supplied as $n$-vectors and matrices 
+are supplied as \eqn{n \times k} matrices.
 
-For both distributions, location, scale and shape parameters 
-are given by \code{loc}, \code{scale} and \code{shape}. The 
-generalised Pareto distribution, for \eqn{\xi \neq 0} and \eqn{z > u}, 
-is parameterised as \eqn{1 - (1 - \tau) [1 + \xi (z - u) / \psi_u]^{-1/\xi}},
+For all distributions, location, scale and shape parameters are given by 
+\code{loc}, \code{scale} and \code{shape}. The generalised Pareto 
+distribution, for \eqn{\xi \neq 0} and \eqn{z > u}, is parameterised as 
+\eqn{1 - (1 - \tau) [1 + \xi (z - u) / \psi_u]^{-1/\xi}},
 where \eqn{u}, \eqn{\psi_u} and \eqn{\xi} are its location, scale and shape
-parameters, respectively, and \eqn{\tau} corresponds to argument \code{tau}.
+parameters, respectively, and \eqn{\tau} corresponds to argument \code{tau}. 
+For the blended GEV distribution \code{pa}, \code{pb}, \code{alpha} and 
+\code{beta} specify additional parameters of the blended GEV distribution; see
+\code{family.evgam} for details.
+
+Estimates either use function \code{uniroot} or \code{method = "newton"} uses
+the Newton-Rhaphson method. The latter is often much quicker if matrices
+are supplied, i.e. for \eqn{k > 1}.
 }
 \examples{
 
-qev(0.9, c(1, 2), c(1, 1.1), .1, family="gev")
-qev(0.99, c(1, 2), c(1, 1.1), .1, family="gpd", tau=0.9)
+qev(0.9, c(1, 2), c(1, 1.1), .1, family = "gev")
+qev(0.99, c(1, 2), c(1, 1.1), .1, family = "gpd", tau = 0.9)
 
+# an example representative on monthly estimates at two locations
+qev(0.9, matrix(c(1:12, 2:13), 12, 2), 1.1, .1, family = "gev")
+
+# a blended GEV example with default blended GEV specification
+qev(0.9, matrix(c(1:12, 2:13), 12, 2), 1.1, .1, family = "bgev")
 }

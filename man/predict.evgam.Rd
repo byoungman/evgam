@@ -12,6 +12,7 @@
   se.fit = FALSE,
   marginal = TRUE,
   exi = FALSE,
+  as.gev = FALSE,
   trace = 0,
   ...
 )
@@ -30,6 +31,8 @@
 \item{marginal}{a logical: should uncertainty estimates integrate out smoothing parameter uncertainty? Defaults to \code{TRUE}}
 
 \item{exi}{a logical: if a dependent GEV is fitted should the independent parameters be returned? Defaults to \code{FALSE}}
+
+\item{as.gev}{a logical: should blended GEV parameters be converted to GEV parameters? Defaults to \code{FALSE}}
 
 \item{trace}{an integer where higher values give more output. -1 suppresses everything. Defaults to 0}
 
@@ -66,4 +69,8 @@ predict(m_gev, y1989, type= "quantile", prob = .9)
 # 10- and 100-year return level predictions
 predict(m_gev, y1989, type= "quantile", prob = c(.9, .99))
 
+}
+\references{
+Youngman, B. D. (2022). evgam: An R Package for Generalized Additive Extreme
+Value Modules. Journal of Statistical Software. To appear. \doi{10.18637/jss.v103.i03}
 }
