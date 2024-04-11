@@ -226,7 +226,7 @@ double ldgevagg_logit(arma::vec yvec, arma::vec muvec, arma::vec lpsivec, arma::
     
 int nobs = yvec.size();
 
-double y, mu, lpsi, psi, xi, lgttheta, theta, theta2;
+double y, mu, lpsi, xi, lgttheta, theta, theta2;
 double ee1, ee2;
 double nllh = 0.0;
 
@@ -235,7 +235,6 @@ for (int j=0; j < nobs; j++) {
 y = yvec[j];
 mu = muvec[j];
 lpsi = lpsivec[j];
-psi = exp(lpsi);
 xi = xivec[j];
 lgttheta = thetavec[j];
 theta = 1 / (1 + exp(-lgttheta));
@@ -260,7 +259,7 @@ nllh += lpsi + (ee2 + 1.0) * log1p(ee1) + R_pow(1.0 + ee1, -ee2);
 
 } else {
 
-mu = mu + psi * log(theta2);
+mu = mu + exp(lpsi) * log(theta2);
 
 ee1 = (y - mu) / exp(lpsi);
 nllh += lpsi + ee1 + exp(-ee1);

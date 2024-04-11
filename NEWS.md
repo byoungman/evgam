@@ -2,15 +2,17 @@
 
 ### Changes:
 
-* Added functionality for extended generalised Pareto distribution through `evgam(..., family = "egpd")`. See Naveau et al. (Water Resour. Res., 2016, (https://doi.org/10.1002/2015WR018552)) and `family.evgam`.
+* Added functionality to fit extended generalised Pareto distribution through `evgam(..., family = "egpd")`. See Naveau et al. (Water Resour. Res., 2016, (https://doi.org/10.1002/2015WR018552)) and `family.evgam`.
 
-* Added functionality for blended GEV distribution through `evgam(..., family = "bgev")`. See Naveau et al. (Water Resour. Res., 2016, (https://doi.org/10.1002/2015WR018552)) and `family.evgam`. (Thanks to Jordan Richards for the suggestion.)
+* Added functionality to fit blended generalised extreme value (GEV) distribution through `evgam(..., family = "bgev")`. See Naveau et al. (Water Resour. Res., 2016, (https://doi.org/10.1002/2015WR018552)) and `family.evgam`. (Thanks to Jordan Richards for the suggestion.)
 
-* Added functionality for custom likelihood functions, i.e. extending those available in `evgam` through `family = ...`. See `custom.family.evgam`.
+* Also added `dbgev()`, `pbgev()`, `qbgev()` and `rbgev()` for density, distribution function, quantile function and random generation, respectively, for the blended GEV distribution.
+
+* Added functionality to fit models via custom likelihood functions, i.e. extending those available in `evgam` through `family = ...`. See `custom.family.evgam`.
 
 * Added functionality to constrain both GPD parameters using `gpd.args = list(lower = ..., upper = ...)`. (Thanks to Callum Murphy-Barltrop for the suggestion.)
 
-* GEV model with shape parameter constrained to [-0.5, 1.0] added with family = "gev2".
+* GEV model with shape parameter constrained to [-0.5, 1.0] added with `family = "gev2"`.
 
 ### Bug fixes:
 

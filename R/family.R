@@ -11,7 +11,7 @@
 #' \itemize{
 #'   \item \code{"ald"}, the asymmetric Laplace distribution. This is primarily 
 #' intended for quantile regression, as in Yu & Moyeed (2001);
-#'   \item \code{"gev"} (default), the generalised extreme valued distribution; 
+#'   \item \code{"gev"} (default), the generalised extreme value (GEV) distribution; 
 #'   \item \code{"exp"}, the exponential distribution;
 #'   \item \code{"gpd"}, the generalised Pareto distribution; 
 #'   \item \code{"gauss"}, the Gaussian distribution.
@@ -20,14 +20,10 @@
 #'   \item \code{"weibull"}, the Weibull distribution;
 #'   \item \code{"exi"}, estimation if the extremal index. See Schlather & Tawn (2003) and Details below.
 #'   \item \code{"egpd"}, the extended generalised Pareto distribution. See Naveau
-#' et at. (2016) and Details below;
+#' et al. (2016) and Details below;
+#'   \item \code{"bgev"}, the blended GEV distribution. See Castro-Camilo et al (2022) and Details
 #'   \item \code{"custom"}, custom distributions. See \code{custom.evgam} for an example of use. 
 #' }
-#'
-#' Arguments for the generalised Pareto distribution are given by \code{gpd.args}. In general
-#' \code{gpd.args} does not need to be given. However, if a 2-vectors \code{lower} and \code{upper}
-#' are supplied then \code{lower} defines lower bounds for the GPD's scale and shape parameters
-#' and \code{upper} defines corresponding upper bounds.
 #'
 #' Arguments for the asymmetric Laplace distribution are given by \code{ald.args}. A 
 #' scalar \code{tau} defines the quantile sought, which has no default. The scalar
@@ -49,6 +45,13 @@
 #' logical \code{correctny} specifies whether \code{ny} is 
 #' corrected to adjust proportionally for data missingness.
 #'
+#' Arguments for the point process model are given by \code{bgev.args}. Probabilities 
+#' \code{pa} and \code{pb} specify the lower and upper probabilities at the which
+#' the Gumbel distribution blends into a GEV distribution. Then \code{alpha} and
+#' \code{beta} specify the quantile and its range, respectively, used to parameterise
+#' the GEV distribution. Defaults are \code{pa = 0.05} and \code{pb = 0.2} and
+#' \code{alpha = beta = 0.5}, as used in Castro-Camilo et al (2022). 
+#' 
 #' Arguments for extended Pareto distribution are given by \code{egpd.args}. An 
 #' integer, \code{model}, specifies which model from Naveau et at. (2016) to fit. 
 #' The first two parameters of each are the GPD's log scale and shape parameters, 
@@ -65,22 +68,28 @@
 #'
 #' @references 
 #' 
+#' Castro-Camilo, D., Huser, R., & Rue, H. (2022). Practical strategies for 
+#' generalized extreme value-based regression models for extremes. 
+#' Environmetrics, 33(6), e2742. \doi{10.1002/env.2742}
+#' 
 #' Naveau, P., Huser, R., Ribereau, P., and Hannart, A. (2016), Modeling 
 #' jointly low, moderate, and heavy rainfall intensities without a threshold 
-#' selection, Water Resources Research, 52, 2753-2769.
+#' selection, Water Resources Research, 52, 2753-2769. \doi{10.1002/2015WR018552}
 #'
 #' Oh, H. S., Lee, T. C., & Nychka, D. W. (2011). Fast nonparametric 
 #' quantile regression with arbitrary smoothing methods. Journal of 
-#' Computational and Graphical Statistics, 20(2), 510-526.
+#' Computational and Graphical Statistics, 20(2), 510-526. 
+#' \doi{10.1198/jcgs.2010.10063}
 #'
 #' Schlather, M., & Tawn, J. A. (2003). A dependence measure for multivariate and 
 #' spatial extreme values: Properties and inference. Biometrika, 90(1), 139-156.
+#' \doi{10.1093/biomet/90.1.139}
 #'
 #' Youngman, B. D. (2022). evgam: An R Package for Generalized Additive Extreme
-#' Value Modules. Journal of Statistical Software. To appear. \doi{10.18637/jss.v103.i03}
+#' Value Modules. Journal of Statistical Software. \doi{10.18637/jss.v103.i03}
 #'
 #' Yu, K., & Moyeed, R. A. (2001). Bayesian quantile regression. 
-#' Statistics & Probability Letters, 54(4), 437-447.
+#' Statistics & Probability Letters, 54(4), 437-447.\doi{10.1016/S0167-7152(01)00124-9}
 #' 
 #' @name family.evgam
 #' 
@@ -126,7 +135,7 @@ NULL
 #' y <- likdata$y
 #' 
 #' y <- (y - mu) * exp(-lsigma)
-#' nllh <- sum(lsigma + y + exp(y))
+#' nllh <- sum(lsigma - y + exp(y))
 #' 
 #' return(nllh)
 #' 

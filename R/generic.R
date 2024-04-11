@@ -3,7 +3,7 @@
 #' Function \code{evgam} fits generalised additive extreme-value models. It allows 
 #' the fitting of various extreme-value models, including the generalised 
 #' extreme value and Pareto distributions. It can also perform quantile regression
-#' via the asymmetric Laplace dsitribution.
+#' via the asymmetric Laplace distribution.
 #'
 #' @param formula a list of formulae for location, scale and shape parameters, as in \link[mgcv]{gam}
 #' @param data a data frame

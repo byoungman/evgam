@@ -12,7 +12,7 @@ const double xieps = 0.0;
 // //' @param X3 a design matrix for the GEV shape parameter
 // //' @param yvec a vector
 // //' @param dupid a scalar or vector, identifying duplicates in Xs; -1 corresponds to no duplicates
-// //' @return gevd0 a scalar, the negative log-liklihood
+// //' @return gevd0 a scalar, the negative log-likelihood
 // //' @return gevd12 a matrix, first then second derivatives w.r.t. GEV parameters
 // //' @return gevd34 a matrix, third then fourth derivatives w.r.t. GEV parameters
 // //' @examples
