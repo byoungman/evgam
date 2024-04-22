@@ -181,7 +181,9 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
         }
         
         if (family == 'bgev' & as.gev)
-          out <- bgev2gev(out[, 1], out[, 2], out[, 3], object$likdata$other$pa, object$likdata$other$pb, object$likdata$other$alpha, object$likdata$other$beta)
+          out <- bgev2gev(out[, 1], out[, 2], out[, 3], object$likdata$other['pa'], 
+          object$likdata$other['pb'], object$likdata$other['alpha'], 
+          object$likdata$other['beta'], simplify = TRUE)
         
       } else {
         
