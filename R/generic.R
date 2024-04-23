@@ -54,7 +54,7 @@
 #' Association, 111(516), 1548-1563.
 #'
 #' Youngman, B. D. (2022). evgam: An R Package for Generalized Additive Extreme
-#' Value Modules. Journal of Statistical Software. \doi{10.18637/jss.v103.i03}
+#' Value Models. Journal of Statistical Software. \doi{10.18637/jss.v103.i03}
 #'
 #' @examples
 #'
@@ -693,3 +693,49 @@ seq_between <- function(x, length=NULL) {
     return(seq(x[1], x[2], length=length))
   }
 }
+
+#' Convert a response vector in a data frame to a matrix
+#'
+#' @param x a data frame
+#' @param formula a formula
+#' 
+#' @details
+#' 
+#' This function identifies repeated combinations of explanatory variables
+#' in a \code{mgcv} \code{formula} and then creates a \eqn{n \times m} 
+#' \code{matrix} response variable in which each row corresponds to one of 
+#' \eqn{n} unique explanatory variable combinations and each column to one of 
+#' \eqn{m} replicates with the combination. Here \eqn{m} is the maximum number
+#' of replicates for an explanatory variable combination; rows of the \code{matrix}
+#' are padded with \code{NA}s at the end where there are fewer than \eqn{m}
+#' replicates.
+#' 
+#' @return A \code{data.frame}
+#' 
+#' @references
+#'
+#' http://arma.sourceforge.net/docs.html#pinv
+#'
+#' @seealso \link{match}, \link{unique}, \link{duplicated}
+#'
+#' @export
+#' 
+df2matdf <- function(x, formula) {
+  int <- mgcv::interpret.gam(formula)
+  cols <- unique(unlist(sapply(int[seq_along(formula)], function(x) x[['fake.names']])))
+  x2 <- x[, cols]
+  x3 <- as.data.frame(lapply(x2, function(x) as.integer(as.factor(x))))
+  x4 <- do.call(paste, c(x3, sep = ':'))
+  ux4 <- !duplicated(x4)
+  mtch <- match(x4, x4[ux4])
+  resp <- int$response
+  y <- split(x[, resp], mtch)
+  nj <- sapply(y, length)
+  nc <- max(nj)
+  m <- matrix(NA, length(y), nc)
+  m[cbind(rep(seq_along(y), nj), unlist(lapply(y, seq_along)))] <- unlist(y)
+  ux2 <- x2[ux4, ]
+  ux2[, resp] <- m
+  ux2
+}
+

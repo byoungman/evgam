@@ -31,6 +31,38 @@ attr(out, "Hessian") <- fitbeta$Hessian
 return(out)
 }
 
+.reml0_fixed <- function(pars, likfns, likdata, Sdata, beta=NULL) {
+  if (is.null(beta)) 
+    beta <- attr(pars, "beta")
+  sp <- exp(pars)
+  likdata$S <- .makeS(Sdata, sp)
+  fitbeta <- .newton_step(beta, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
+  if (!fitbeta$gradconv) {
+    it0 <- likdata$control$inner$itlim
+    likdata$control$inner$itlim <- 10
+    fitbeta <- .newton_step(fitbeta$par, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner, newton=FALSE, alpha0=.05)
+    likdata$control$inner$itlim <- it0
+    fitbeta <- .newton_step(fitbeta$par, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
+  }
+  out <- list(par = as.vector(pars), objective = fitbeta$objective, beta = fitbeta$par)
+  # if (inherits(fitbeta, "try-error")) 
+  #   return(1e20)
+  # # if (!fitbeta$gradconv)
+  # #   return(1e20)
+  # logdetSdata <- .logdetS(Sdata, pars)
+  # logdetHdata <- .d0logdetH(fitbeta)
+  # out <- fitbeta$objective + as.numeric(fitbeta$convergence != 0) * 1e20
+  # out <- out + .5 * logdetHdata$d0 - .5 * logdetSdata$d0
+  # out <- as.vector(out + likdata$const)
+  # if (!is.finite(out)) 
+  #   return(1e20)
+  # attr(fitbeta$par, "dropped") <- !fitbeta$kept
+  # attr(out, "beta") <- fitbeta$par
+  # attr(out, "gradient") <- fitbeta$gradient
+  # attr(out, "Hessian") <- fitbeta$Hessian
+  return(out)
+}
+
 .reml1 <- function(pars, likfns, likdata, Sdata, H=NULL, beta=NULL) {
 if (is.null(beta)) {
   beta <- attr(pars, "beta")

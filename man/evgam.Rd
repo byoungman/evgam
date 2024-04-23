@@ -157,7 +157,7 @@ selection for general smooth models. Journal of the American Statistical
 Association, 111(516), 1548-1563.
 
 Youngman, B. D. (2022). evgam: An R Package for Generalized Additive Extreme
-Value Modules. Journal of Statistical Software. \doi{10.18637/jss.v103.i03}
+Value Models. Journal of Statistical Software. \doi{10.18637/jss.v103.i03}
 }
 \seealso{
 \link{predict.evgam}

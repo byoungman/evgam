@@ -36,13 +36,13 @@ return -log(1.5 / (xi + 0.5) - 1);
 // //' ## to follow
 // //' @export
 // [[Rcpp::export]]
-double gev2d0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::vec yvec, arma::uvec dupid, int dcate)
+double gev2d0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::uvec nhere)
 {
     
 arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec txivec = X3 * Rcpp::as<arma::vec>(pars[2]);
-int nobs = yvec.size();
+int nobs = nhere.size();
 
 if (dcate == 1) {
     muvec = muvec.elem(dupid);
@@ -56,7 +56,6 @@ double nllh = 0.0;
 
 for (int j=0; j < nobs; j++) {
 
-y = yvec[j];
 mu = muvec[j];
 lpsi = lpsivec[j];
 txi = txivec[j];
@@ -64,6 +63,10 @@ xi = 1.5 / (1.0 + exp(-txi)) - 0.5;
 
 xi = xi_from_zero(xi, xieps);  
 txi = xi2txi(xi);
+
+for (int l=0; l < nhere[j]; l++) {
+
+y = ymat(j, l);
 
 ee1 = xi * (y - mu) / exp(lpsi);
 
@@ -78,6 +81,8 @@ nllh += lpsi + (ee2 + 1.0) * log1p(ee1) + R_pow(1.0 + ee1, -ee2);
 
 }
 
+} 
+
 }
 
 return(nllh);
@@ -86,13 +91,13 @@ return(nllh);
 
 // //' @rdname gev2d0
 // [[Rcpp::export]]
-arma::mat gev2d12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::vec yvec, arma::uvec dupid, int dcate)
+arma::mat gev2d12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::uvec nhere)
 {
     
 arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec txivec = X3 * Rcpp::as<arma::vec>(pars[2]);
-int nobs = yvec.size();
+int nobs = nhere.size();
 
 if (dcate == 1) {
     muvec = muvec.elem(dupid);
@@ -102,7 +107,7 @@ if (dcate == 1) {
 
 double y, mu, lpsi, txi, xi;
 
-arma::mat out = arma::mat(nobs, 9);
+arma::mat out = arma::mat(nobs, 9, arma::fill::zeros);
 
 double ee2, ee3, ee4, ee5, ee6, ee7, ee9;
 double ee10, ee11, ee12, ee13, ee14, ee15, ee16, ee17, ee18;
@@ -111,7 +116,6 @@ double ee30, ee31, ee33, ee34;
 
 for (int j=0; j < nobs; j++) {
 
-y = yvec[j];
 mu = muvec[j];
 lpsi = lpsivec[j];
 txi = txivec[j];
@@ -119,6 +123,10 @@ xi = 1.5 / (1.0 + exp(-txi)) - 0.5;
 
 xi = xi_from_zero(xi, xieps);  
 txi = xi2txi(xi);
+
+for (int l=0; l < nhere[j]; l++) {
+
+y = ymat(j, l);
 
 ee2 = exp(-txi);
 ee3 = 1 + ee2;
@@ -149,18 +157,18 @@ ee31 = R_pow(ee5, 2);
 ee33 = 1.5 * (ee7/(ee18 * ee6));
 ee34 = ee4 - ee21;
 
-out(j, 0) = -((ee28 - ee17)/ee14);
-out(j, 1) = (ee17 - ee28) * ee7/ee14 + 1;
-out(j, 2) = (((ee23 - 1.5) * ee16/ee5 - ee33)/ee5 + 1.5 * (ee29/
+out(j, 0) += -((ee28 - ee17)/ee14);
+out(j, 1) += (ee17 - ee28) * ee7/ee14 + 1;
+out(j, 2) += (((ee23 - 1.5) * ee16/ee5 - ee33)/ee5 + 1.5 * (ee29/
   ee14)) * ee2/ee15;
-out(j, 3) = -(ee13 * ee34 * ee5/(R_pow(ee10, 2) * R_pow(ee6, 2)));
-out(j, 4) = (((ee21 - ee4) * ee7/ee14 + 1) * ee13 * ee5 - ee17)/
+out(j, 3) += -(ee13 * ee34 * ee5/(R_pow(ee10, 2) * R_pow(ee6, 2)));
+out(j, 4) += (((ee21 - ee4) * ee7/ee14 + 1) * ee13 * ee5 - ee17)/
   ee10/ee6;
-out(j, 5) = -(ee25/ee30);
-out(j, 6) = -(((ee34 * ee7/ee14 - 1) * ee13 * ee5 + ee17)/ee10 *
+out(j, 5) += -(ee25/ee30);
+out(j, 6) += -(((ee34 * ee7/ee14 - 1) * ee13 * ee5 + ee17)/ee10 *
    ee7/ee6);
-out(j, 7) = -(ee25 * ee7/ee30);
-out(j, 8) = (((((2.25/ee20 - 3) * ee2/ee3 + 1.5)/ee18 - 1.5 *
+out(j, 7) += -(ee25 * ee7/ee30);
+out(j, 8) += (((((2.25/ee20 - 3) * ee2/ee3 + 1.5)/ee18 - 1.5 *
    ((1.5 * (ee16/(ee18 * ee31)) - 1.5 * (ee29/(R_pow(ee10, (ee11 +
    2)) * ee6))) * ee2/ee15)) * ee7/ee6 + (ee27 + (1.5 * ((ee22 -
    ee33) * ee16/ee5) - 2.25 * (ee7/ee14)) * ee2/ee15 +
@@ -169,19 +177,21 @@ out(j, 8) = (((((2.25/ee20 - 3) * ee2/ee3 + 1.5)/ee18 - 1.5 *
    ee13 + 2.25 * (ee2/(ee15 * ee31))) * ee7/ee14) * ee2/ee15;
 }
 
+}
+
 return out;
 
 }
 
 // //' @rdname gev2d0
 // [[Rcpp::export]]
-arma::mat gev2d34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::vec yvec, arma::uvec dupid, int dcate)
+arma::mat gev2d34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::uvec nhere)
 {
     
 arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec txivec = X3 * Rcpp::as<arma::vec>(pars[2]);
-int nobs = yvec.size();
+int nobs = nhere.size();
 
 if (dcate == 1) {
     muvec = muvec.elem(dupid);
@@ -191,7 +201,7 @@ if (dcate == 1) {
 
 double y, mu, lpsi, txi, xi;
 
-arma::mat out = arma::mat(nobs, 25);
+arma::mat out = arma::mat(nobs, 25, arma::fill::zeros);
 
 double ee2, ee3, ee5, ee6, ee7, ee8, ee9;
 double ee10, ee11, ee12, ee13, ee14, ee15, ee16, ee17, ee18, ee19;
@@ -223,7 +233,6 @@ double ee260, ee261, ee263;
 
 for (int j=0; j < nobs; j++) {
 
-y = yvec[j];
 mu = muvec[j];
 lpsi = lpsivec[j];
 txi = txivec[j];
@@ -231,6 +240,10 @@ xi = 1.5 / (1.0 + exp(-txi)) - 0.5;
 
 xi = xi_from_zero(xi, xieps);  
 txi = xi2txi(xi);
+
+for (int l=0; l < nhere[j]; l++) {
+
+y = ymat(j, l);
 
 ee2 = exp(-txi);
 ee3 = 1 + ee2;
@@ -393,52 +406,52 @@ ee260 = 2 * ee5;
 ee261 = 3 - ee130;
 ee263 = 4.5 * ee87 - (1.5 * ee138 + ee201);
 
-out(j, 0) = -(ee13 * ee18 * (ee260 - ee249)/(ee218 * ee205));
-out(j, 1) = (((ee249 - ee260) * ee7/ee22 + 2) * ee5 - 2/ee55)/
+out(j, 0) += -(ee13 * ee18 * (ee260 - ee249)/(ee218 * ee205));
+out(j, 1) += (((ee249 - ee260) * ee7/ee22 + 2) * ee5 - 2/ee55)/
   ee131 * ee13 * ee5/ee136;
-out(j, 2) = -(((ee189 * ee261 + ee244 - 1.5)/ee131 - ee83 *
+out(j, 2) += -(((ee189 * ee261 + ee244 - 1.5)/ee131 - ee83 *
    ee5) * ee2/ee190);
-out(j, 3) = ((ee241/ee10 - ee246) * ee13 * ee5 + ee159)/ee6;
-out(j, 4) = ((ee13 * ee253 - (1.5 * ee252 + ee98)/ee5)/ee10 -
+out(j, 3) += ((ee241/ee10 - ee246) * ee13 * ee5 + ee159)/ee6;
+out(j, 4) += ((ee13 * ee253 - (1.5 * ee252 + ee98)/ee5)/ee10 -
    ee221) * ee2/ee56;
-out(j, 5) = ee210/ee56;
-out(j, 6) = -(((ee237/ee10 + ee246) * ee13 * ee5 - ee159) *
+out(j, 5) += ee210/ee56;
+out(j, 6) += -(((ee237/ee10 + ee246) * ee13 * ee5 - ee159) *
    ee7/ee6);
-out(j, 7) = -(((ee242 * ee13 + (ee98 - 1.5 * ee243)/ee5)/ee10 +
+out(j, 7) += -(((ee242 * ee13 + (ee98 - 1.5 * ee243)/ee5)/ee10 +
    ee221) * ee2 * ee7/ee56);
-out(j, 8) = ee210 * ee7/ee56;
-out(j, 9) = (((ee105 + (ee255/ee5 + ee110 * ee7/ee22) * ee2/
+out(j, 8) += ee210 * ee7/ee56;
+out(j, 9) += (((ee105 + (ee255/ee5 + ee110 * ee7/ee22) * ee2/
   ee12 - ee208)/ee5 + ee223)/ee5 + (ee138 * ee13 + (ee111 + 3 *
    ee88) * ee2/ee53) * ee7/ee22) * ee2/ee12;
-out(j, 10) = (ee14 * ee20/ee55 - 6 * ee5) * ee13 * R_pow(ee5, 3)/
+out(j, 10) += (ee14 * ee20/ee55 - 6 * ee5) * ee13 * R_pow(ee5, 3)/
   (ee219 * R_pow(ee6, 4));
-out(j, 11) = (ee5 * (ee164 - ee170)/ee219 - (ee259 + ee200 -
+out(j, 11) += (ee5 * (ee164 - ee170)/ee219 - (ee259 + ee200 -
    ee146) * ee14) * ee13 * ee18/ee205;
-out(j, 12) = -((((ee189 * ee167 + ee150/R_pow(ee10, (ee11 -
+out(j, 12) += -((((ee189 * ee167 + ee150/R_pow(ee10, (ee11 -
    1)))/ee10 - 3)/ee218 + ee140) * ee5 * ee2/(ee12 * ee205));
-out(j, 13) = (((ee5 * (4 - ee196) * ee7/ee22 - 4)/ee131 - (ee259 +
+out(j, 13) += (((ee5 * (4 - ee196) * ee7/ee22 - 4)/ee131 - (ee259 +
    ee204 - ee146) * ee14 * ee7/ee6) * ee5 + ee203) * ee13 *
    ee5/ee136;
-out(j, 14) = ((ee189 * (6 - (ee195 + 6) * ee5 * ee7/ee22) +
+out(j, 14) += ((ee189 * (6 - (ee195 + 6) * ee5 * ee7/ee22) +
    2 * ee244 - 1.5 * (2 - ee133))/ee131 - ee174) * ee2/ee190;
-out(j, 15) = -(((ee188/ee55 + ee13 * (ee134 - ee184 * ee5 *
+out(j, 15) += -(((ee188/ee55 + ee13 * (ee134 - ee184 * ee5 *
    ee7/ee22) + 1.5 - ((3 * ee261 - 4.5)/ee23 + 3) * ee2/ee3)/ee131 +
    ee199 - ee137 * ee5) * ee2/ee190);
-out(j, 16) = ((((ee5 * (6 - ee196) * ee7/ee22 - 7) * ee5 * ee7/
+out(j, 16) += ((((ee5 * (6 - ee196) * ee7/ee22 - 7) * ee5 * ee7/
   ee22 + 1)/ee10 + ee248) * ee13 * ee5 - ee159)/ee6;
-out(j, 17) = (((ee5 * (10.5 - ee226) * ee7/ee22 - 1.5) * ee13 +
+out(j, 17) += (((ee5 * (10.5 - ee226) * ee7/ee22 - 1.5) * ee13 +
    (ee98 - 1.5 * ee241)/ee5)/ee10 + ee251) * ee2/ee56;
-out(j, 18) = -((ee217 + (ee227 + (3 * (ee253 * ee2/ee101) -
+out(j, 18) += -((ee217 + (ee227 + (3 * (ee253 * ee2/ee101) -
    ee28 * ee252)/ee5)/ee10 + ee92) * ee2/ee56);
-out(j, 19) = -(ee206/ee56);
-out(j, 20) = -((((((ee196 - 6) * ee5 * ee7/ee22 + 7) * ee5 *
+out(j, 19) += -(ee206/ee56);
+out(j, 20) += -((((((ee196 - 6) * ee5 * ee7/ee22 + 7) * ee5 *
    ee7/ee22 - 1)/ee10 - ee248) * ee13 * ee5 + ee159) * ee7/ee6);
-out(j, 21) = -(((((ee226 - 10.5) * ee5 * ee7/ee22 + 1.5) * ee13 -
+out(j, 21) += -(((((ee226 - 10.5) * ee5 * ee7/ee22 + 1.5) * ee13 -
    (1.5 * ee237 + ee98)/ee5)/ee10 - ee251) * ee2 * ee7/ee56);
-out(j, 22) = -((ee217 + (ee227 - (3 * (ee242 * ee2/ee101) -
+out(j, 22) += -((ee217 + (ee227 - (3 * (ee242 * ee2/ee101) -
    ee243 * ee28)/ee5)/ee10 + ee92) * ee2 * ee7/ee56);
-out(j, 23) = -(ee206 * ee7/ee56);
-out(j, 24) = ((((((((4.5 * ee129 - (40.5 * ee84 + 9 * ee106))/
+out(j, 23) += -(ee206 * ee7/ee56);
+out(j, 24) += ((((((((4.5 * ee129 - (40.5 * ee84 + 9 * ee106))/
   ee10 - 9 * ee17) * ee2 * ee7/ee35 - (ee132 * ee17 + 2 * (R_pow(ee17, 2) +
    1.5 * ee79) + ee202)) * ee7/ee22 + ee168 + ee169 +
    ee171 - ee142)/ee3 + 3) * ee2/ee3 - 1.5) * ee13 + (ee256 -
@@ -452,6 +465,8 @@ out(j, 24) = ((((((((4.5 * ee129 - (40.5 * ee84 + 9 * ee106))/
    ee2/ee12 - ((((ee256 - (3 * (ee28 * ee17) + 4.5 * ee79))/
   ee5 + ee168 + ee169 + ee171 - ee142)/ee3 + 3) * ee2/ee3 - 1.5)/
   ee25) * ee7/ee6)/ee5) * ee2/ee12;
+
+}
 
 }
 

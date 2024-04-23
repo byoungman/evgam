@@ -36,13 +36,13 @@ double iF(double p, double qalpha, double sbeta, double xi, double alpha, double
 // //' ## to follow
 // //' @export
 // [[Rcpp::export]]
-double bgevd0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::vec yvec, arma::uvec dupid, int dcate, arma::vec other)
+double bgevd0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::vec other, arma::uvec nhere)
 {
     
 arma::vec qavec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lsbvec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec txivec = X3 * Rcpp::as<arma::vec>(pars[2]);
-int nobs = yvec.size();
+int nobs = nhere.size();
 
 double psuba = other[0];
 double psubb = other[1];
@@ -64,13 +64,16 @@ double nllh=0.0;
 
 for (int j=0; j < nobs; j++) {
 
-y = yvec[j];
 qalpha = qavec[j];
 lsbeta = lsbvec[j];
 txi = txivec[j];
 sbeta = exp(lsbeta);
 xi = 1.5 / (1.0 + exp(-txi)) - 0.5;
 
+for (int l=0; l < nhere[j]; l++) {
+  
+y = ymat(j, l);
+  
 iFa = iF(psuba, qalpha, sbeta, xi, alpha, beta);
 iFb = iF(psubb, qalpha, sbeta, xi, alpha, beta);
 
@@ -150,6 +153,8 @@ if (y < iFa) { // Gumbel
     // (630 * ee42 - 630/ee43)) * R_pow(ee29, 4) + ee44 * ee31) + log(ee14));
 
   }
+}
+
 }
 
 }
@@ -265,13 +270,13 @@ return(nllh);
 
 // //' @rdname bgevd0
 // [[Rcpp::export]]
-arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::vec yvec, arma::uvec dupid, int dcate, arma::vec other)
+arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::vec other, arma::uvec nhere)
 {
   
   arma::vec qavec = X1 * Rcpp::as<arma::vec>(pars[0]);
   arma::vec lsbvec = X2 * Rcpp::as<arma::vec>(pars[1]);
   arma::vec txivec = X3 * Rcpp::as<arma::vec>(pars[2]);
-  int nobs = yvec.size();
+  int nobs = nhere.size();
   arma::mat out = arma::mat(nobs, 9, arma::fill::zeros);
   
   double psuba = other[0];
@@ -465,7 +470,6 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
 
   for (int j=0; j < nobs; j++) {
     
-    y = yvec[j];
     qalpha = qavec[j];
     lsbeta = lsbvec[j];
     txi = txivec[j];
@@ -478,7 +482,11 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
     tqalpha = iFa - (iFb - iFa) * (ell2(alpha) - ell2(psuba)) / (ell2(psuba) - ell2(psubb));
     tsbeta = (iFb - iFa) * (ell2(hbeta) - ell2(1.0 - hbeta)) / (ell2(psuba) - ell2(psubb));
     
-    if (y < iFa) { // Gumbel
+    for (int l=0; l < nhere[j]; l++) {
+      
+      y = ymat(j, l);
+      
+      if (y < iFa) { // Gumbel
       
       ee2 = exp(-txi);
       ee3 = 1 + ee2;
@@ -568,24 +576,24 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
       ee130 = 2 * ee42;
       ee131 = ee66 - 1;
       
-      out(j, 0) = ee21 * ee131 * ee25/ee32;
-      out(j, 1) = (((1 + ee14 - ee30) * ee26/ee25 + ee17 - ee10) * ee29/ee21 +
+      out(j, 0) += ee21 * ee131 * ee25/ee32;
+      out(j, 1) += (((1 + ee14 - ee30) * ee26/ee25 + ee17 - ee10) * ee29/ee21 +
         qalpha - y) * ee26 * ee29 * ee44/ee58 + ee101 * ee66 -
         ee94;
-      out(j, 2) = -((ee100 * ee131 + ee57 * ee26 * ee72 * ee44/ee106) * ee2/ee37);
-      out(j, 3) = 1 * ee79 * ee66 * ee80/ee102;
-      out(j, 4) = (ee101 * ee21 * ee25/ee32 - ee125) * ee66 + ee125;
-      out(j, 5) = ((ee117 - ee100 * ee21 * ee25/ee32) * ee66 - ee117) * ee2/ee37;
-      out(j, 6) = ((((ee26 * (2 * ee52 - 2 * (ee32/ee35)) * ee29/ee35 +
+      out(j, 2) += -((ee100 * ee131 + ee57 * ee26 * ee72 * ee44/ee106) * ee2/ee37);
+      out(j, 3) += 1 * ee79 * ee66 * ee80/ee102;
+      out(j, 4) += (ee101 * ee21 * ee25/ee32 - ee125) * ee66 + ee125;
+      out(j, 5) += ((ee117 - ee100 * ee21 * ee25/ee32) * ee66 - ee117) * ee2/ee37;
+      out(j, 6) += ((((ee26 * (2 * ee52 - 2 * (ee32/ee35)) * ee29/ee35 +
         ee129) * ee44/ee43 + 1) * ee26/ee25 + ee130) * ee29/ee21 +
         qalpha - y) * ee26 * ee29 * ee44/ee58 + (R_pow(ee101, 2) +
         ee121 + ee64 * (y - ((2 * (ee92 * ee29 * ee44 * ee52/ee119) +
         ee130) * ee29/ee21 + qalpha))/ee58) * ee66 - ee121;
-      out(j, 7) = (((ee57 * (ee50 + ee128) + ee124) * ee29 * ee44/ee58 -
+      out(j, 7) += (((ee57 * (ee50 + ee128) + ee124) * ee29 * ee44/ee58 -
         (ee100 * ee101 + ee84)) * ee66 + ee84 - (((((ee129 -
         2 * (ee102/(ee79 * ee80))) * ee44/ee43 + 1 + ee14 - ee30) * ee26/ee25 +
         ee17 - ee10) * ee29/ee21 + ee128) * ee57 + ee124) * ee29 * ee44/ee58) * ee2/ee37;
-      out(j, 8) =  - ((((ee116 * ee29/(ee37 * ee21) - ee112) * ee29 * ee44/ee58 -
+      out(j, 8) +=  - ((((ee116 * ee29/(ee37 * ee21) - ee112) * ee29 * ee44/ee58 -
         (ee114 + R_pow(ee100, 2) * ee2/ee37)) * ee66 +
         ee114 - (((((ee88 + (ee90 - 2 * (ee118 * ee26 * ee72 * ee44/ee119)) * ee2/ee37)/ee21 +
         ee89 - ee78) * ee26 + ee118 * ee2 * ee44/(ee105 * ee43 * ee37))/ee25 +
@@ -643,16 +651,16 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
         ee65 = ee16/ee38;
         ee66 = (1/ee31 - ee22 * ee13 * ee14/(ee36 * ee11))/ee5;
         
-        out(j, 0) = -(ee53/ee38);
-        out(j, 1) = -(ee53 * ee14/ee38 - 1);
-        out(j, 2) = ((ee57 + (1.5/ee34 - 1.5) * ee33/ee5 + 1.5)/ee5 +
+        out(j, 0) += -(ee53/ee38);
+        out(j, 1) += -(ee53 * ee14/ee38 - 1);
+        out(j, 2) += ((ee57 + (1.5/ee34 - 1.5) * ee33/ee5 + 1.5)/ee5 +
           ee27/ee13 - ee37/ee18) * ee2/ee25;
-        out(j, 3) =  - ((1 - 1/ee60) * ee22 * R_pow(ee13, 2)/(R_pow(ee18, 2) * ee47));
-        out(j, 4) = -((ee66 - (1 - ee65) * ee22/ee18) * ee13/ee11);
-        out(j, 5) = -(ee56 * ee2/(ee25 * ee11));
-        out(j, 6) = -((((ee65 - 1) * ee22/ee18 + ee66) * ee14 - ee13/(ee46 * ee11)) * ee13/ee11 + 1);
-        out(j, 7) = -((ee56 * ee14/ee11 + ee27 * (1/ee13 - ee13/(ee46 * ee47))) * ee2/ee25);
-        out(j, 8) = ((((ee44 * ee30 - 2.25/ee5)/ee3 + 3) * ee2/ee3 +
+        out(j, 3) +=  - ((1 - 1/ee60) * ee22 * R_pow(ee13, 2)/(R_pow(ee18, 2) * ee47));
+        out(j, 4) += -((ee66 - (1 - ee65) * ee22/ee18) * ee13/ee11);
+        out(j, 5) += -(ee56 * ee2/(ee25 * ee11));
+        out(j, 6) += -((((ee65 - 1) * ee22/ee18 + ee66) * ee14 - ee13/(ee46 * ee11)) * ee13/ee11 + 1);
+        out(j, 7) += -((ee56 * ee14/ee11 + ee27 * (1/ee13 - ee13/(ee46 * ee47))) * ee2/ee25);
+        out(j, 8) += ((((ee44 * ee30 - 2.25/ee5)/ee3 + 3) * ee2/ee3 +
           (ee61 + (1.5 * ((ee57 + 1.5 * (ee33/ee60)) * ee33/ee5) + 1.5 * (ee30/ee18)) * ee2/ee25 -
           (ee61 + 1.5 * (ee45/ee58))/ee34)/ee5 -
           ((ee51 + 1.5 * (ee45/(ee25 * ee5)))/ee31 + 1.5))/ee5 +
@@ -989,18 +997,18 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
         ee1402 = ee682 * ee688;
         ee1413 = ee757 * ee558;
         
-        out(j, 0) =  ee129 - (ee124/ee58 - ee136/ee137) - ee173/ee102;
-        out(j, 1) =  ee487 - (ee356/ee58 - ee784/ee137) + 1 - ee489/ee102;
-        out(j, 2) =  ee631/ee58 + ee1115/ee137 - ee776 - ee533/ee37 - (ee778/ee102 - ee518/ee15);
-          out(j, 3) =  ee200 + (ee194/ee58 - ee202/ee137 - ((ee52 * ee209 + ee202)/ee137 - ee136 * ee214/ee216)) - (((4 * (ee107 * (3 * (ee107 * ee221))) * ee96 + ee227 + (ee227 + ee93 * (630 * ee197 + (630 * ee209/ee137 - ee146 * ee214/ee216))) + ((ee151 + ee187 * ee15 * ee29 + ee151)/ee90 - ee244/ee162 - ((ee86 * (ee248 * (ee155 * ee133) * ee157 * ee8 * ee25) + ee244)/ee162 - ee161 * (2 * (ee160 * ee90))/ee260))) * ee99 - ee266 - (ee266 - ee98 * (4 * (ee107 * (3 * (ee107 * ee46))))) + ee200 * ee63)/ee102 - ee173 * ee173/ee279);
-          out(j, 4) =  ee365 + (ee351/ee58 - ee124 * ee371/ee137 - ((ee52 * ee382 + ee356 * ee135)/ee137 - ee136 * ee388/ee216)) - (((4 * (ee107 * ee395 - ee304 * ee141) * ee96 + ee143 * ee404 + (ee408 * ee148 + ee93 * (630 * ee362 + (630 * ee382/ee137 - ee146 * ee388/ee216))) + ((ee151 * ee27 + ee334 * ee15 * ee29 + ee424)/ee90 + ee153 * ee431/ee162 + ((ee86 * (ee160 - (ee156 * (ee87 * ee376) + ee438 * ee157) * ee8 * ee25) - ee447 * ee160)/ee162 - ee161 * ee452/ee260))) * ee99 - ee165 * ee338 - (ee468 * ee169 - ee98 * (4 * (ee107 * ee471 + ee304 * ee167))) + ee365 * ee63)/ee102 - ee173 * ee489/ee279);
-          out(j, 5) =  ee634 - (ee599/ee58 + ee124 * ee646/ee137 - ((ee631 * ee135 - ee52 * ee661)/ee137 + ee136 * ee666/ee216)) - ((ee165 * ee558 - (ee93 * (630 * ee627 - (630 * ee661/ee137 - ee146 * ee666/ee216)) + ee682 * ee148 + (ee143 * ee688 + 4 * (ee107 * ee691 + ee563 * ee141) * ee96) + ((ee701 + ((ee593 * ee15 - ee122 * ee518) * ee29 + ee151 * ee522))/ee90 - ee153 * ee717/ee162 - ((ee723 * ee160 + ee86 * ((ee158 * ee496 - (ee156 * (ee87 * ee651 + ee653) + ee732 * ee157) * ee8) * ee25))/ee162 - ee161 * ee742/ee260))) * ee99 - (ee757 * ee169 + ee98 * (4 * (ee107 * ee760 - ee563 * ee167))) + ee634 * ee63)/ee102 - ee173 * ee778/ee279);
-          out(j, 6) =  ee859 - (ee841/ee58 + ee861/ee137 - ((ee52 * ee873 - ee861)/ee137 + ee784 * ee388/ee216)) - (((4 * (ee802 * ee141 + ee295 * ee395) * ee96 + ee887 + (ee887 + ee93 * (630 * ee856 - (630 * ee873/ee137 + ee402 * ee388/ee216))) - ((ee445 - ee899 + (ee838 * ee15 * ee29 - ee899))/ee90 - ee906/ee162 + ((ee86 * (ee431 - ((ee156 * (ee87 * ee869) - ee438 * ee427) * ee8 * ee25 + ee430)) - ee906)/ee162 - ee465 * ee452/ee260))) * ee99 - ee926 - (ee926 + ee98 * (4 * (ee802 * ee167 - ee295 * ee471))) + ee859 * ee63)/ee102 - ee489 * ee489/ee279);
-          out(j, 7) =  ee1024 - (ee1001/ee58 + ee356 * ee646/ee137 - ((ee631 * ee371 - ee52 * ee1037)/ee137 + ee784 * ee666/ee216)) - (((4 * (ee957 * ee141 - ee295 * ee691) * ee96 - ee408 * ee688 + (ee93 * (630 * ee1020 + (630 * ee1037/ee137 - ee402 * ee666/ee216)) - ee682 * ee404) - ((ee701 * ee27 - ee722 + ((ee997 * ee15 - ee348 * ee518) * ee29 + ee424 * ee522))/ee90 - ee447 * ee717/ee162 + ((ee723 * ee431 + ee86 * (ee717 - (ee428 * ee496 - (ee156 * (ee87 * ee1031 + ee1033) + ee732 * ee427) * ee8) * ee25))/ee162 - ee465 * ee742/ee260))) * ee99 + ee468 * ee558 - (ee757 * ee338 + ee98 * (4 * (ee957 * ee167 + ee295 * ee760))) + ee1024 * ee63)/ee102 - ee489 * ee778/ee279);
-          out(j, 8) = ee1269/ee58 + ee1271/ee137 + ((ee1271 + ee52 * ee1297)/ee137 + ee1115 * ee666/ee216) - ee1347 - (ee1215/ee37 + ee533 * ee533/R_pow(ee37, 2)) - (((((ee1259 * ee15 - ee1356 - (ee1356 + ee50 * ee1181)) * ee29 + ee1362 + (ee1362 + ee85 * ee1191))/ee90 - ee1368/ee162 - ((ee1368 - ee86 * ((ee88 * ee1131 + ee1372 + ((ee156 * (ee87 * ee1276 - ee1278) - ee732 * ee712 - (ee88 * ee1293 + ee714 * ee639)) * ee8 + ee1372)) * ee25))/ee162 - ee751 * ee742/ee260) - (ee93 * (630 * ee1341 + (630 * ee1297/ee137 + ee686 * ee666/ee216)) - ee1402 + (4 * (ee1223 * ee141 - ee537 * ee691) * ee96 - ee1402))) * ee99 + ee1413 + (ee1413 + ee98 * (4 * (ee1223 * ee167 + ee537 * ee760))) - ee1347 * ee63)/ee102 - ee778 * ee778/ee279 - (ee1181/ee15 + ee518 * ee518/ee520));
+        out(j, 0) +=  ee129 - (ee124/ee58 - ee136/ee137) - ee173/ee102;
+        out(j, 1) +=  ee487 - (ee356/ee58 - ee784/ee137) + 1 - ee489/ee102;
+        out(j, 2) +=  ee631/ee58 + ee1115/ee137 - ee776 - ee533/ee37 - (ee778/ee102 - ee518/ee15);
+          out(j, 3) +=  ee200 + (ee194/ee58 - ee202/ee137 - ((ee52 * ee209 + ee202)/ee137 - ee136 * ee214/ee216)) - (((4 * (ee107 * (3 * (ee107 * ee221))) * ee96 + ee227 + (ee227 + ee93 * (630 * ee197 + (630 * ee209/ee137 - ee146 * ee214/ee216))) + ((ee151 + ee187 * ee15 * ee29 + ee151)/ee90 - ee244/ee162 - ((ee86 * (ee248 * (ee155 * ee133) * ee157 * ee8 * ee25) + ee244)/ee162 - ee161 * (2 * (ee160 * ee90))/ee260))) * ee99 - ee266 - (ee266 - ee98 * (4 * (ee107 * (3 * (ee107 * ee46))))) + ee200 * ee63)/ee102 - ee173 * ee173/ee279);
+          out(j, 4) +=  ee365 + (ee351/ee58 - ee124 * ee371/ee137 - ((ee52 * ee382 + ee356 * ee135)/ee137 - ee136 * ee388/ee216)) - (((4 * (ee107 * ee395 - ee304 * ee141) * ee96 + ee143 * ee404 + (ee408 * ee148 + ee93 * (630 * ee362 + (630 * ee382/ee137 - ee146 * ee388/ee216))) + ((ee151 * ee27 + ee334 * ee15 * ee29 + ee424)/ee90 + ee153 * ee431/ee162 + ((ee86 * (ee160 - (ee156 * (ee87 * ee376) + ee438 * ee157) * ee8 * ee25) - ee447 * ee160)/ee162 - ee161 * ee452/ee260))) * ee99 - ee165 * ee338 - (ee468 * ee169 - ee98 * (4 * (ee107 * ee471 + ee304 * ee167))) + ee365 * ee63)/ee102 - ee173 * ee489/ee279);
+          out(j, 5) +=  ee634 - (ee599/ee58 + ee124 * ee646/ee137 - ((ee631 * ee135 - ee52 * ee661)/ee137 + ee136 * ee666/ee216)) - ((ee165 * ee558 - (ee93 * (630 * ee627 - (630 * ee661/ee137 - ee146 * ee666/ee216)) + ee682 * ee148 + (ee143 * ee688 + 4 * (ee107 * ee691 + ee563 * ee141) * ee96) + ((ee701 + ((ee593 * ee15 - ee122 * ee518) * ee29 + ee151 * ee522))/ee90 - ee153 * ee717/ee162 - ((ee723 * ee160 + ee86 * ((ee158 * ee496 - (ee156 * (ee87 * ee651 + ee653) + ee732 * ee157) * ee8) * ee25))/ee162 - ee161 * ee742/ee260))) * ee99 - (ee757 * ee169 + ee98 * (4 * (ee107 * ee760 - ee563 * ee167))) + ee634 * ee63)/ee102 - ee173 * ee778/ee279);
+          out(j, 6) +=  ee859 - (ee841/ee58 + ee861/ee137 - ((ee52 * ee873 - ee861)/ee137 + ee784 * ee388/ee216)) - (((4 * (ee802 * ee141 + ee295 * ee395) * ee96 + ee887 + (ee887 + ee93 * (630 * ee856 - (630 * ee873/ee137 + ee402 * ee388/ee216))) - ((ee445 - ee899 + (ee838 * ee15 * ee29 - ee899))/ee90 - ee906/ee162 + ((ee86 * (ee431 - ((ee156 * (ee87 * ee869) - ee438 * ee427) * ee8 * ee25 + ee430)) - ee906)/ee162 - ee465 * ee452/ee260))) * ee99 - ee926 - (ee926 + ee98 * (4 * (ee802 * ee167 - ee295 * ee471))) + ee859 * ee63)/ee102 - ee489 * ee489/ee279);
+          out(j, 7) +=  ee1024 - (ee1001/ee58 + ee356 * ee646/ee137 - ((ee631 * ee371 - ee52 * ee1037)/ee137 + ee784 * ee666/ee216)) - (((4 * (ee957 * ee141 - ee295 * ee691) * ee96 - ee408 * ee688 + (ee93 * (630 * ee1020 + (630 * ee1037/ee137 - ee402 * ee666/ee216)) - ee682 * ee404) - ((ee701 * ee27 - ee722 + ((ee997 * ee15 - ee348 * ee518) * ee29 + ee424 * ee522))/ee90 - ee447 * ee717/ee162 + ((ee723 * ee431 + ee86 * (ee717 - (ee428 * ee496 - (ee156 * (ee87 * ee1031 + ee1033) + ee732 * ee427) * ee8) * ee25))/ee162 - ee465 * ee742/ee260))) * ee99 + ee468 * ee558 - (ee757 * ee338 + ee98 * (4 * (ee957 * ee167 + ee295 * ee760))) + ee1024 * ee63)/ee102 - ee489 * ee778/ee279);
+          out(j, 8) += ee1269/ee58 + ee1271/ee137 + ((ee1271 + ee52 * ee1297)/ee137 + ee1115 * ee666/ee216) - ee1347 - (ee1215/ee37 + ee533 * ee533/R_pow(ee37, 2)) - (((((ee1259 * ee15 - ee1356 - (ee1356 + ee50 * ee1181)) * ee29 + ee1362 + (ee1362 + ee85 * ee1191))/ee90 - ee1368/ee162 - ((ee1368 - ee86 * ((ee88 * ee1131 + ee1372 + ((ee156 * (ee87 * ee1276 - ee1278) - ee732 * ee712 - (ee88 * ee1293 + ee714 * ee639)) * ee8 + ee1372)) * ee25))/ee162 - ee751 * ee742/ee260) - (ee93 * (630 * ee1341 + (630 * ee1297/ee137 + ee686 * ee666/ee216)) - ee1402 + (4 * (ee1223 * ee141 - ee537 * ee691) * ee96 - ee1402))) * ee99 + ee1413 + (ee1413 + ee98 * (4 * (ee1223 * ee167 + ee537 * ee760))) - ee1347 * ee63)/ee102 - ee778 * ee778/ee279 - (ee1181/ee15 + ee518 * ee518/ee520));
         
         }
-      }}
+    }}}
   
   return out;
   
@@ -1008,13 +1016,13 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
 
 // //' @rdname bgevd0
 // [[Rcpp::export]]
-arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::vec yvec, arma::uvec dupid, int dcate, arma::vec other)
+arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::vec other, arma::uvec nhere)
 {
 
   arma::vec qavec = X1 * Rcpp::as<arma::vec>(pars[0]);
   arma::vec lsbvec = X2 * Rcpp::as<arma::vec>(pars[1]);
   arma::vec txivec = X3 * Rcpp::as<arma::vec>(pars[2]);
-  int nobs = yvec.size();
+  int nobs = nhere.size();
   arma::mat out = arma::mat(nobs, 25, arma::fill::zeros);
   
   double psuba = other[0];
@@ -1155,7 +1163,6 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
   
   for (int j=0; j < nobs; j++) {
     
-    y = yvec[j];
     qalpha = qavec[j];
     lsbeta = lsbvec[j];
     txi = txivec[j];
@@ -1168,7 +1175,11 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
     tqalpha = iFa - (iFb - iFa) * (ell2(alpha) - ell2(psuba)) / (ell2(psuba) - ell2(psubb));
     tsbeta = (iFb - iFa) * (ell2(hbeta) - ell2(1.0 - hbeta)) / (ell2(psuba) - ell2(psubb));
     
-    if (y < iFa) { // Gumbel
+    for (int l=0; l < nhere[j]; l++) {
+      
+      y = ymat(j, l);
+      
+      if (y < iFa) { // Gumbel
       
       ee2 = exp(-txi);
       ee3 = 1 + ee2;
@@ -1368,25 +1379,25 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
       ee305 = 4 * ee46;
       ee306 = R_pow(ee106, 2);
       
-      out(j, 0) = ((2 * ee213 + ee235 - 2) * ee106 + 1) * R_pow(ee21, 3) * ee106 * R_pow(ee27, 3)/(R_pow(ee28, 3) * R_pow(ee29, 3));
-      out(j, 1) = (((ee194 * ee238 * ee27/ee37 + 2 * (ee276 * ee21 * ee27/ee37 -
+      out(j, 0) += ((2 * ee213 + ee235 - 2) * ee106 + 1) * R_pow(ee21, 3) * ee106 * R_pow(ee27, 3)/(R_pow(ee28, 3) * R_pow(ee29, 3));
+      out(j, 1) += (((ee194 * ee238 * ee27/ee37 + 2 * (ee276 * ee21 * ee27/ee37 -
         ee170) + ee303) * ee106 + ee276 * (1 + ee106) * ee21 * ee27/ee37 -
         ee170) * ee21 * ee27/ee37 - ee292) * ee106 +
         (ee21 * (ee299 - ee300) * ee27/ee37 + (ee170 * ee21 * ee27/ee37 +
         ee292));
-      out(j, 2) = (((ee167 * (ee306 - 1) * ee27/ee37 + ee180 + (2 * (ee167 * ee239 * ee27/ee37 +
+      out(j, 2) += (((ee167 * (ee306 - 1) * ee27/ee37 + ee180 + (2 * (ee167 * ee239 * ee27/ee37 +
         ee180) - (ee167 * ee238 * ee27/ee37 +
         ee298)) * ee106) * ee21 * ee27/ee29 + ee270) * ee106 +
         ee21 * ee297 * ee27/ee29 - 2 * ee270) * ee2/(ee31 * ee28);
-      out(j, 3) = (ee278 * ee21 * ee27/ee37 + ee112 * (ee300 - (ee299 +
+      out(j, 3) += (ee278 * ee21 * ee27/ee37 + ee112 * (ee300 - (ee299 +
         ee303)) * ee106 - ee286 * ee28 * ee29 * ee49/ee61) * ee106 -
         ee28 * (2 * ee112 - ee286) * ee29 * ee49/ee61;
-      out(j, 4) = ((ee258 * ee21 * ee27/ee37 + ee255) * ee106 + (ee202 +
+      out(j, 4) += ((ee258 * ee21 * ee27/ee37 + ee255) * ee106 + (ee202 +
         ee180) * ee112 - (ee255 + ee111 * ee232)) * ee2/ee31;
-      out(j, 5) = ((ee111 * (ee297 - ee298) * ee106 * ee2/ee31 - ((ee197 +
+      out(j, 5) += ((ee111 * (ee297 - ee298) * ee106 * ee2/ee31 - ((ee197 +
         2 * (ee111 * ee53 * ee2/ee31) - ee82) * ee29 * ee49/ee61 +
         ee224 * ee21 * ee27/ee37)) * ee106 - (ee82 - ee197) * ee29 * ee49/ee61) * ee2/ee31;
-      out(j, 6) = ((((ee279 + (ee291 - ee289) * ee28 * ee29/ee40) * ee49/ee48 +
+      out(j, 6) += ((((ee279 + (ee291 - ee289) * ee28 * ee29/ee40) * ee49/ee48 +
         1) * ee28/ee27 + ee305) * ee29/ee21 + qalpha -
         y) * ee28 * ee29 * ee49/ee61 + (((ee182 * ee304 + 2 * (ee182 * ee213 +
         ee183 + ee185) - (ee301 + ee302)) * ee106 + ee182 +
@@ -1394,7 +1405,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
         ee305) * ee29/ee21 + qalpha))/ee61) * ee106 -
         (ee112 * (ee301 + 2 * ee182 + ee302 - 2 * ee278) +
         ee280);
-      out(j, 7) = (((ee261 + ((ee28 * (2 * (ee85 * ee223/ee61) + ee16 -
+      out(j, 7) += (((ee261 + ((ee28 * (2 * (ee85 * ee223/ee61) + ee16 -
         ee30)/ee27 + ee18 - ee12) * ee29/ee21 + qalpha - y) * ee53) * ee29 * ee49/ee61 +
         ee111 * (ee182 * ee306 - (ee183 +
         ee185)) + ee112 * ((2 * (ee163 + ee192 * ee239 - ee92) + ee217 -
@@ -1404,7 +1415,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
         ee18 - ee12) * ee29/ee21 + qalpha - y) * ee53 + ee261) * ee29 * ee49/ee61 +
         ee112 * (ee215 - (2 * ee258 + 2 * ee192 +
         ee217)))) * ee2/ee31;
-      out(j, 8) = (((((ee249 * ee28 + ee127 * ((ee236 - 4 * ee234) * ee49/ee48 +
+      out(j, 8) += (((((ee249 * ee28 + ee127 * ((ee236 - 4 * ee234) * ee49/ee48 +
         2) * ee2/ee31) * ee49/ee228 + ((ee191 - (ee127 * (2 -
         ee188) * ee2/ee31 + ee293) * ee28 * ee89 * ee49/ee128)/ee21 +
         ee90 - ee82) * ee28)/ee27 + ee247 + ee268 - ee245) * ee29/ee21 -
@@ -1412,7 +1423,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
         ee268)) * ee29/ee21 + ee147) * ee29 * ee49/ee61 + ee160 -
         (ee224 * ee112 + 2 * (ee259 * ee111 * ee2/ee31))) * ee106 -
         (ee160 + ee111 * (ee215 - (2 * ee259 + ee217)) * ee2/ee31)) * ee2/ee31;
-      out(j, 9) = -((((((((ee199 - ee53 * (ee28 * (4 * ee102 - 8 * (ee227/ee231)) +
+      out(j, 9) += -((((((((ee199 - ee53 * (ee28 * (4 * ee102 - 8 * (ee227/ee231)) +
         ee293) * ee89 * ee49/ee128) * ee2/ee31 + ee200)/ee21 +
         ee205 - ee179) * ee28 + (ee197 + 2 * ee249 + 2 * (ee181 * ee49/(ee272 * ee28)) -
         ee82) * ee53 * ee2 * ee49/ee272)/ee27 -
@@ -1552,32 +1563,32 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
         ee195 = 2/ee110;
         ee196 = ee103 - ee51;
         
-        out(j, 0) =  - (((ee22 * (2/ee180 - ee190) - (ee195 - 2 * ee189)/ee5)/ee5 +
+        out(j, 0) +=  - (((ee22 * (2/ee180 - ee190) - (ee195 - 2 * ee189)/ee5)/ee5 +
           2 * (ee22/R_pow(ee18, 3))) * R_pow(ee15, 3)/R_pow(ee11, 3));
-        out(j, 1) = -((((ee171 + ee151 * ee196 + (ee189 - ee195) * ee15 * ee12/ee11)/ee5 +
+        out(j, 1) += -((((ee171 + ee151 * ee196 + (ee189 - ee195) * ee15 * ee12/ee11)/ee5 +
           (ee15 * (1/ee180 - ee190) * ee12/ee11 +
           ee156) * ee22)/ee5 - ee22 * (2 - ee153)/ee181) * ee116/ee86);
-        out(j, 2) = -((((ee121 * ee196 + ee57 * ((1/ee73 - 2/ee73)/ee5 -
+        out(j, 2) += -((((ee121 * ee196 + ee57 * ((1/ee73 - 2/ee73)/ee5 -
           ee95) * ee15 - ee141)/ee5 + (((ee57/ee38 - 1.5 * (ee37/(ee38 * ee5)))/ee5 -
           ee94) * ee15 + ee147) * ee22 + ee138)/ee5 -
           (ee22 * (ee155 - ee102) + ee117)/ee181) * ee15 * ee2/(ee23 * ee86));
-        out(j, 3) = -((((ee185 + (2 * ee171 + ee193 - ee194)/ee5) * ee15 * ee12/ee11 -
+        out(j, 3) += -((((ee185 + (2 * ee171 + ee193 - ee194)/ee5) * ee15 * ee12/ee11 -
           ee51)/ee5 - (ee15 * (3 - ee153) * ee12/ee90 -
           1) * ee22/ee18) * ee15/ee11);
-        out(j, 4) = -((((ee164 + ee54 - (ee157 - ee170) * ee12/ee11) * ee15 -
+        out(j, 4) += -((((ee164 + ee54 - (ee157 - ee170) * ee12/ee11) * ee15 -
           ee84)/ee5 + (ee22 * (ee27 - ee175) + 1.5 * ((1 - ee98) * ee15/ee39))/ee18) * ee2/ee186);
-        out(j, 5) = -(ee162 * ee2/ee186);
-        out(j, 6) = -(((((ee185 - (ee194 + 2 * ((ee51 - ee145)/ee30) -
+        out(j, 5) += -(ee162 * ee2/ee186);
+        out(j, 6) += -(((((ee185 - (ee194 + 2 * ((ee51 - ee145)/ee30) -
           ee193)/ee5) * ee15 * ee12/ee11 - ee51)/ee5 + (ee15 * (ee153 -
           3) * ee12/ee90 + 1) * ee22/ee18) * ee12 - ee15 * (ee154 -
           3)/ee184) * ee15/ee11 - 1);
-        out(j, 7) = -(((((ee164 + (ee170 - ee157) * ee12/ee11 + ee54) * ee15 -
+        out(j, 7) += -(((((ee164 + (ee170 - ee157) * ee12/ee11 + ee54) * ee15 -
           ee84)/ee5 - ((ee175 - ee27) * ee22 + 1.5 * ((ee98 -
           1) * ee15/ee39))/ee18) * ee12/ee11 + (ee15 * (3 - ee154)/ee111 -
           1/ee15) * ee29) * ee2/ee23);
-        out(j, 8) = -(((ee162 * ee12 + (ee50 * ee15 + ee187 * (2 - ee154) * ee2/ee23)/ee184)/ee11 -
+        out(j, 8) += -(((ee162 * ee12 + (ee50 * ee15 + ee187 * (2 - ee154) * ee2/ee23)/ee184)/ee11 -
           ee50/ee15) * ee2/ee23);
-        out(j, 9) = ((((((ee104 * (ee51 + ee103 - ee51) + (2 * ee169 -
+        out(j, 9) += ((((((ee104 * (ee51 + ee103 - ee51) + (2 * ee169 -
           2 * ee123) * ee2/ee23 + 2 * ((ee123 - ee169) * ee2/ee23 +
           ee146 - ee163) - 2 * ee146) * ee57 + 4.5 * ee31 + 6.75 * (ee2/ee80))/ee5 +
           ee133 * ee35 + ee75 - (2 * (ee104 * ee72) +
@@ -2289,12 +2300,12 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
         ee3135 = ee1522 * ee1185;
         ee3142 = ee1555 * ee1531;
         
-        out(j, 0) =  ee424 + (ee396 * ee120 - ee426 - ee429 - (ee429 + (ee92 * ee436 + ee428))) - ((((ee448 + (ee444 + (ee442 + ee129 * ee461)))/ee34 - ee468 - ee472 - (ee472 - ((ee470 + ee137 * ee338)/ee198 - ee276 * ee344/ee346))) * ee120 - ee483 - ee486 - (ee486 - (ee485 - ee141 * ee436)) + (ee92 * (ee494 * (ee286 * ee116) * ee289 * ee149) - ee500 - ee503 - (ee503 - (ee396 * ee153 + ee502))) * ee116/ee7 + (((ee159 * ee461 - ee442 - ee444 - ee448)/ee34 - ee518 - ee522 - (ee522 - ((ee520 + ee164 * ee338)/ee198 - ee308 * ee344/ee346))) * ee90 + ee533 + ee536 + (ee536 + (ee535 + ee168 * ee420))) + (ee424 * ee172 - ee544 - ee547 - (ee547 - (ee546 + ee174 * (ee175 * ee404/ee237 - ee322 * ee410/ee412)))))/ee188 - ee560/ee330 - ((ee560 + ee179 * ee327)/ee330 - ee329 * (2 * (ee179 * ee188))/ee569));
-          out(j, 1) =  ee759 + (ee725 * ee120 - ee228 * ee765 - ee778 - (ee778 + (ee92 * ee788 + ee732 * ee253))) - ((((ee811 + (ee804 + (ee813 + ee129 * ee827)))/ee34 - ee271 * ee574/ee40 - ee847 - (ee847 - ((ee852 * ee196 + ee137 * ee661)/ee198 - ee276 * ee667/ee346))) * ee120 - ee279 * ee765 - ee876 - (ee876 - (ee881 * ee253 - ee141 * ee788)) + ((ee92 * ((ee888 * ee289 - ee288 * (ee146 * ee769)) * ee149 - ee290 * ee894) - ee732 * ee291 - ee907 - (ee907 - (ee725 * ee153 + ee228 * ee911))) * ee116 - ee297 * ee769)/ee7 + (((ee159 * ee827 - ee813 - ee804 - ee811)/ee34 - ee303 * ee574/ee40 - ee936 - (ee936 - ((ee940 * ee196 + ee164 * ee661)/ee198 - ee308 * ee667/ee346))) * ee90 + ee311 * ee585 + ee964 + (ee964 + (ee969 * ee242 + ee168 * ee755))) + (ee759 * ee172 - ee245 * ee978 - ee992 - (ee992 - (ee996 * ee323 + ee174 * (ee175 * ee739/ee237 - ee322 * ee745/ee412)))))/ee188 - ee327 * ee1027/ee330 - ((ee1065 * ee179 + ee179 * ee1065)/ee330 - ee329 * ee1071/ee569));
-          out(j, 2) =  ee1289 + (ee1310 + (ee1255 * ee120 + ee228 * ee1315) + (ee1285 * ee253 + ee92 * ee1331 + ee1310)) - ((((ee1353 + (ee1346 + (ee129 * ee1367 - ee1370)))/ee34 + ee271 * ee1105/ee40 - ee1389 - (ee1389 + ((ee137 * ee1200 + ee1395 * ee196)/ee198 - ee276 * ee1205/ee346))) * ee120 + ee279 * ee1315 - ee1418 - (ee1418 - (ee141 * ee1331 - ee1424 * ee253)) + (((ee1285 * ee291 + ee92 * ((ee1433 * ee289 - ee288 * (ee146 * ee1304 + ee1303)) * ee149 - ee290 * ee1441) - ee1455 - (ee1455 - (ee1255 * ee153 + ee228 * ee1461))) * ee116 - ee297 * ee1304)/ee7 - ee298 * ee1079/ee1292) + (((ee1370 + ee159 * ee1367 - ee1346 - ee1353)/ee34 + ee303 * ee1105/ee40 - ee1489 - (ee1489 - ((ee1493 * ee196 - ee164 * ee1200)/ee198 + ee308 * ee1205/ee346))) * ee90 - ee311 * ee1185 + ee1517 + (ee1517 + (ee1522 * ee242 + ee168 * ee1281))) + (ee1289 * ee172 + ee245 * ee1531 - ee1545 - (ee1545 + (ee174 * (ee175 * ee1267/ee237 - ee322 * ee1272/ee412) + ee1555 * ee323))))/ee188 - ee327 * ee1583/ee330 - ((ee1624 * ee179 + ee179 * ee1624)/ee330 - ee329 * ee1630/ee569));
-          out(j, 3) =  ee1799 + (ee71 * ee1809 - ee1811 + (ee1760 * ee120 - ee1811) + (ee92 * ee1829 - ee1831 + (ee1769 * ee118 - ee1831))) - ((((ee1848 + (ee1852 + (ee1851 + ee129 * ee1863)))/ee34 - ee1869/ee40 - ((ee1869 + ee866)/ee40 - ee866 * ee622/ee198) - (ee1883 * ee38/ee40 - ee1886/ee198 - ((ee1886 + ee137 * ee1703)/ee198 - ee870 * ee667/ee346))) * ee120 - ee1898 - (ee1898 + ee139 * ee1809) - (ee1912 * ee118 - ee1914 - (ee1914 + ee141 * ee1829)) + ((ee92 * ((ee888 * ee900 + ee288 * (ee146 * ee1805)) * ee149 - ee1925 - (ee1925 + ee148 * (ee145 * ee1818))) - ee1932 - (ee1769 * ee150 + ee1932) - (ee71 * ee1940 - ee1942 - (ee1760 * ee153 + ee1942))) * ee116 - ee1949 - (ee1949 + ee155 * ee1818))/ee7 + (((ee159 * ee1863 - ee1851 - ee1852 - ee1848)/ee34 - ee1961/ee40 - ((ee1961 + ee954)/ee40 - ee954 * ee622/ee198) - (ee1972 * ee38/ee40 - ee1975/ee198 - ((ee1975 + ee164 * ee1703)/ee198 - ee958 * ee667/ee346))) * ee90 + ee1987 + (ee1987 + ee166 * ee1660) + (ee2001 * ee105 + ee2003 + (ee2003 + ee168 * ee1795))) + (ee1799 * ee172 - ee2011 - (ee2011 + ee107 * ee2015) - (ee2024 * ee176 - ee2026 - (ee2026 + ee174 * (ee175 * ee1781/ee237 - ee989 * ee745/ee412)))))/ee188 - ee2039/ee330 - ((ee2039 + ee179 * (ee1912 * ee120 - ee2043 - (ee2043 + ee141 * ee1809) + ((ee92 * ee1940 - ee2049 - (ee1769 * ee153 + ee2049)) * ee116 - ee2055 - (ee2055 + ee181 * ee1818))/ee7 + (ee2001 * ee90 + ee2063 + (ee2063 + ee168 * ee1660)) + (ee2024 * ee172 - ee2070 - (ee2070 + ee174 * ee2015))))/ee330 - ee1645 * ee1071/ee569));
-          out(j, 4) =  ee2248 + (ee1162 * ee765 + ee71 * ee2257 + (ee2204 * ee120 + ee657 * ee1315) + (ee1285 * ee775 + ee92 * ee2281 + (ee2215 * ee118 + ee732 * ee1308))) - ((((ee2301 + (ee2305 + (ee129 * ee2317 - ee2319)))/ee34 + ee842 * ee1105/ee40 - ((ee1384 * ee574 - ee1408)/ee40 + ee866 * ee1116/ee198) - (ee2340 * ee38/ee40 + ee852 * ee1116/ee198 + ((ee137 * ee2138 + ee1395 * ee622)/ee198 - ee870 * ee1205/ee346))) * ee120 + ee873 * ee1315 - (ee1415 * ee765 + ee139 * ee2257) - (ee2372 * ee118 + ee881 * ee1308 - (ee141 * ee2281 - ee1424 * ee775)) + (((ee1285 * ee904 + ee92 * ((ee1433 * ee900 - ee288 * (ee146 * ee2253 + ee2251)) * ee149 - ee901 * ee1441 - (ee1450 * ee894 - ee148 * (ee145 * ee2268 + ee2266))) - (ee2215 * ee150 + ee732 * ee1453) - (ee1162 * ee911 + ee71 * ee2407 - (ee2204 * ee153 + ee657 * ee1461))) * ee116 - ee1044 * ee1304 - (ee1600 * ee769 - ee155 * ee2268))/ee7 - ee1047 * ee1079/ee1292) + (((ee2319 + ee159 * ee2317 - ee2305 - ee2301)/ee34 + ee931 * ee1105/ee40 - ((ee1484 * ee574 - ee1507)/ee40 + ee954 * ee1116/ee198) - (ee2444 * ee38/ee40 + ee940 * ee1116/ee198 - ((ee1493 * ee622 - ee164 * ee2138)/ee198 + ee958 * ee1205/ee346))) * ee90 - ee961 * ee1185 + (ee1514 * ee585 + ee166 * ee2097) + (ee2476 * ee105 + ee969 * ee1187 + (ee1522 * ee598 + ee168 * ee2243))) + (ee2248 * ee172 + ee987 * ee1531 - (ee1540 * ee978 - ee107 * ee2492) - (ee2502 * ee176 + ee996 * ee1543 + (ee174 * (ee175 * ee2225/ee237 - ee989 * ee1272/ee412) + ee1555 * ee990))))/ee188 - ee1065 * ee1583/ee330 - ((ee1624 * ee1027 + ee179 * (ee2372 * ee120 + ee881 * ee1315 - (ee141 * ee2257 - ee1424 * ee765) + (((ee1285 * ee911 + ee92 * ee2407 - (ee2215 * ee153 + ee732 * ee1461)) * ee116 - ee1014 * ee1304 - (ee1567 * ee769 - ee181 * ee2268))/ee7 - ee1017 * ee1079/ee1292) + (ee2476 * ee90 - ee969 * ee1185 + (ee1522 * ee585 + ee168 * ee2097)) + (ee2502 * ee172 + ee996 * ee1531 + (ee174 * ee2492 + ee1555 * ee978))))/ee330 - ee1645 * ee1630/ee569));
-          out(j, 5) =  ee2811 - (ee2807 * ee118 + ee2813 + (ee2813 + ee92 * ee2851) + (ee2744 * ee120 + ee2856 + (ee2856 + ee71 * ee2866))) - ((((ee2882 + (ee129 * ee2893 - ee2895 - ee2899))/ee34 + ee2903/ee40 + ((ee2903 - ee134 * ee2642)/ee40 + ee1408 * ee1116/ee198) + (ee2918 * ee38/ee40 + ee2921/ee198 + ((ee137 * ee2664 + ee2921)/ee198 - ee1412 * ee1205/ee346))) * ee120 + ee2933 + (ee2933 + ee139 * ee2866) - (ee141 * ee2851 - ee2939 - (ee2951 * ee118 + ee2939)) + (((ee2807 * ee150 + ee2957 + (ee2957 + ee92 * ((ee1433 * ee1447 - ee288 * (ee146 * ee2833 + ee2830) + (ee1450 * ee1294 - ee148 * ee2826)) * ee149 - ee2969 - (ee2969 - ee148 * (ee2844 + (ee145 * ee2845 + ee2842))))) - (ee2744 * ee153 + ee2981 + (ee2981 + ee71 * ee2991))) * ee116 - ee2997 - (ee2997 - ee155 * ee2845))/ee7 - ee3003/ee1292 - ((ee3003 - ee156 * ee2591)/ee1292 - ee1605 * ee2818/ee2820)) + (((ee2899 + (ee2895 + ee159 * ee2893) - ee2882)/ee34 + ee3019/ee40 + ((ee3019 - ee161 * ee2642)/ee40 + ee1507 * ee1116/ee198) - (ee3031 * ee38/ee40 + ee3034/ee198 + ((ee3034 - ee164 * ee2664)/ee198 + ee1511 * ee1205/ee346))) * ee90 - ee3046 - (ee3046 + ee166 * ee2767) + (ee3061 * ee105 + ee3063 + (ee3063 + ee168 * ee2798))) + (ee2811 * ee172 + ee3071 + (ee3071 - ee107 * ee3077) + (ee174 * (ee175 * ee2775/ee237 - ee1542 * ee1272/ee412) + ee3087 + (ee3094 * ee176 + ee3087))))/ee188 - ee3101/ee330 - ((ee3101 + ee179 * (ee141 * ee2866 - ee3105 - (ee2951 * ee120 + ee3105) + (((ee2807 * ee153 + ee3111 + (ee3111 + ee92 * ee2991)) * ee116 - ee3117 - (ee3117 - ee181 * ee2845))/ee7 - ee3123/ee1292 - ((ee3123 - ee182 * ee2591)/ee1292 - ee1572 * ee2818/ee2820)) + (ee3061 * ee90 - ee3135 - (ee3135 + ee168 * ee2767)) - (ee174 * ee3077 + ee3142 + (ee3094 * ee172 + ee3142))))/ee330 - ee2581 * ee1630/ee569));
+        out(j, 0) +=  ee424 + (ee396 * ee120 - ee426 - ee429 - (ee429 + (ee92 * ee436 + ee428))) - ((((ee448 + (ee444 + (ee442 + ee129 * ee461)))/ee34 - ee468 - ee472 - (ee472 - ((ee470 + ee137 * ee338)/ee198 - ee276 * ee344/ee346))) * ee120 - ee483 - ee486 - (ee486 - (ee485 - ee141 * ee436)) + (ee92 * (ee494 * (ee286 * ee116) * ee289 * ee149) - ee500 - ee503 - (ee503 - (ee396 * ee153 + ee502))) * ee116/ee7 + (((ee159 * ee461 - ee442 - ee444 - ee448)/ee34 - ee518 - ee522 - (ee522 - ((ee520 + ee164 * ee338)/ee198 - ee308 * ee344/ee346))) * ee90 + ee533 + ee536 + (ee536 + (ee535 + ee168 * ee420))) + (ee424 * ee172 - ee544 - ee547 - (ee547 - (ee546 + ee174 * (ee175 * ee404/ee237 - ee322 * ee410/ee412)))))/ee188 - ee560/ee330 - ((ee560 + ee179 * ee327)/ee330 - ee329 * (2 * (ee179 * ee188))/ee569));
+          out(j, 1) +=  ee759 + (ee725 * ee120 - ee228 * ee765 - ee778 - (ee778 + (ee92 * ee788 + ee732 * ee253))) - ((((ee811 + (ee804 + (ee813 + ee129 * ee827)))/ee34 - ee271 * ee574/ee40 - ee847 - (ee847 - ((ee852 * ee196 + ee137 * ee661)/ee198 - ee276 * ee667/ee346))) * ee120 - ee279 * ee765 - ee876 - (ee876 - (ee881 * ee253 - ee141 * ee788)) + ((ee92 * ((ee888 * ee289 - ee288 * (ee146 * ee769)) * ee149 - ee290 * ee894) - ee732 * ee291 - ee907 - (ee907 - (ee725 * ee153 + ee228 * ee911))) * ee116 - ee297 * ee769)/ee7 + (((ee159 * ee827 - ee813 - ee804 - ee811)/ee34 - ee303 * ee574/ee40 - ee936 - (ee936 - ((ee940 * ee196 + ee164 * ee661)/ee198 - ee308 * ee667/ee346))) * ee90 + ee311 * ee585 + ee964 + (ee964 + (ee969 * ee242 + ee168 * ee755))) + (ee759 * ee172 - ee245 * ee978 - ee992 - (ee992 - (ee996 * ee323 + ee174 * (ee175 * ee739/ee237 - ee322 * ee745/ee412)))))/ee188 - ee327 * ee1027/ee330 - ((ee1065 * ee179 + ee179 * ee1065)/ee330 - ee329 * ee1071/ee569));
+          out(j, 2) +=  ee1289 + (ee1310 + (ee1255 * ee120 + ee228 * ee1315) + (ee1285 * ee253 + ee92 * ee1331 + ee1310)) - ((((ee1353 + (ee1346 + (ee129 * ee1367 - ee1370)))/ee34 + ee271 * ee1105/ee40 - ee1389 - (ee1389 + ((ee137 * ee1200 + ee1395 * ee196)/ee198 - ee276 * ee1205/ee346))) * ee120 + ee279 * ee1315 - ee1418 - (ee1418 - (ee141 * ee1331 - ee1424 * ee253)) + (((ee1285 * ee291 + ee92 * ((ee1433 * ee289 - ee288 * (ee146 * ee1304 + ee1303)) * ee149 - ee290 * ee1441) - ee1455 - (ee1455 - (ee1255 * ee153 + ee228 * ee1461))) * ee116 - ee297 * ee1304)/ee7 - ee298 * ee1079/ee1292) + (((ee1370 + ee159 * ee1367 - ee1346 - ee1353)/ee34 + ee303 * ee1105/ee40 - ee1489 - (ee1489 - ((ee1493 * ee196 - ee164 * ee1200)/ee198 + ee308 * ee1205/ee346))) * ee90 - ee311 * ee1185 + ee1517 + (ee1517 + (ee1522 * ee242 + ee168 * ee1281))) + (ee1289 * ee172 + ee245 * ee1531 - ee1545 - (ee1545 + (ee174 * (ee175 * ee1267/ee237 - ee322 * ee1272/ee412) + ee1555 * ee323))))/ee188 - ee327 * ee1583/ee330 - ((ee1624 * ee179 + ee179 * ee1624)/ee330 - ee329 * ee1630/ee569));
+          out(j, 3) +=  ee1799 + (ee71 * ee1809 - ee1811 + (ee1760 * ee120 - ee1811) + (ee92 * ee1829 - ee1831 + (ee1769 * ee118 - ee1831))) - ((((ee1848 + (ee1852 + (ee1851 + ee129 * ee1863)))/ee34 - ee1869/ee40 - ((ee1869 + ee866)/ee40 - ee866 * ee622/ee198) - (ee1883 * ee38/ee40 - ee1886/ee198 - ((ee1886 + ee137 * ee1703)/ee198 - ee870 * ee667/ee346))) * ee120 - ee1898 - (ee1898 + ee139 * ee1809) - (ee1912 * ee118 - ee1914 - (ee1914 + ee141 * ee1829)) + ((ee92 * ((ee888 * ee900 + ee288 * (ee146 * ee1805)) * ee149 - ee1925 - (ee1925 + ee148 * (ee145 * ee1818))) - ee1932 - (ee1769 * ee150 + ee1932) - (ee71 * ee1940 - ee1942 - (ee1760 * ee153 + ee1942))) * ee116 - ee1949 - (ee1949 + ee155 * ee1818))/ee7 + (((ee159 * ee1863 - ee1851 - ee1852 - ee1848)/ee34 - ee1961/ee40 - ((ee1961 + ee954)/ee40 - ee954 * ee622/ee198) - (ee1972 * ee38/ee40 - ee1975/ee198 - ((ee1975 + ee164 * ee1703)/ee198 - ee958 * ee667/ee346))) * ee90 + ee1987 + (ee1987 + ee166 * ee1660) + (ee2001 * ee105 + ee2003 + (ee2003 + ee168 * ee1795))) + (ee1799 * ee172 - ee2011 - (ee2011 + ee107 * ee2015) - (ee2024 * ee176 - ee2026 - (ee2026 + ee174 * (ee175 * ee1781/ee237 - ee989 * ee745/ee412)))))/ee188 - ee2039/ee330 - ((ee2039 + ee179 * (ee1912 * ee120 - ee2043 - (ee2043 + ee141 * ee1809) + ((ee92 * ee1940 - ee2049 - (ee1769 * ee153 + ee2049)) * ee116 - ee2055 - (ee2055 + ee181 * ee1818))/ee7 + (ee2001 * ee90 + ee2063 + (ee2063 + ee168 * ee1660)) + (ee2024 * ee172 - ee2070 - (ee2070 + ee174 * ee2015))))/ee330 - ee1645 * ee1071/ee569));
+          out(j, 4) +=  ee2248 + (ee1162 * ee765 + ee71 * ee2257 + (ee2204 * ee120 + ee657 * ee1315) + (ee1285 * ee775 + ee92 * ee2281 + (ee2215 * ee118 + ee732 * ee1308))) - ((((ee2301 + (ee2305 + (ee129 * ee2317 - ee2319)))/ee34 + ee842 * ee1105/ee40 - ((ee1384 * ee574 - ee1408)/ee40 + ee866 * ee1116/ee198) - (ee2340 * ee38/ee40 + ee852 * ee1116/ee198 + ((ee137 * ee2138 + ee1395 * ee622)/ee198 - ee870 * ee1205/ee346))) * ee120 + ee873 * ee1315 - (ee1415 * ee765 + ee139 * ee2257) - (ee2372 * ee118 + ee881 * ee1308 - (ee141 * ee2281 - ee1424 * ee775)) + (((ee1285 * ee904 + ee92 * ((ee1433 * ee900 - ee288 * (ee146 * ee2253 + ee2251)) * ee149 - ee901 * ee1441 - (ee1450 * ee894 - ee148 * (ee145 * ee2268 + ee2266))) - (ee2215 * ee150 + ee732 * ee1453) - (ee1162 * ee911 + ee71 * ee2407 - (ee2204 * ee153 + ee657 * ee1461))) * ee116 - ee1044 * ee1304 - (ee1600 * ee769 - ee155 * ee2268))/ee7 - ee1047 * ee1079/ee1292) + (((ee2319 + ee159 * ee2317 - ee2305 - ee2301)/ee34 + ee931 * ee1105/ee40 - ((ee1484 * ee574 - ee1507)/ee40 + ee954 * ee1116/ee198) - (ee2444 * ee38/ee40 + ee940 * ee1116/ee198 - ((ee1493 * ee622 - ee164 * ee2138)/ee198 + ee958 * ee1205/ee346))) * ee90 - ee961 * ee1185 + (ee1514 * ee585 + ee166 * ee2097) + (ee2476 * ee105 + ee969 * ee1187 + (ee1522 * ee598 + ee168 * ee2243))) + (ee2248 * ee172 + ee987 * ee1531 - (ee1540 * ee978 - ee107 * ee2492) - (ee2502 * ee176 + ee996 * ee1543 + (ee174 * (ee175 * ee2225/ee237 - ee989 * ee1272/ee412) + ee1555 * ee990))))/ee188 - ee1065 * ee1583/ee330 - ((ee1624 * ee1027 + ee179 * (ee2372 * ee120 + ee881 * ee1315 - (ee141 * ee2257 - ee1424 * ee765) + (((ee1285 * ee911 + ee92 * ee2407 - (ee2215 * ee153 + ee732 * ee1461)) * ee116 - ee1014 * ee1304 - (ee1567 * ee769 - ee181 * ee2268))/ee7 - ee1017 * ee1079/ee1292) + (ee2476 * ee90 - ee969 * ee1185 + (ee1522 * ee585 + ee168 * ee2097)) + (ee2502 * ee172 + ee996 * ee1531 + (ee174 * ee2492 + ee1555 * ee978))))/ee330 - ee1645 * ee1630/ee569));
+          out(j, 5) +=  ee2811 - (ee2807 * ee118 + ee2813 + (ee2813 + ee92 * ee2851) + (ee2744 * ee120 + ee2856 + (ee2856 + ee71 * ee2866))) - ((((ee2882 + (ee129 * ee2893 - ee2895 - ee2899))/ee34 + ee2903/ee40 + ((ee2903 - ee134 * ee2642)/ee40 + ee1408 * ee1116/ee198) + (ee2918 * ee38/ee40 + ee2921/ee198 + ((ee137 * ee2664 + ee2921)/ee198 - ee1412 * ee1205/ee346))) * ee120 + ee2933 + (ee2933 + ee139 * ee2866) - (ee141 * ee2851 - ee2939 - (ee2951 * ee118 + ee2939)) + (((ee2807 * ee150 + ee2957 + (ee2957 + ee92 * ((ee1433 * ee1447 - ee288 * (ee146 * ee2833 + ee2830) + (ee1450 * ee1294 - ee148 * ee2826)) * ee149 - ee2969 - (ee2969 - ee148 * (ee2844 + (ee145 * ee2845 + ee2842))))) - (ee2744 * ee153 + ee2981 + (ee2981 + ee71 * ee2991))) * ee116 - ee2997 - (ee2997 - ee155 * ee2845))/ee7 - ee3003/ee1292 - ((ee3003 - ee156 * ee2591)/ee1292 - ee1605 * ee2818/ee2820)) + (((ee2899 + (ee2895 + ee159 * ee2893) - ee2882)/ee34 + ee3019/ee40 + ((ee3019 - ee161 * ee2642)/ee40 + ee1507 * ee1116/ee198) - (ee3031 * ee38/ee40 + ee3034/ee198 + ((ee3034 - ee164 * ee2664)/ee198 + ee1511 * ee1205/ee346))) * ee90 - ee3046 - (ee3046 + ee166 * ee2767) + (ee3061 * ee105 + ee3063 + (ee3063 + ee168 * ee2798))) + (ee2811 * ee172 + ee3071 + (ee3071 - ee107 * ee3077) + (ee174 * (ee175 * ee2775/ee237 - ee1542 * ee1272/ee412) + ee3087 + (ee3094 * ee176 + ee3087))))/ee188 - ee3101/ee330 - ((ee3101 + ee179 * (ee141 * ee2866 - ee3105 - (ee2951 * ee120 + ee3105) + (((ee2807 * ee153 + ee3111 + (ee3111 + ee92 * ee2991)) * ee116 - ee3117 - (ee3117 - ee181 * ee2845))/ee7 - ee3123/ee1292 - ((ee3123 - ee182 * ee2591)/ee1292 - ee1572 * ee2818/ee2820)) + (ee3061 * ee90 - ee3135 - (ee3135 + ee168 * ee2767)) - (ee174 * ee3077 + ee3142 + (ee3094 * ee172 + ee3142))))/ee330 - ee2581 * ee1630/ee569));
 
           ee2 = -log(psuba);
           ee4 = exp(-txi);
@@ -2809,9 +2820,9 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee1922 = ee1221 * ee864;
           ee1929 = ee1258 * ee1230;
           
-          out(j, 6) =  ee483 - (ee92 * ee510 - ee512 - ee515 + (ee442 * ee122 - ee514 - ee515)) - ((((ee528 + (ee527 + (ee526 + ee131 * ee541)))/ee34 - ee547/ee40 - (ee550/ee40 - ee296 * ee204/ee206) - ((ee550 + ee299)/ee40 - ee558/ee206 - ((ee558 + ee139 * ee386)/ee206 - ee301 * ee391/ee393))) * ee122 - ee570 - ee573 - (ee573 + (ee572 + ee143 * ee510)) + ((ee92 * ((ee581 * (ee311 * ee118) * ee314 + ee313 * (ee148 * ee265)) * ee151 + ee589 + (ee589 + ee150 * (ee147 * ee495))) - ee596 - ee599 - (ee442 * ee155 + ee598 + ee599)) * ee158 - ee606 - ee609 - (ee609 + (ee608 + ee160 * (ee331 - ((ee329 + ee161 * ee485)/ee263 - ee329 * ee490/ee492)))))/ee7 + (((ee167 * ee541 - ee526 - ee527 - ee528)/ee34 - ee629/ee40 - (ee632/ee40 - ee341 * ee204/ee206) - ((ee632 + ee344)/ee40 - ee640/ee206 - ((ee640 + ee172 * ee386)/ee206 - ee346 * ee391/ee393))) * ee90 + ee652 + ee655 + (ee655 + (ee654 + ee176 * ee479))) + (ee483 * ee180 - ee663 - ee666 - (ee666 + (ee665 + ee182 * (ee362 - ((ee360 + ee183 * ee465)/ee251 - ee360 * ee470/ee472))))))/ee195 - ee681/ee369 - ((ee681 + ee187 * ee366)/ee369 - ee368 * (2 * (ee187 * ee195))/ee690));
-          out(j, 7) =  ee932 - (ee928 * ee273 + ee92 * ee971 - ee979 + (ee852 * ee122 + ee238 * ee985 - ee979)) - ((((ee1007 + (ee1006 + (ee131 * ee1021 - ee1024)))/ee34 + ee294 * ee723/ee40 - (ee1041/ee40 + ee296 * ee737/ee206) - ((ee1041 - ee1052)/ee40 + ee299 * ee737/ee206 + ((ee139 * ee744 + ee1052 * ee204)/ee206 - ee301 * ee749/ee393))) * ee122 + ee304 * ee985 - ee1080 - (ee1080 + (ee143 * ee971 - ee1085 * ee273)) + (((ee928 * ee319 + ee92 * ((ee1094 * ee314 - ee313 * (ee148 * ee948 + ee961)) * ee151 - ee315 * ee1102 + (ee1108 * ee317 - ee150 * (ee147 * ee951 + ee946))) - ee1122 - (ee852 * ee155 + ee238 * ee1128 + ee1122)) * ee158 - ee325 * ee1134 - ee1148 - (ee1148 + (ee1152 * ee331 - ee160 * (ee1146 - ee1145 * ee261/ee263))))/ee7 - ee334 * ee697/ee935) + (((ee1024 + ee167 * ee1021 - ee1006 - ee1007)/ee34 + ee339 * ee723/ee40 - (ee1179/ee40 + ee341 * ee737/ee206) - ((ee1179 + ee1189)/ee40 + ee344 * ee737/ee206 - ((ee1189 * ee204 - ee172 * ee744)/ee206 + ee346 * ee749/ee393))) * ee90 - ee349 * ee864 + ee1217 + (ee1217 + (ee1221 * ee256 + ee176 * ee924))) + (ee932 * ee180 + ee259 * ee1230 - ee1245 - (ee1245 - (ee182 * (ee1243 - ((ee183 * ee905 + ee1229 * ee249)/ee251 - ee360 * ee910/ee472)) + ee1258 * ee362))))/ee195 - ee366 * ee1283/ee369 - ((ee1321 * ee187 + ee187 * ee1321)/ee369 - ee368 * ee1327/ee690));
-          out(j, 8) =  ee1581 - (ee1577 * ee120 + ee1583 + (ee1583 + ee92 * ee1622) + (ee1510 * ee122 + ee1627 + (ee1627 + ee71 * ee1637))) - ((((ee1653 + (ee131 * ee1664 - ee1666 - ee1670))/ee34 + ee1674/ee40 + ((ee1674 - ee136 * ee1403)/ee40 + ee1040 * ee737/ee206) + ((ee1689 * ee38 - ee1691 - ee1694)/ee40 + ee1697/ee206 + ((ee139 * ee1425 + ee1697)/ee206 - ee1074 * ee749/ee393))) * ee122 + ee1709 + (ee1709 + ee141 * ee1637) - (ee143 * ee1622 - ee1715 - (ee1724 * ee120 + ee1715)) + (((ee1577 * ee152 + ee1730 + (ee1730 + ee92 * ((ee1094 * ee1105 - ee313 * (ee148 * ee1603 + ee1600) + (ee1108 * ee937 - ee150 * ee1596)) * ee151 - ee1742 - (ee1742 - ee150 * (ee1614 + (ee147 * ee1616 + ee1612))))) - (ee1510 * ee155 + ee1754 + (ee1754 + ee71 * ee1764))) * ee158 - ee1770 - (ee1770 - ee157 * ee1772) - (ee1781 * ee162 - ee1783 - (ee1783 - ee160 * (ee1375 * ee14/ee117))))/ee7 - ee1792/ee935 - ((ee1792 - ee164 * ee1352)/ee935 - ee1302 * ee1588/ee1590)) + (((ee1670 + (ee1666 + ee167 * ee1664) - ee1653)/ee34 + ee1808/ee40 + ((ee1808 - ee169 * ee1403)/ee40 + ee1178 * ee737/ee206) - ((ee1820 * ee38 - ee1822 - ee1825)/ee40 + ee1828/ee206 + ((ee1828 - ee172 * ee1425)/ee206 + ee1211 * ee749/ee393))) * ee90 - ee1840 - (ee1840 + ee174 * ee1533) + (ee1852 * ee105 + ee1854 + (ee1854 + ee176 * ee1568))) + (ee1581 * ee180 + ee1862 + (ee1862 - ee107 * ee1868) + (ee1877 * ee184 - ee1879 - (ee182 * (ee1868 - ((ee183 * ee1541 + ee1866)/ee251 - ee1241 * ee910/ee472)) + ee1879))))/ee195 - ee1894/ee369 - ((ee1894 + ee187 * (ee143 * ee1637 - ee1898 - (ee1724 * ee122 + ee1898) + ((ee1781 * ee158 - ee1904 - (ee1904 - ee160 * ee1772))/ee7 - ee1910/ee935 - ((ee1910 - ee189 * ee1352)/ee935 - ee1272 * ee1588/ee1590)) + (ee1852 * ee90 - ee1922 - (ee1922 + ee176 * ee1533)) - (ee182 * ee1868 + ee1929 + (ee1877 * ee180 + ee1929))))/ee369 - ee1342 * ee1327/ee690));      
+          out(j, 6) +=  ee483 - (ee92 * ee510 - ee512 - ee515 + (ee442 * ee122 - ee514 - ee515)) - ((((ee528 + (ee527 + (ee526 + ee131 * ee541)))/ee34 - ee547/ee40 - (ee550/ee40 - ee296 * ee204/ee206) - ((ee550 + ee299)/ee40 - ee558/ee206 - ((ee558 + ee139 * ee386)/ee206 - ee301 * ee391/ee393))) * ee122 - ee570 - ee573 - (ee573 + (ee572 + ee143 * ee510)) + ((ee92 * ((ee581 * (ee311 * ee118) * ee314 + ee313 * (ee148 * ee265)) * ee151 + ee589 + (ee589 + ee150 * (ee147 * ee495))) - ee596 - ee599 - (ee442 * ee155 + ee598 + ee599)) * ee158 - ee606 - ee609 - (ee609 + (ee608 + ee160 * (ee331 - ((ee329 + ee161 * ee485)/ee263 - ee329 * ee490/ee492)))))/ee7 + (((ee167 * ee541 - ee526 - ee527 - ee528)/ee34 - ee629/ee40 - (ee632/ee40 - ee341 * ee204/ee206) - ((ee632 + ee344)/ee40 - ee640/ee206 - ((ee640 + ee172 * ee386)/ee206 - ee346 * ee391/ee393))) * ee90 + ee652 + ee655 + (ee655 + (ee654 + ee176 * ee479))) + (ee483 * ee180 - ee663 - ee666 - (ee666 + (ee665 + ee182 * (ee362 - ((ee360 + ee183 * ee465)/ee251 - ee360 * ee470/ee472))))))/ee195 - ee681/ee369 - ((ee681 + ee187 * ee366)/ee369 - ee368 * (2 * (ee187 * ee195))/ee690));
+          out(j, 7) +=  ee932 - (ee928 * ee273 + ee92 * ee971 - ee979 + (ee852 * ee122 + ee238 * ee985 - ee979)) - ((((ee1007 + (ee1006 + (ee131 * ee1021 - ee1024)))/ee34 + ee294 * ee723/ee40 - (ee1041/ee40 + ee296 * ee737/ee206) - ((ee1041 - ee1052)/ee40 + ee299 * ee737/ee206 + ((ee139 * ee744 + ee1052 * ee204)/ee206 - ee301 * ee749/ee393))) * ee122 + ee304 * ee985 - ee1080 - (ee1080 + (ee143 * ee971 - ee1085 * ee273)) + (((ee928 * ee319 + ee92 * ((ee1094 * ee314 - ee313 * (ee148 * ee948 + ee961)) * ee151 - ee315 * ee1102 + (ee1108 * ee317 - ee150 * (ee147 * ee951 + ee946))) - ee1122 - (ee852 * ee155 + ee238 * ee1128 + ee1122)) * ee158 - ee325 * ee1134 - ee1148 - (ee1148 + (ee1152 * ee331 - ee160 * (ee1146 - ee1145 * ee261/ee263))))/ee7 - ee334 * ee697/ee935) + (((ee1024 + ee167 * ee1021 - ee1006 - ee1007)/ee34 + ee339 * ee723/ee40 - (ee1179/ee40 + ee341 * ee737/ee206) - ((ee1179 + ee1189)/ee40 + ee344 * ee737/ee206 - ((ee1189 * ee204 - ee172 * ee744)/ee206 + ee346 * ee749/ee393))) * ee90 - ee349 * ee864 + ee1217 + (ee1217 + (ee1221 * ee256 + ee176 * ee924))) + (ee932 * ee180 + ee259 * ee1230 - ee1245 - (ee1245 - (ee182 * (ee1243 - ((ee183 * ee905 + ee1229 * ee249)/ee251 - ee360 * ee910/ee472)) + ee1258 * ee362))))/ee195 - ee366 * ee1283/ee369 - ((ee1321 * ee187 + ee187 * ee1321)/ee369 - ee368 * ee1327/ee690));
+          out(j, 8) +=  ee1581 - (ee1577 * ee120 + ee1583 + (ee1583 + ee92 * ee1622) + (ee1510 * ee122 + ee1627 + (ee1627 + ee71 * ee1637))) - ((((ee1653 + (ee131 * ee1664 - ee1666 - ee1670))/ee34 + ee1674/ee40 + ((ee1674 - ee136 * ee1403)/ee40 + ee1040 * ee737/ee206) + ((ee1689 * ee38 - ee1691 - ee1694)/ee40 + ee1697/ee206 + ((ee139 * ee1425 + ee1697)/ee206 - ee1074 * ee749/ee393))) * ee122 + ee1709 + (ee1709 + ee141 * ee1637) - (ee143 * ee1622 - ee1715 - (ee1724 * ee120 + ee1715)) + (((ee1577 * ee152 + ee1730 + (ee1730 + ee92 * ((ee1094 * ee1105 - ee313 * (ee148 * ee1603 + ee1600) + (ee1108 * ee937 - ee150 * ee1596)) * ee151 - ee1742 - (ee1742 - ee150 * (ee1614 + (ee147 * ee1616 + ee1612))))) - (ee1510 * ee155 + ee1754 + (ee1754 + ee71 * ee1764))) * ee158 - ee1770 - (ee1770 - ee157 * ee1772) - (ee1781 * ee162 - ee1783 - (ee1783 - ee160 * (ee1375 * ee14/ee117))))/ee7 - ee1792/ee935 - ((ee1792 - ee164 * ee1352)/ee935 - ee1302 * ee1588/ee1590)) + (((ee1670 + (ee1666 + ee167 * ee1664) - ee1653)/ee34 + ee1808/ee40 + ((ee1808 - ee169 * ee1403)/ee40 + ee1178 * ee737/ee206) - ((ee1820 * ee38 - ee1822 - ee1825)/ee40 + ee1828/ee206 + ((ee1828 - ee172 * ee1425)/ee206 + ee1211 * ee749/ee393))) * ee90 - ee1840 - (ee1840 + ee174 * ee1533) + (ee1852 * ee105 + ee1854 + (ee1854 + ee176 * ee1568))) + (ee1581 * ee180 + ee1862 + (ee1862 - ee107 * ee1868) + (ee1877 * ee184 - ee1879 - (ee182 * (ee1868 - ((ee183 * ee1541 + ee1866)/ee251 - ee1241 * ee910/ee472)) + ee1879))))/ee195 - ee1894/ee369 - ((ee1894 + ee187 * (ee143 * ee1637 - ee1898 - (ee1724 * ee122 + ee1898) + ((ee1781 * ee158 - ee1904 - (ee1904 - ee160 * ee1772))/ee7 - ee1910/ee935 - ((ee1910 - ee189 * ee1352)/ee935 - ee1272 * ee1588/ee1590)) + (ee1852 * ee90 - ee1922 - (ee1922 + ee176 * ee1533)) - (ee182 * ee1868 + ee1929 + (ee1877 * ee180 + ee1929))))/ee369 - ee1342 * ee1327/ee690));      
           
           ee2 = -log(psuba);
             ee4 = exp(-txi);
@@ -3189,7 +3200,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee1015 = ee460 * ee291;
           ee1034 = ee477 * ee500;
 
-          out(j, 9) = ee696 * ee207 + ee698 + ee701 + (ee701 + 
+          out(j, 9) += ee696 * ee207 + ee698 + ee701 + (ee701 + 
           (ee700 + ee227 * ee768)) - ee827 - ((ee323 * ee768 - 
           ee830 - ee833 - (((ee319 * ee847 - ee849 - ee852 + ee857)/ee127 + 
           ee860/ee128 + (ee864/ee128 + ee353 * ee132/ee134) + ((ee864 - 
@@ -3215,7 +3226,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee463 * ee782/ee784)) + ee1011) + (ee827 * ee473 + ee1010 + 
           ee1012)))/ee484 - ee1034/ee502 - ((ee1034 + ee500 * ee477)/ee502 - 
           ee501 * (2 * (ee500 * ee484))/R_pow(ee502, 2)));
-          }}}
+      }}}}
     
 return out;
 

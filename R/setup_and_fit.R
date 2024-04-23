@@ -10,7 +10,7 @@
 # --- takes a gam(..., fit=FALSE) object and adds stuff so that mgcv::predict.gam works
 #
 # .X.evgam
-# --- gives design matrics for a evgam object
+# --- gives design matrices for a evgam object
 #
 # .setup.data
 # --- takes data and evgam argument and return something useful for fitting
@@ -352,10 +352,10 @@
                         outer, trace, gamma, bgevargs) {
   
   ## data
-  for (i in seq_along(responsename)) {
-    dm <- as.matrix(data[,responsename[i]])
-    data <- data[rowSums(!is.na(dm)) == ncol(dm), ]
-  }
+  # for (i in seq_along(responsename)) {
+  #   dm <- as.matrix(data[,responsename[i]])
+  #   data <- data[rowSums(!is.na(dm)) == ncol(dm), ]
+  # }
   
   if (nrow(data) > maxdata) {
     id <- sort(sample(nrow(data), maxdata))
@@ -388,7 +388,9 @@
       id <- sample(nrow(data), maxspline)
       gams[[i]] <- mgcv::gam(formula[[i]], data=data[id,], fit=FALSE, knots=knots, method="REML")
     } else {
-      gams[[i]] <- mgcv::gam(formula[[i]], data=data, fit=FALSE, knots=knots, method="REML")
+      datau <- data
+      datau[, responsename] <- as.vector(as.matrix(datau[, responsename])[, 1])
+      gams[[i]] <- mgcv::gam(formula[[i]], data=datau, fit=FALSE, knots=knots, method="REML")
     }
     gams[[i]] <- .predictable.gam(gams[[i]], formula[[i]])
   }
@@ -950,8 +952,8 @@
         }
       }
       if (npar %in% 3:4) {
-        inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
-        inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
+        inits <- c(sqrt(6) * sd(likdata0$y) / pi, .05)
+        inits <- c(mean(likdata0$y) - .5772 * inits[1], log(inits[1]), inits[2])
         if (family == "gev2")
           inits[3] <- -.5
         if (npar == 4) 
@@ -1231,11 +1233,12 @@
   
   attr(rho0, "beta") <- beta
   
-  # if (outer == "fixed") {
-  #   
-  #   fit.reml <- .reml0_fixed(rho0, likfns=likfns, likdata=likdata, Sdata=Sdata)
-  #   
-  # } else {
+  if (outer == "fixed") {
+
+    fit.reml <- .reml0_fixed(rho0, likfns=likfns, likdata=likdata, Sdata=Sdata)
+    fit.reml$invHessian <- diag(0 * rho0)
+    
+  } else {
   
   if (is.null(likfns$d340) & outer != "fd")
     outer <- "fd"
@@ -1257,10 +1260,12 @@
       if (inherits(fit.reml$Hessian, "try-error")) 
         fit.reml$Hessian <- .reml2.fdfd(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata)
     }
-  }
+  }  
   
   if (correctV)
     fit.reml$invHessian <- .solve_evgam(fit.reml$Hessian)
+  
+  }
   
   fit.reml$trace <- trace
   
@@ -1272,8 +1277,6 @@
     report <- c(report, "", "")
     cat(paste(report, collapse="\n"))
   }
-  
-  # }
   
   fit.reml
   

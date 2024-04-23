@@ -1,17 +1,23 @@
 ## Generalised extreme value negative log-likelihood functions
 
 .gev2.d0 <- function(pars, likdata) {
-out <- gev2d0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y[,1], likdata$dupid, likdata$duplicate)
+likdata$y <- as.matrix(likdata$y)
+nhere <- rowSums(is.finite(likdata$y))  
+out <- gev2d0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y, likdata$dupid, likdata$duplicate, nhere)
 out
 }
 
 .gev2.d12 <- function(pars, likdata) {
-out <- gev2d12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y[,1], likdata$dupid, likdata$duplicate)
+likdata$y <- as.matrix(likdata$y)
+nhere <- rowSums(is.finite(likdata$y))  
+out <- gev2d12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y, likdata$dupid, likdata$duplicate, nhere)
 out
 }
 
 .gev2.d34 <- function(pars, likdata) {
-out <- gev2d34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y[,1], likdata$dupid, likdata$duplicate)
+likdata$y <- as.matrix(likdata$y)
+nhere <- rowSums(is.finite(likdata$y))  
+out <- gev2d34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y, likdata$dupid, likdata$duplicate, nhere)
 out
 }
 

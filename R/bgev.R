@@ -392,17 +392,23 @@ qbgev(p, location, scale, shape, pa, pb, alpha, beta)
 }
 
 .bgev.d0 <- function(pars, likdata) {
-  out <- bgevd0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y[,1], likdata$dupid, likdata$duplicate, likdata$other)
+  likdata$y <- as.matrix(likdata$y)
+  nhere <- rowSums(is.finite(likdata$y))  
+  out <- bgevd0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y, likdata$dupid, likdata$duplicate, likdata$other, nhere)
   out
 }
 
 .bgev.d12 <- function(pars, likdata) {
-  out <- bgevd12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y[,1], likdata$dupid, likdata$duplicate, likdata$other)
+  likdata$y <- as.matrix(likdata$y)
+  nhere <- rowSums(is.finite(likdata$y))  
+  out <- bgevd12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y, likdata$dupid, likdata$duplicate, likdata$other, nhere)
   out
 }
 
 .bgev.d34 <- function(pars, likdata) {
-  out <- bgevd34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y[,1], likdata$dupid, likdata$duplicate, likdata$other)
+  likdata$y <- as.matrix(likdata$y)
+  nhere <- rowSums(is.finite(likdata$y))  
+  out <- bgevd34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$y, likdata$dupid, likdata$duplicate, likdata$other, nhere)
   out
 }
 

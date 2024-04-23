@@ -86,7 +86,7 @@ spatial extreme values: Properties and inference. Biometrika, 90(1), 139-156.
 \doi{10.1093/biomet/90.1.139}
 
 Youngman, B. D. (2022). evgam: An R Package for Generalized Additive Extreme
-Value Modules. Journal of Statistical Software. \doi{10.18637/jss.v103.i03}
+Value Models. Journal of Statistical Software. \doi{10.18637/jss.v103.i03}
 
 Yu, K., & Moyeed, R. A. (2001). Bayesian quantile regression. 
 Statistics & Probability Letters, 54(4), 437-447.\doi{10.1016/S0167-7152(01)00124-9}
