@@ -2,6 +2,8 @@
 
 ### Changes:
 
+* Added `df2matdf()` for turning a vector response to a matrix response if explanatory variable combinations are repeated.
+
 * Added functionality to fit extended generalised Pareto distribution through `evgam(..., family = "egpd")`. See Naveau et al. (Water Resour. Res., 2016, (https://doi.org/10.1002/2015WR018552)) and `family.evgam`.
 
 * Added functionality to fit blended generalised extreme value (GEV) distribution through `evgam(..., family = "bgev")`. See Naveau et al. (Water Resour. Res., 2016, (https://doi.org/10.1002/2015WR018552)) and `family.evgam`. (Thanks to Jordan Richards for the suggestion.)
@@ -17,6 +19,8 @@
 ### Bug fixes:
 
 * That only variables are checked as being supplied to `data` is now properly detected. (Thanks, Simon Brown.)
+
+* That values smoothing parameters supplied to `evgam()` are properly recognised has been fixed.
 
 ## evgam 1.0.0
 
