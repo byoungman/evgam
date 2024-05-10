@@ -181,9 +181,15 @@ if (log)
   } else {
     nullstart <- TRUE
   }
-  start_obj <- t(apply(start, 1, function(x) .rlroot2(x, loc, scale, shape, tau, 
-                                                      weights, p, TRUE, family,
-                                                      pa, pb, alpha, beta)))
+  start_obj <- 0 * start
+  for (i in 1:nrow(start)) {
+    start_obj[i, ] <- .rlroot2(start[i, ], loc, scale, shape, tau, 
+                                             weights, p, TRUE, family,
+                                             pa, pb, alpha, beta)
+  }
+  # start_obj <- t(apply(start, 1, function(x) .rlroot2(x, loc, scale, shape, tau, 
+  #                                                     weights, p, TRUE, family,
+  #                                                     pa, pb, alpha, beta)))
   rl0 <- start[cbind(apply(abs(start_obj), 2, which.min), seq_len(ncol(loc)))]
   f0 <- .rlroot2(rl0, loc, scale, shape, tau, weights, p, TRUE, family,
                  pa, pb, alpha, beta)
