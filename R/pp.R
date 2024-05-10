@@ -8,15 +8,16 @@ prs <- split(pars, likdata$idpars)
 ## the integral bit
 X <- lapply(likdata$X, function(x) x[likdata$ppq, , drop=FALSE])
 y <- likdata$y[likdata$ppq, , drop=FALSE]
-out1 <- lapply(seq_len(ny), function(i) pp1d0(prs, X[[1]], X[[2]], X[[3]], y[, i], likdata$ppw))
-out1 <- Reduce("+", out1) / ny
-
+# out1 <- lapply(seq_len(ny), function(i) pp1d0(prs, X[[1]], X[[2]], X[[3]], y[, i], likdata$ppw))
+# out1 <- Reduce("+", out1) / ny
+out1 <- pp1d0(prs, X[[1]], X[[2]], X[[3]], y, likdata$ppw)
 ## the density bit
 X <- lapply(likdata$X, function(x) x[!likdata$ppq, , drop=FALSE])
 y <- likdata$y[!likdata$ppq, , drop=FALSE]
 if (is.null(likdata$ppcens)) {
-  out2 <- lapply(seq_len(ny), function(i) pp2d0(prs, X[[1]], X[[2]], X[[3]], y[,i], likdata$weights))
-  out2 <- Reduce("+", out2) / ny
+  # out2 <- lapply(seq_len(ny), function(i) pp2d0(prs, X[[1]], X[[2]], X[[3]], y[,i], likdata$weights))
+  # out2 <- Reduce("+", out2) / ny
+  out2 <- pp2d0(prs, X[[1]], X[[2]], X[[3]], y, likdata$weights)
 } else {
   wts <- likdata$weights[!likdata$ppcens]
   out21 <- lapply(seq_len(ny), function(i) pp2d0(prs, X[[1]][!likdata$ppcens, , drop=FALSE], X[[2]][!likdata$ppcens, , drop=FALSE], X[[3]][!likdata$ppcens, , drop=FALSE], y[!likdata$ppcens, i], wts))
@@ -38,13 +39,16 @@ ny <- ncol(likdata$y)
 prs <- split(pars, likdata$idpars)
 X <- lapply(likdata$X, function(x) x[likdata$ppq, , drop=FALSE])
 y <- likdata$y[likdata$ppq, , drop=FALSE]
-out1 <- lapply(seq_len(ny), function(i) pp1d12(prs, X[[1]], X[[2]], X[[3]], y[, i], likdata$ppw))
-out1 <- Reduce("+", out1) / ny
+# out1 <- lapply(seq_len(ny), function(i) pp1d12(prs, X[[1]], X[[2]], X[[3]], y[, i], likdata$ppw))
+# out1 <- Reduce("+", out1) / ny
+out1 <- pp1d12(prs, X[[1]], X[[2]], X[[3]], y, likdata$ppw)
 X <- lapply(likdata$X, function(x) x[!likdata$ppq, , drop=FALSE])
 y <- likdata$y[!likdata$ppq, , drop=FALSE]
 if (is.null(likdata$ppcens)) {
-  out2 <- lapply(seq_len(ny), function(i) pp2d12(prs, X[[1]], X[[2]], X[[3]], y[,i]))
-  out2 <- Reduce("+", out2) / ny
+  # out2 <- lapply(seq_len(ny), function(i) pp2d12(prs, X[[1]], X[[2]], X[[3]], y[,i]))
+  # out2 <- Reduce("+", out2) / ny
+  out2 <- pp2d12(prs, X[[1]], X[[2]], X[[3]], y)
+  # out2 <- Reduce("+", out2) / ny
 } else {
   out21 <- lapply(seq_len(ny), function(i) pp2d12(prs, X[[1]][!likdata$ppcens, , drop=FALSE], X[[2]][!likdata$ppcens, , drop=FALSE], X[[3]][!likdata$ppcens, , drop=FALSE], y[!likdata$ppcens, i]))
   out21 <- Reduce("+", out21) / ny
@@ -63,13 +67,17 @@ ny <- ncol(likdata$y)
 prs <- split(pars, likdata$idpars)
 X <- lapply(likdata$X, function(x) x[likdata$ppq, , drop=FALSE])
 y <- likdata$y[likdata$ppq, , drop=FALSE]
-out1 <- lapply(seq_len(ny), function(i) pp1d34(prs, X[[1]], X[[2]], X[[3]], y[, i], likdata$ppw))
-out1 <- Reduce("+", out1) / ny
+# out1 <- lapply(seq_len(ny), function(i) pp1d34(prs, X[[1]], X[[2]], X[[3]], y[, i], likdata$ppw))
+# out1 <- Reduce("+", out1) / ny
+out1 <- pp1d34(prs, X[[1]], X[[2]], X[[3]], y, likdata$ppw)
+# out1 <- Reduce("+", out1) / ny
 X <- lapply(likdata$X, function(x) x[!likdata$ppq, , drop=FALSE])
 y <- likdata$y[!likdata$ppq, , drop=FALSE]
 if (is.null(likdata$ppcens)) {
-  out2 <- lapply(seq_len(ny), function(i) pp2d34(prs, X[[1]], X[[2]], X[[3]], y[,i]))
-  out2 <- Reduce("+", out2) / ny
+  # out2 <- lapply(seq_len(ny), function(i) pp2d34(prs, X[[1]], X[[2]], X[[3]], y[,i]))
+  # out2 <- Reduce("+", out2) / ny
+  out2 <- pp2d34(prs, X[[1]], X[[2]], X[[3]], y)
+  # out2 <- Reduce("+", out2) / ny
 } else {
   out21 <- lapply(seq_len(ny), function(i) pp2d34(prs, X[[1]][!likdata$ppcens, , drop=FALSE], X[[2]][!likdata$ppcens, , drop=FALSE], X[[3]][!likdata$ppcens, , drop=FALSE], y[!likdata$ppcens, i]))
   out21 <- Reduce("+", out21) / ny
