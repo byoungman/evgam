@@ -721,15 +721,18 @@ seq_between <- function(x, length=NULL) {
 #' @export
 #' 
 df2matdf <- function(x, formula) {
+  x <- as.data.frame(x)
+  if (inherits(formula, 'formula'))
+    formula <- list(formula)
   int <- mgcv::interpret.gam(formula)
-  cols <- unique(unlist(sapply(int[seq_along(formula)], function(x) x[['fake.names']])))
+  cols <- unique(unlist(lapply(int[seq_along(formula)], function(x) x[['fake.names']])))
   x2 <- x[, cols]
   x3 <- as.data.frame(lapply(x2, function(x) as.integer(as.factor(x))))
   x4 <- do.call(paste, c(x3, sep = ':'))
   ux4 <- !duplicated(x4)
   mtch <- match(x4, x4[ux4])
   resp <- int$response
-  y <- split(x[, resp], mtch)
+  y <- split(as.vector(x[, resp]), mtch)
   nj <- sapply(y, length)
   nc <- max(nj)
   m <- matrix(NA, length(y), nc)
