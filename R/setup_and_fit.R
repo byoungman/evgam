@@ -166,50 +166,50 @@
                                   nms <- c("mu", "lpsi", "txi")
                                   nms2 <- c('location', 'logscale', 'transshape')
                                 } else {
-                                if (family == "egpd") {
-                                  if (is.null(egpd$model))
-                                    egpd$model <- 1
-                                  if (egpd$model == 1) {
-                                    lik.fns <- .egpd1fns
-                                    npar <- 3
-                                    nms <- c("lpsi", "xi", "lkappa")
-                                    nms2 <- c('logscale', 'shape', 'logkappa')
-                                    attr(family, "type") <- 1
-                                  } else {
-                                    if (egpd$model == 2) {
-                                      lik.fns <- .egpd2fns
-                                      npar <- 5
-                                      nms <- c("lpsi", "xi", "lkappa1", "lkappa2", "logitp")
-                                      nms2 <- c('logscale', 'shape', 'logkappa1', 'logkappa2', 'logitp')
-                                      attr(family, "type") <- 2
+                                  if (family == "egpd") {
+                                    if (is.null(egpd$model))
+                                      egpd$model <- 1
+                                    if (egpd$model == 1) {
+                                      lik.fns <- .egpd1fns
+                                      npar <- 3
+                                      nms <- c("lpsi", "xi", "lkappa")
+                                      nms2 <- c('logscale', 'shape', 'logkappa')
+                                      attr(family, "type") <- 1
                                     } else {
-                                      if (egpd$model == 3) {
-                                        lik.fns <- .egpd3fns
-                                        npar <- 3
-                                        nms <- c("lpsi", "xi", "ldelta")
-                                        nms2 <- c('logscale', 'shape', 'logdelta')
-                                        attr(family, "type") <- 3
+                                      if (egpd$model == 2) {
+                                        lik.fns <- .egpd2fns
+                                        npar <- 5
+                                        nms <- c("lpsi", "xi", "lkappa1", "lkappa2", "logitp")
+                                        nms2 <- c('logscale', 'shape', 'logkappa1', 'logkappa2', 'logitp')
+                                        attr(family, "type") <- 2
                                       } else {
-                                        lik.fns <- .egpd4fns
-                                        npar <- 4
-                                        nms <- c("lpsi", "xi", "ldelta", "lkappa")
-                                        nms2 <- c('logscale', 'shape', 'logdelta', 'logkappa')
-                                        attr(family, "type") <- 4
+                                        if (egpd$model == 3) {
+                                          lik.fns <- .egpd3fns
+                                          npar <- 3
+                                          nms <- c("lpsi", "xi", "ldelta")
+                                          nms2 <- c('logscale', 'shape', 'logdelta')
+                                          attr(family, "type") <- 3
+                                        } else {
+                                          lik.fns <- .egpd4fns
+                                          npar <- 4
+                                          nms <- c("lpsi", "xi", "ldelta", "lkappa")
+                                          nms2 <- c('logscale', 'shape', 'logdelta', 'logkappa')
+                                          attr(family, "type") <- 4
+                                        }
                                       }
                                     }
-                                  }
-                                } else {
-                                  if (length(likfns)) {
-                                    lik.fns <- likfns
-                                    family <- "custom"
-                                    npar <- length(formula)
-                                    if (is.null(names(formula))) {
-                                      nms <- paste("par", seq_along(formula), sep = "_")
-                                    } else {
-                                      nms <- names(formula)
+                                  } else {
+                                    if (length(likfns)) {
+                                      lik.fns <- likfns
+                                      family <- "custom"
+                                      npar <- length(formula)
+                                      if (is.null(names(formula))) {
+                                        nms <- paste("par", seq_along(formula), sep = "_")
+                                      } else {
+                                        nms <- names(formula)
+                                      }
+                                      nms2 <- nms
                                     }
-                                    nms2 <- nms
-                                  }
                                   }
                                 }
                               }
@@ -353,11 +353,12 @@
                         gpdargs, exiargs, aldargs, pp, knots, maxdata, maxspline, compact, sargs, 
                         outer, trace, gamma, bgevargs, sparse) {
   
-  ## data
-  # for (i in seq_along(responsename)) {
-  #   dm <- as.matrix(data[,responsename[i]])
-  #   data <- data[rowSums(!is.na(dm)) == ncol(dm), ]
-  # }
+  # data
+  
+  for (i in seq_along(responsename)) {
+    dm <- as.matrix(data[,responsename[i]])
+    data <- data[rowSums(!is.na(dm)) == ncol(dm), ]
+  }
   
   if (nrow(data) > maxdata) {
     id <- sort(sample(nrow(data), maxdata))
@@ -412,6 +413,8 @@
   if (attr(formula, "censored")) {
     lik.data$censored <- TRUE
     # check right-censored values not below left censored values
+    if (any(!is.finite(lik.data$y)))
+      stop('Missing values must be removed prior to fitting a censored model.')
     if (any(lik.data$y[,2] < lik.data$y[,1]))
       stop("For censored response need right >= left in `cens(left, right)'")
     lik.data$cens.id <- lik.data$y[,2] > lik.data$y[,1]
@@ -564,354 +567,702 @@
 
 ############ .setup.pp.data ##########################
 
+# .setup.pp.data <- function(data, responsename, pp) {
+#   
+#   nodes <- pp$nodes
+#   ny <- pp$ny
+#   if (is.null(ny))
+#     stop("Cannot have NULL pp.args$ny.")
+#   threshold <- pp$threshold
+#   r <- pp$r
+#   if (is.null(threshold) & is.null(r)) 
+#     stop("Both pp$threshold and pp$r cannot be NULL")
+#   
+#   ## simple constant partial point process
+#   data$row <- seq_len(nrow(data))
+#   ds <- split(data, data[,pp$id])
+#   wts <- pp$ny
+#   if (length(wts) == 1) {
+#     wts <- rep(wts, length(ds))
+#   } else {
+#     wts <- wts[match(names(ds), names(wts))]
+#   }
+#   nobs2 <- sapply(ds, nrow)
+#   ## start of original r-largest order statistic stuff
+#   data.quad <- do.call(rbind, lapply(ds, function(x) x[1,]))
+#   if (!is.null(pp$r)) {
+#     enough <- nobs2 >= pp$r
+#     if (any(!enough)) warning(paste(sum(!enough), "unique pp.args$id removed for having fewer than r observations."))
+#     ds <- ds[enough]
+#     wts <- wts[enough]
+#     nid <- sum(enough)
+#     data.quad <- data.quad[enough,]
+#     if (pp$r != -1) {
+#       du <- sapply(ds, function(x) x[order(x[,responsename], decreasing=TRUE)[pp$r], responsename])
+#     } else {
+#       du <- sapply(ds, function(x) min(x[, responsename]))
+#     }
+#     ## end of ...
+#   } else {
+#     ## start of specified threshold stuff
+#     du <- sapply(ds, function(x) x[1, pp$threshold])
+#     nid <- length(du)
+#     ## end of specified threshold stuff
+#   }
+#   data.quad[,responsename] <- du
+#   ds <- lapply(seq_len(nid), function(i) subset(ds[[i]], ds[[i]][,responsename] >= du[i]))
+#   out <- dfbind(ds)
+#   attr(out, "weights") <- wts
+#   attr(out, "quad") <- data.quad
+#   if (is.null(pp$cens)) {
+#     attr(out, "cens") <- NULL
+#   } else {
+#     attr(out, "cens") <- data[out$row, pp$cens]
+#   }
+#   if (is.null(pp$weights)) {
+#     attr(out, "cweights") <-rep(1, length(out$row))
+#   } else {
+#     attr(out, "cweights") <- pp$weights[out$row]
+#   }
+#   out
+# }
+# 
+# .setup.pp.data <- function(data, responsename, pp) {
+#   
+#   if (!is.pp$new.style) {
+#     attr(data, 'quad') <- pp$data
+#     attr(data, 'weights') <- pp$weights
+#     attr(data, 'cweights') <- rep(1, nrow(data))
+#     attr(data, 'cens') <- NULL#rep(c(TRUE, FALSE), c(nrow(data), nrow(pp$data)))
+#     out <- data
+#   } else {
+#     data$weights <- 1
+#     data$ppq <- FALSE
+#     pp$data$weights <- pp$weights
+#     pp$data$ppq <- TRUE
+#     data <- rbind(data, pp$data)
+# 
+#   nodes <- pp$nodes
+#   ny <- pp$ny
+#   weights <- pp$weights
+#   threshold <- pp$threshold
+#   r <- pp$r
+# 
+#   if (is.null(nodes) & is.null(ny))
+#     stop("Cannot have NULL pp.args$ny and pp.args$nodes.")
+#   if (is.null(threshold) & is.null(r))
+#     stop("Both pp$threshold and pp$r cannot be NULL")
+# 
+#   if (!is.null(pp$nodes)) { # start stuff with nodes
+# 
+#     ## option for integration over nodes added to evgam_0.1.2
+#     # otherwise integration over pp$id, and assumed constant
+#     print("Testing pp$nodes")
+# 
+#     if (!inherits(nodes, "data.frame")) {
+# 
+#       print("Nodes are a list")
+# 
+#       # Assume nodes for each variable given, and then use expand.grid
+#       # to get all combinations
+#       # Second column of each list element taken as weights, if present
+# 
+#       if (!inherits(nodes, "list")) {
+#         stop('Unrecognized class(pp$nodes)[1] not in c("data.frame", "list")')
+#       } else {
+#         nodes <- lapply(nodes, as.matrix)
+#         for (i in seq_along(nodes)) if (ncol(nodes[[i]]) == 1) nodes[[i]] <- cbind(nodes[[i]], 1)
+#         wts <- lapply(nodes, function(x) x[,2])
+#         wts <- Reduce("*", expand.grid(wts))
+#         nodes <- lapply(nodes, function(x) x[,1])
+#         nodes <- expand.grid(nodes)
+#         nd <- nrow(nodes)
+#         if (is.null(weights)) {
+#           weights <- 1
+#         } else {
+#           if (length(weights) > 1) {
+#             stop('Cannot have class(pp$nodes)[1] == "list" and length(pp$weights) > 1')
+#           } else {
+#             wts <- weights * wts
+#           }
+#         }
+#       }
+# 
+#       # Now deal with threshold
+# 
+#       if (!is.null(threshold)) {
+#         if (length(threshold) > 1) {
+#           stop('Cannot have length(threshold) > 1')
+#         } else {
+#           if (inherits(threshold, c("numeric", "integer"))) {
+#             data <- subset(data, data[,responsename] >= threshold)
+#             nodes[,responsename] <- threshold
+#           } else {
+#             if (inherits(threshold, "character")) {
+#               if (threshold %in% names(nodes)) {
+#                 names(nodes)[names(nodes) == threshold] <- responsename
+#               } else {
+#                 if (threshold %in% names(data)) {
+#                   data <- subset(data, data[,responsename] >= data[,threshold])
+#                 } else {
+#                   stop(paste(threshold, "not in names(data)"))
+#                 }
+#                 stop(paste(threshold, "not in names(nodes)"))
+#               }
+#             } else {
+#               stop('class(pp$threshold) not in c("numeric", "character")')
+#             }
+#           }
+#         }
+#       } else {
+#         if (!is.null(pp$r)) {
+#           threshold <- sort(data[,responsename], decreasing=TRUE)[pp$r]
+#           nodes[,responsename] <- threshold
+#           data <- subset(data, data[,responsename] >= threshold)
+#         } else {
+#           stop('Both pp$r and pp$threshold cannot be NULL') # covered at start
+#         }
+#       }
+# 
+#       #   class(threshold)[1] == "character") {
+#       #     if (length(threshold) == 1) {
+#       #       if (threshold %in% names(nodes)) {
+#       #         if (threshold %in% names(data)) {
+#       #           data <- subset(data, data[,responsename] >= data[,threshold])
+#       #         } else {
+#       #           stop(paste(threshold, "not in names(data)"))
+#       #         }
+#       #       } else {
+#       #         stop(paste(threshold, "not in names(nodes)"))
+#       #       }
+#       #     } else {
+#       #       stop('class(threshold)[1] == "character" but length(threshold) != 1')
+#       #     }
+#       #   } else {
+#       #     if (class(pp$threshold)[1] %in% c("numeric", "integer")) {
+#       #       if (length(pp$threshold) == 1) {
+#       #         nodes[,responsename] <- pp$threshold
+#       #       } else {
+#       #         stop('Cannot have class(nodes)[1] == "list" and length(pp$threshold) > 1')
+#       #       }
+#       #     } else {
+#       #       stop('class(pp$threshold)[1] not in c("numeric", "integer")')
+#       #     }
+#       #   }
+#       # } else {
+#       #   if (!is.null(pp$r)) {
+#       #     nodes[,responsename] <- sort(data[,responsename], decreasing=TRUE)[pp$r]
+#       #   } else {
+#       #     stop('Both pp$r and pp$threshold cannot be NULL')
+#       #   }
+#       # }
+# 
+#     } else {
+# 
+#       print("Nodes are a data.frame")
+# 
+#       # Assumes all nodes given
+# 
+#       nd <- nrow(nodes)
+# 
+#       # make integration weights
+#       # (this might become a bit more sophisticated, like ppgam, in future)
+#       if (is.null(pp$weights)) {
+#         wts <- rep(1, nrow(nodes))
+#       } else {
+#         if (length(pp$weights) == 1 & inherits(pp$weights, "character")) {
+#           wts <- nodes[,pp$weights]
+#           nodes[,pp$weights] <- NULL
+#         } else {
+#           if (length(pp$weights) == 1 & inherits(pp$weights, c("numeric", "integer"))) {
+#             wts <- rep(pp$weights, nd)
+#           } else {
+#             if (length(pp$weights) > 1 & inherits(pp$weights, c("numeric", "integer"))) {
+#               if (length(pp$weights) != nd) {
+#                 stop("nrow(pp$nodes) and length(pp$weights) not compatible")
+#               } else {
+#                 wts <- pp$weights
+#               }
+#             }
+#           }
+#         }
+#       }
+# 
+#       # Now deal with threshold
+# 
+#       if (!is.null(threshold)) {
+#         if (length(threshold) > 1) {
+#           stop('Cannot have length(threshold) > 1')
+#         } else {
+#           if (inherits(threshold, c("numeric", "integer"))) {
+#             nodes[,responsename] <- threshold
+#             data <- subset(data, data[,responsename] >= threshold)
+#           } else {
+#             if (inherits(threshold, "character")) {
+#               if (threshold %in% names(nodes)) {
+#                 names(nodes)[names(nodes) == threshold] <- responsename
+#               } else {
+#                 if (threshold %in% names(data)) {
+#                   data <- subset(data, data[,responsename] >= data[,threshold])
+#                 } else {
+#                   stop(paste(threshold, "not in names(data)"))
+#                 }
+#                 stop(paste(threshold, "not in names(nodes)"))
+#               }
+#             } else {
+#               stop('class(pp$threshold) not in c("numeric", "character")')
+#             }
+#           }
+#         }
+#       } else {
+#         if (!is.null(pp$r)) {
+#           threshold <- sort(data[,responsename], decreasing=TRUE)[pp$r]
+#           nodes[,responsename] <- threshold
+#           data <- subset(data, data[,responsename] >= threshold)
+#         } else {
+#           stop('Both pp$r and pp$threshold cannot be NULL') # covered at start
+#         }
+#       }
+# 
+#       # if (!(responsename %in% names(nodes))) {
+#       #   if (class(pp$threshold)[1] %in% c("numeric", "integer")) {
+#       #     if (length(pp$threshold) == 1) {
+#       #       nodes[,responsename] <- pp$threshold
+#       #     } else {
+#       #       if (length(pp$threshold) != nd) {
+#       #         stop('Need length(pp$threshold) in c(1, nrow(nodes)) for class(nodes)[1] == "data.frame".')
+#       #       } else {
+#       #         nodes[,responsename] <- pp$threshold
+#       #       }
+#       #     }
+#       #   } else {
+#       #     if (!is.null(pp$r)) {
+#       #       nodes[,responsename] <- sort(data[,responsename], decreasing=TRUE)[pp$r]
+#       #       data <- subset(data, data[,responsename] >= nodes[1, responsename])
+#       #     } else {
+#       #       stop('Neither pp$r nor pp$threshold acceptably provided')
+#       #     }
+#       #   }
+#       # }
+# 
+#     }
+# 
+#     out <- data
+#     attr(out, "weights") <- wts
+#     attr(out, "quad") <- nodes
+#     if (is.null(pp$cens)) {
+#       attr(out, "cens") <- NULL
+#     } else {
+#       attr(out, "cens") <- data[out$row, pp$cens]
+#     }
+#     # if (is.null(pp$weights)) {
+#     attr(out, "cweights") <- rep(1, nrow(out))
+#     # } else {
+#     # #   attr(out, "cweights") <- pp$weights[out$row]
+#     #   attr(out, "cweights") <- rep(pp$weights, nrow(out))
+#     # }
+#     if (!is.null(pp$exi)) attr(out, "exi") <- data[,pp$exi]
+#     print(attributes(out)[c("weights", "quad", "cens")])
+# 
+#     # last line of stuff with nodes
+# 
+#   } else {
+#     ## simple constant partial point process
+#     data$row <- seq_len(nrow(data))
+#     ds <- split(data, data[,pp$id])
+#     wts <- pp$ny
+#     if (length(wts) == 1) {
+#       wts <- rep(wts, length(ds))
+#     } else {
+#       wts <- wts[match(names(ds), names(wts))]
+#     }
+#     nobs2 <- sapply(ds, nrow)
+#     ## start of original r-largest order statistic stuff
+#     data.quad <- do.call(rbind, lapply(ds, function(x) x[1,]))
+#     if (!is.null(pp$r)) {
+#       enough <- nobs2 > pp$r
+#       if (any(!enough)) warning(paste(sum(!enough), "unique pp.args$id removed for having fewer than r observations."))
+#       ds <- ds[enough]
+#       wts <- wts[enough]
+#       nid <- sum(enough)
+#       data.quad <- data.quad[enough,]
+#       if (pp$r != -1) {
+#         du <- sapply(ds, function(x) x[order(x[,responsename], decreasing=TRUE)[pp$r], responsename])
+#       } else {
+#         du <- sapply(ds, function(x) min(x[, responsename]))
+#       }
+#       ## end of ...
+#     } else {
+#       ## start of specified threshold stuff
+#       du <- sapply(ds, function(x) x[1, pp$threshold])
+#       nid <- length(du)
+#       ## end of specified threshold stuff
+#     }
+#     data.quad[,responsename] <- du
+#     ds <- lapply(seq_len(nid), function(i) subset(ds[[i]], ds[[i]][,responsename] >= du[i]))
+#     out <- dfbind(ds)
+#     attr(out, "weights") <- wts
+#     attr(out, "quad") <- data.quad
+#     if (is.null(pp$cens)) {
+#       attr(out, "cens") <- NULL
+#     } else {
+#       attr(out, "cens") <- data[out$row, pp$cens]
+#     }
+#     if (is.null(pp$weights)) {
+#       attr(out, "cweights") <-rep(1, length(out$row))
+#     } else {
+#       attr(out, "cweights") <- pp$weights[out$row]
+#     }
+#   }
+#   out
+# }
+# 
+# 
+# .setup.pp.data <- function(data, responsename, pp) {
+#   
+#   nodes <- pp$nodes
+#   ny <- pp$ny
+#   if (is.null(ny))
+#     stop("Cannot have NULL pp.args$ny.")
+#   threshold <- pp$threshold
+#   r <- pp$r
+#   if (is.null(threshold) & is.null(r)) 
+#     stop("Both pp$threshold and pp$r cannot be NULL")
+#   
+#   ## simple constant partial point process
+#   data$row <- seq_len(nrow(data))
+#   ds <- split(data, data[,pp$id])
+#   wts <- pp$ny
+#   if (length(wts) == 1) {
+#     wts <- rep(wts, length(ds))
+#   } else {
+#     wts <- wts[match(names(ds), names(wts))]
+#   }
+#   nobs2 <- sapply(ds, nrow)
+#   ## start of original r-largest order statistic stuff
+#   data.quad <- do.call(rbind, lapply(ds, function(x) x[1,]))
+#   if (!is.null(pp$r)) {
+#     enough <- nobs2 >= pp$r
+#     if (any(!enough)) warning(paste(sum(!enough), "unique pp.args$id removed for having fewer than r observations."))
+#     ds <- ds[enough]
+#     wts <- wts[enough]
+#     nid <- sum(enough)
+#     data.quad <- data.quad[enough,]
+#     if (pp$r != -1) {
+#       du <- sapply(ds, function(x) x[order(x[,responsename], decreasing=TRUE)[pp$r], responsename])
+#     } else {
+#       du <- sapply(ds, function(x) min(x[, responsename]))
+#     }
+#     ## end of ...
+#   } else {
+#     ## start of specified threshold stuff
+#     du <- sapply(ds, function(x) x[1, pp$threshold])
+#     nid <- length(du)
+#     ## end of specified threshold stuff
+#   }
+#   data.quad[,responsename] <- du
+#   ds <- lapply(seq_len(nid), function(i) subset(ds[[i]], ds[[i]][,responsename] >= du[i]))
+#   out <- dfbind(ds)
+#   attr(out, "weights") <- wts
+#   attr(out, "quad") <- data.quad
+#   if (is.null(pp$cens)) {
+#     attr(out, "cens") <- NULL
+#   } else {
+#     attr(out, "cens") <- data[out$row, pp$cens]
+#   }
+#   if (is.null(pp$weights)) {
+#     attr(out, "cweights") <-rep(1, length(out$row))
+#   } else {
+#     attr(out, "cweights") <- pp$weights[out$row]
+#   }
+#   out
+# }
+
 .setup.pp.data <- function(data, responsename, pp) {
   
-  nodes <- pp$nodes
-  ny <- pp$ny
-  if (is.null(ny))
-    stop("Cannot have NULL pp.args$ny.")
-  threshold <- pp$threshold
-  r <- pp$r
-  if (is.null(threshold) & is.null(r)) 
-    stop("Both pp$threshold and pp$r cannot be NULL")
-  
-  ## simple constant partial point process
-  data$row <- seq_len(nrow(data))
-  ds <- split(data, data[,pp$id])
-  wts <- pp$ny
-  if (length(wts) == 1) {
-    wts <- rep(wts, length(ds))
+  if (!is.null(pp$new.style)) {
+    attr(data, 'quad') <- pp$data
+    attr(data, 'weights') <- pp$weights
+    attr(data, 'cweights') <- rep(1, nrow(data))
+    attr(data, 'cens') <- NULL#rep(c(TRUE, FALSE), c(nrow(data), nrow(pp$data)))
+    out <- data
   } else {
-    wts <- wts[match(names(ds), names(wts))]
-  }
-  nobs2 <- sapply(ds, nrow)
-  ## start of original r-largest order statistic stuff
-  data.quad <- do.call(rbind, lapply(ds, function(x) x[1,]))
-  if (!is.null(pp$r)) {
-    enough <- nobs2 >= pp$r
-    if (any(!enough)) warning(paste(sum(!enough), "unique pp.args$id removed for having fewer than r observations."))
-    ds <- ds[enough]
-    wts <- wts[enough]
-    nid <- sum(enough)
-    data.quad <- data.quad[enough,]
-    if (pp$r != -1) {
-      du <- sapply(ds, function(x) x[order(x[,responsename], decreasing=TRUE)[pp$r], responsename])
+    
+    nodes <- pp$nodes
+    ny <- pp$ny
+    weights <- pp$weights
+    threshold <- pp$threshold
+    r <- pp$r
+    
+    if (is.null(nodes) & is.null(ny))
+      stop("Cannot have NULL pp.args$ny and pp.args$nodes.")
+    if (is.null(threshold) & is.null(r)) 
+      stop("Both pp$threshold and pp$r cannot be NULL")
+    
+    if (!is.null(pp$nodes)) { # start stuff with nodes
+      
+      ## option for integration over nodes added to evgam_0.1.2
+      # otherwise integration over pp$id, and assumed constant
+      print("Testing pp$nodes")
+      
+      if (!inherits(nodes, "data.frame")) {
+        
+        print("Nodes are a list")
+        
+        # Assume nodes for each variable given, and then use expand.grid
+        # to get all combinations
+        # Second column of each list element taken as weights, if present
+        
+        if (!inherits(nodes, "list")) {
+          stop('Unrecognized class(pp$nodes)[1] not in c("data.frame", "list")')
+        } else {
+          nodes <- lapply(nodes, as.matrix)
+          for (i in seq_along(nodes)) if (ncol(nodes[[i]]) == 1) nodes[[i]] <- cbind(nodes[[i]], 1)
+          wts <- lapply(nodes, function(x) x[,2])
+          wts <- Reduce("*", expand.grid(wts))
+          nodes <- lapply(nodes, function(x) x[,1])
+          nodes <- expand.grid(nodes)
+          nd <- nrow(nodes)
+          if (is.null(weights)) {
+            weights <- 1
+          } else {
+            if (length(weights) > 1) {
+              stop('Cannot have class(pp$nodes)[1] == "list" and length(pp$weights) > 1')
+            } else {
+              wts <- weights * wts
+            }
+          }
+        }
+        
+        # Now deal with threshold
+        
+        if (!is.null(threshold)) {
+          if (length(threshold) > 1) {
+            stop('Cannot have length(threshold) > 1')
+          } else {
+            if (inherits(threshold, c("numeric", "integer"))) {
+              data <- subset(data, data[,responsename] >= threshold)
+              nodes[,responsename] <- threshold
+            } else {
+              if (inherits(threshold, "character")) {
+                if (threshold %in% names(nodes)) {
+                  names(nodes)[names(nodes) == threshold] <- responsename
+                } else {
+                  if (threshold %in% names(data)) {
+                    data <- subset(data, data[,responsename] >= data[,threshold])
+                  } else {
+                    stop(paste(threshold, "not in names(data)"))
+                  }
+                  stop(paste(threshold, "not in names(nodes)"))
+                }
+              } else {
+                stop('class(pp$threshold) not in c("numeric", "character")')
+              }
+            }
+          }    
+        } else {
+          if (!is.null(pp$r)) {
+            threshold <- sort(data[,responsename], decreasing=TRUE)[pp$r]
+            nodes[,responsename] <- threshold
+            data <- subset(data, data[,responsename] >= threshold)
+          } else {
+            stop('Both pp$r and pp$threshold cannot be NULL') # covered at start
+          }
+        }
+        
+        #   class(threshold)[1] == "character") {
+        #     if (length(threshold) == 1) {
+        #       if (threshold %in% names(nodes)) {
+        #         if (threshold %in% names(data)) {
+        #           data <- subset(data, data[,responsename] >= data[,threshold])
+        #         } else {
+        #           stop(paste(threshold, "not in names(data)"))
+        #         }
+        #       } else {
+        #         stop(paste(threshold, "not in names(nodes)"))
+        #       }
+        #     } else {
+        #       stop('class(threshold)[1] == "character" but length(threshold) != 1')
+        #     }
+        #   } else {
+        #     if (class(pp$threshold)[1] %in% c("numeric", "integer")) {
+        #       if (length(pp$threshold) == 1) {
+        #         nodes[,responsename] <- pp$threshold   
+        #       } else {
+        #         stop('Cannot have class(nodes)[1] == "list" and length(pp$threshold) > 1')
+        #       }
+        #     } else {
+        #       stop('class(pp$threshold)[1] not in c("numeric", "integer")')
+        #     }
+        #   }
+        # } else {
+        #   if (!is.null(pp$r)) {
+        #     nodes[,responsename] <- sort(data[,responsename], decreasing=TRUE)[pp$r]
+        #   } else {
+        #     stop('Both pp$r and pp$threshold cannot be NULL')
+        #   }
+        # }
+        
+      } else {
+        
+        print("Nodes are a data.frame")
+        
+        # Assumes all nodes given
+        
+        nd <- nrow(nodes)
+        
+        # make integration weights
+        # (this might become a bit more sophisticated, like ppgam, in future)
+        if (is.null(pp$weights)) {
+          wts <- rep(1, nrow(nodes))
+        } else {
+          if (length(pp$weights) == 1 & inherits(pp$weights, "character")) {
+            wts <- nodes[,pp$weights]
+            nodes[,pp$weights] <- NULL
+          } else {
+            if (length(pp$weights) == 1 & inherits(pp$weights, c("numeric", "integer"))) {
+              wts <- rep(pp$weights, nd)
+            } else {
+              if (length(pp$weights) > 1 & inherits(pp$weights, c("numeric", "integer"))) {
+                if (length(pp$weights) != nd) {
+                  stop("nrow(pp$nodes) and length(pp$weights) not compatible")
+                } else {
+                  wts <- pp$weights
+                }
+              }
+            }
+          }
+        }
+        
+        # Now deal with threshold
+        
+        if (!is.null(threshold)) {
+          if (length(threshold) > 1) {
+            stop('Cannot have length(threshold) > 1')
+          } else {
+            if (inherits(threshold, c("numeric", "integer"))) {
+              nodes[,responsename] <- threshold
+              data <- subset(data, data[,responsename] >= threshold)
+            } else {
+              if (inherits(threshold, "character")) {
+                if (threshold %in% names(nodes)) {
+                  names(nodes)[names(nodes) == threshold] <- responsename
+                } else {
+                  if (threshold %in% names(data)) {
+                    data <- subset(data, data[,responsename] >= data[,threshold])
+                  } else {
+                    stop(paste(threshold, "not in names(data)"))
+                  }
+                  stop(paste(threshold, "not in names(nodes)"))
+                }
+              } else {
+                stop('class(pp$threshold) not in c("numeric", "character")')
+              }
+            }
+          }    
+        } else {
+          if (!is.null(pp$r)) {
+            threshold <- sort(data[,responsename], decreasing=TRUE)[pp$r]
+            nodes[,responsename] <- threshold
+            data <- subset(data, data[,responsename] >= threshold)
+          } else {
+            stop('Both pp$r and pp$threshold cannot be NULL') # covered at start
+          }
+        }
+        
+        # if (!(responsename %in% names(nodes))) {
+        #   if (class(pp$threshold)[1] %in% c("numeric", "integer")) {
+        #     if (length(pp$threshold) == 1) {
+        #       nodes[,responsename] <- pp$threshold   
+        #     } else {
+        #       if (length(pp$threshold) != nd) {
+        #         stop('Need length(pp$threshold) in c(1, nrow(nodes)) for class(nodes)[1] == "data.frame".')
+        #       } else {
+        #         nodes[,responsename] <- pp$threshold   
+        #       }
+        #     }
+        #   } else {
+        #     if (!is.null(pp$r)) {
+        #       nodes[,responsename] <- sort(data[,responsename], decreasing=TRUE)[pp$r]
+        #       data <- subset(data, data[,responsename] >= nodes[1, responsename])
+        #     } else {
+        #       stop('Neither pp$r nor pp$threshold acceptably provided')
+        #     }
+        #   }
+        # }
+        
+      }
+      
+      out <- data
+      attr(out, "weights") <- wts
+      attr(out, "quad") <- nodes
+      if (is.null(pp$cens)) {
+        attr(out, "cens") <- NULL
+      } else {
+        attr(out, "cens") <- data[out$row, pp$cens]
+      }
+      # if (is.null(pp$weights)) {
+      attr(out, "cweights") <- rep(1, nrow(out))
+      # } else {
+      # #   attr(out, "cweights") <- pp$weights[out$row]
+      #   attr(out, "cweights") <- rep(pp$weights, nrow(out))
+      # }
+      if (!is.null(pp$exi)) attr(out, "exi") <- data[,pp$exi]
+      print(attributes(out)[c("weights", "quad", "cens")])
+      
+      # last line of stuff with nodes
+      
     } else {
-      du <- sapply(ds, function(x) min(x[, responsename]))
+      ## simple constant partial point process
+      data$row <- seq_len(nrow(data))
+      ds <- split(data, data[,pp$id])
+      wts <- pp$ny
+      if (length(wts) == 1) {
+        wts <- rep(wts, length(ds))
+      } else {
+        wts <- wts[match(names(ds), names(wts))]
+      }
+      nobs2 <- sapply(ds, nrow)
+      ## start of original r-largest order statistic stuff
+      data.quad <- do.call(rbind, lapply(ds, function(x) x[1,]))
+      if (!is.null(pp$r)) {
+        enough <- nobs2 > pp$r
+        if (any(!enough)) warning(paste(sum(!enough), "unique pp.args$id removed for having fewer than r observations."))
+        ds <- ds[enough]
+        wts <- wts[enough]
+        nid <- sum(enough)
+        data.quad <- data.quad[enough,]
+        if (pp$r != -1) {
+          du <- sapply(ds, function(x) x[order(x[,responsename], decreasing=TRUE)[pp$r], responsename])
+        } else {
+          du <- sapply(ds, function(x) min(x[, responsename]))
+        }
+        ## end of ...
+      } else {
+        ## start of specified threshold stuff
+        du <- sapply(ds, function(x) x[1, pp$threshold])
+        nid <- length(du)
+        ## end of specified threshold stuff
+      }
+      data.quad[,responsename] <- du
+      ds <- lapply(seq_len(nid), function(i) subset(ds[[i]], ds[[i]][,responsename] >= du[i]))
+      out <- dfbind(ds)
+      attr(out, "weights") <- wts
+      attr(out, "quad") <- data.quad
+      if (is.null(pp$cens)) {
+        attr(out, "cens") <- NULL
+      } else {
+        attr(out, "cens") <- data[out$row, pp$cens]
+      }
+      if (is.null(pp$weights)) {
+        attr(out, "cweights") <-rep(1, length(out$row))
+      } else {
+        attr(out, "cweights") <- pp$weights[out$row]
+      }
     }
-    ## end of ...
-  } else {
-    ## start of specified threshold stuff
-    du <- sapply(ds, function(x) x[1, pp$threshold])
-    nid <- length(du)
-    ## end of specified threshold stuff
-  }
-  data.quad[,responsename] <- du
-  ds <- lapply(seq_len(nid), function(i) subset(ds[[i]], ds[[i]][,responsename] >= du[i]))
-  out <- dfbind(ds)
-  attr(out, "weights") <- wts
-  attr(out, "quad") <- data.quad
-  if (is.null(pp$cens)) {
-    attr(out, "cens") <- NULL
-  } else {
-    attr(out, "cens") <- data[out$row, pp$cens]
-  }
-  if (is.null(pp$weights)) {
-    attr(out, "cweights") <-rep(1, length(out$row))
-  } else {
-    attr(out, "cweights") <- pp$weights[out$row]
   }
   out
 }
-
-.setup.pp.data <- function(data, responsename, pp) {
-  
-  attr(data, 'quad') <- pp$data
-  attr(data, 'weights') <- pp$weights
-  attr(data, 'cweights') <- rep(1, nrow(data))
-  attr(data, 'cens') <- NULL#rep(c(TRUE, FALSE), c(nrow(data), nrow(pp$data)))
-  return(data)
-  data$weights <- 1
-  data$ppq <- FALSE
-  pp$data$weights <- pp$weights
-  pp$data$ppq <- TRUE
-  data <- rbind(data, pp$data)
-  
-  # nodes <- pp$nodes
-  # ny <- pp$ny
-  # weights <- pp$weights
-  # threshold <- pp$threshold
-  # r <- pp$r
-  # 
-  # if (is.null(nodes) & is.null(ny))
-  #   stop("Cannot have NULL pp.args$ny and pp.args$nodes.")
-  # if (is.null(threshold) & is.null(r)) 
-  #   stop("Both pp$threshold and pp$r cannot be NULL")
-  # 
-  # if (!is.null(pp$nodes)) { # start stuff with nodes
-  #   
-  #   ## option for integration over nodes added to evgam_0.1.2
-  #   # otherwise integration over pp$id, and assumed constant
-  #   print("Testing pp$nodes")
-  #   
-  #   if (!inherits(nodes, "data.frame")) {
-  #     
-  #     print("Nodes are a list")
-  #     
-  #     # Assume nodes for each variable given, and then use expand.grid
-  #     # to get all combinations
-  #     # Second column of each list element taken as weights, if present
-  #     
-  #     if (!inherits(nodes, "list")) {
-  #       stop('Unrecognized class(pp$nodes)[1] not in c("data.frame", "list")')
-  #     } else {
-  #       nodes <- lapply(nodes, as.matrix)
-  #       for (i in seq_along(nodes)) if (ncol(nodes[[i]]) == 1) nodes[[i]] <- cbind(nodes[[i]], 1)
-  #       wts <- lapply(nodes, function(x) x[,2])
-  #       wts <- Reduce("*", expand.grid(wts))
-  #       nodes <- lapply(nodes, function(x) x[,1])
-  #       nodes <- expand.grid(nodes)
-  #       nd <- nrow(nodes)
-  #       if (is.null(weights)) {
-  #         weights <- 1
-  #       } else {
-  #         if (length(weights) > 1) {
-  #           stop('Cannot have class(pp$nodes)[1] == "list" and length(pp$weights) > 1')
-  #         } else {
-  #           wts <- weights * wts
-  #         }
-  #       }
-  #     }
-  #     
-  #     # Now deal with threshold
-  #     
-  #     if (!is.null(threshold)) {
-  #       if (length(threshold) > 1) {
-  #         stop('Cannot have length(threshold) > 1')
-  #       } else {
-  #         if (inherits(threshold, c("numeric", "integer"))) {
-  #           data <- subset(data, data[,responsename] >= threshold)
-  #           nodes[,responsename] <- threshold
-  #         } else {
-  #           if (inherits(threshold, "character")) {
-  #             if (threshold %in% names(nodes)) {
-  #               names(nodes)[names(nodes) == threshold] <- responsename
-  #             } else {
-  #               if (threshold %in% names(data)) {
-  #                 data <- subset(data, data[,responsename] >= data[,threshold])
-  #               } else {
-  #                 stop(paste(threshold, "not in names(data)"))
-  #               }
-  #               stop(paste(threshold, "not in names(nodes)"))
-  #             }
-  #           } else {
-  #             stop('class(pp$threshold) not in c("numeric", "character")')
-  #           }
-  #         }
-  #       }    
-  #     } else {
-  #       if (!is.null(pp$r)) {
-  #         threshold <- sort(data[,responsename], decreasing=TRUE)[pp$r]
-  #         nodes[,responsename] <- threshold
-  #         data <- subset(data, data[,responsename] >= threshold)
-  #       } else {
-  #         stop('Both pp$r and pp$threshold cannot be NULL') # covered at start
-  #       }
-  #     }
-  #     
-  #     #   class(threshold)[1] == "character") {
-  #     #     if (length(threshold) == 1) {
-  #     #       if (threshold %in% names(nodes)) {
-  #     #         if (threshold %in% names(data)) {
-  #     #           data <- subset(data, data[,responsename] >= data[,threshold])
-  #     #         } else {
-  #     #           stop(paste(threshold, "not in names(data)"))
-  #     #         }
-  #     #       } else {
-  #     #         stop(paste(threshold, "not in names(nodes)"))
-  #     #       }
-  #     #     } else {
-  #     #       stop('class(threshold)[1] == "character" but length(threshold) != 1')
-  #     #     }
-  #     #   } else {
-  #     #     if (class(pp$threshold)[1] %in% c("numeric", "integer")) {
-  #     #       if (length(pp$threshold) == 1) {
-  #     #         nodes[,responsename] <- pp$threshold   
-  #     #       } else {
-  #     #         stop('Cannot have class(nodes)[1] == "list" and length(pp$threshold) > 1')
-  #     #       }
-  #     #     } else {
-  #     #       stop('class(pp$threshold)[1] not in c("numeric", "integer")')
-  #     #     }
-  #     #   }
-  #     # } else {
-  #     #   if (!is.null(pp$r)) {
-  #     #     nodes[,responsename] <- sort(data[,responsename], decreasing=TRUE)[pp$r]
-  #     #   } else {
-  #     #     stop('Both pp$r and pp$threshold cannot be NULL')
-  #     #   }
-  #     # }
-  #     
-  #   } else {
-  #     
-  #     print("Nodes are a data.frame")
-  #     
-  #     # Assumes all nodes given
-  #     
-  #     nd <- nrow(nodes)
-  #     
-  #     # make integration weights
-  #     # (this might become a bit more sophisticated, like ppgam, in future)
-  #     if (is.null(pp$weights)) {
-  #       wts <- rep(1, nrow(nodes))
-  #     } else {
-  #       if (length(pp$weights) == 1 & inherits(pp$weights, "character")) {
-  #         wts <- nodes[,pp$weights]
-  #         nodes[,pp$weights] <- NULL
-  #       } else {
-  #         if (length(pp$weights) == 1 & inherits(pp$weights, c("numeric", "integer"))) {
-  #           wts <- rep(pp$weights, nd)
-  #         } else {
-  #           if (length(pp$weights) > 1 & inherits(pp$weights, c("numeric", "integer"))) {
-  #             if (length(pp$weights) != nd) {
-  #               stop("nrow(pp$nodes) and length(pp$weights) not compatible")
-  #             } else {
-  #               wts <- pp$weights
-  #             }
-  #           }
-  #         }
-  #       }
-  #     }
-  #     
-  #     # Now deal with threshold
-  #     
-  #     if (!is.null(threshold)) {
-  #       if (length(threshold) > 1) {
-  #         stop('Cannot have length(threshold) > 1')
-  #       } else {
-  #         if (inherits(threshold, c("numeric", "integer"))) {
-  #           nodes[,responsename] <- threshold
-  #           data <- subset(data, data[,responsename] >= threshold)
-  #         } else {
-  #           if (inherits(threshold, "character")) {
-  #             if (threshold %in% names(nodes)) {
-  #               names(nodes)[names(nodes) == threshold] <- responsename
-  #             } else {
-  #               if (threshold %in% names(data)) {
-  #                 data <- subset(data, data[,responsename] >= data[,threshold])
-  #               } else {
-  #                 stop(paste(threshold, "not in names(data)"))
-  #               }
-  #               stop(paste(threshold, "not in names(nodes)"))
-  #             }
-  #           } else {
-  #             stop('class(pp$threshold) not in c("numeric", "character")')
-  #           }
-  #         }
-  #       }    
-  #     } else {
-  #       if (!is.null(pp$r)) {
-  #         threshold <- sort(data[,responsename], decreasing=TRUE)[pp$r]
-  #         nodes[,responsename] <- threshold
-  #         data <- subset(data, data[,responsename] >= threshold)
-  #       } else {
-  #         stop('Both pp$r and pp$threshold cannot be NULL') # covered at start
-  #       }
-  #     }
-  #     
-  #     # if (!(responsename %in% names(nodes))) {
-  #     #   if (class(pp$threshold)[1] %in% c("numeric", "integer")) {
-  #     #     if (length(pp$threshold) == 1) {
-  #     #       nodes[,responsename] <- pp$threshold   
-  #     #     } else {
-  #     #       if (length(pp$threshold) != nd) {
-  #     #         stop('Need length(pp$threshold) in c(1, nrow(nodes)) for class(nodes)[1] == "data.frame".')
-  #     #       } else {
-  #     #         nodes[,responsename] <- pp$threshold   
-  #     #       }
-  #     #     }
-  #     #   } else {
-  #     #     if (!is.null(pp$r)) {
-  #     #       nodes[,responsename] <- sort(data[,responsename], decreasing=TRUE)[pp$r]
-  #     #       data <- subset(data, data[,responsename] >= nodes[1, responsename])
-  #     #     } else {
-  #     #       stop('Neither pp$r nor pp$threshold acceptably provided')
-  #     #     }
-  #     #   }
-  #     # }
-  #     
-  #   }
-  #   
-  #   out <- data
-  #   attr(out, "weights") <- wts
-  #   attr(out, "quad") <- nodes
-  #   if (is.null(pp$cens)) {
-  #     attr(out, "cens") <- NULL
-  #   } else {
-  #     attr(out, "cens") <- data[out$row, pp$cens]
-  #   }
-  #   # if (is.null(pp$weights)) {
-  #   attr(out, "cweights") <- rep(1, nrow(out))
-  #   # } else {
-  #   # #   attr(out, "cweights") <- pp$weights[out$row]
-  #   #   attr(out, "cweights") <- rep(pp$weights, nrow(out))
-  #   # }
-  #   if (!is.null(pp$exi)) attr(out, "exi") <- data[,pp$exi]
-  #   print(attributes(out)[c("weights", "quad", "cens")])
-  #   
-  #   # last line of stuff with nodes
-  #   
-  # } else {
-  #   ## simple constant partial point process
-  #   data$row <- seq_len(nrow(data))
-  #   ds <- split(data, data[,pp$id])
-  #   wts <- pp$ny
-  #   if (length(wts) == 1) {
-  #     wts <- rep(wts, length(ds))
-  #   } else {
-  #     wts <- wts[match(names(ds), names(wts))]
-  #   }
-  #   nobs2 <- sapply(ds, nrow)
-  #   ## start of original r-largest order statistic stuff
-  #   data.quad <- do.call(rbind, lapply(ds, function(x) x[1,]))
-  #   if (!is.null(pp$r)) {
-  #     enough <- nobs2 > pp$r
-  #     if (any(!enough)) warning(paste(sum(!enough), "unique pp.args$id removed for having fewer than r observations."))
-  #     ds <- ds[enough]
-  #     wts <- wts[enough]
-  #     nid <- sum(enough)
-  #     data.quad <- data.quad[enough,]
-  #     if (pp$r != -1) {
-  #       du <- sapply(ds, function(x) x[order(x[,responsename], decreasing=TRUE)[pp$r], responsename])
-  #     } else {
-  #       du <- sapply(ds, function(x) min(x[, responsename]))
-  #     }
-  #     ## end of ...
-  #   } else {
-  #     ## start of specified threshold stuff
-  #     du <- sapply(ds, function(x) x[1, pp$threshold])
-  #     nid <- length(du)
-  #     ## end of specified threshold stuff
-  #   }
-  #   data.quad[,responsename] <- du
-  #   ds <- lapply(seq_len(nid), function(i) subset(ds[[i]], ds[[i]][,responsename] >= du[i]))
-  #   out <- dfbind(ds)
-  #   attr(out, "weights") <- wts
-  #   attr(out, "quad") <- data.quad
-  #   if (is.null(pp$cens)) {
-  #     attr(out, "cens") <- NULL
-  #   } else {
-  #     attr(out, "cens") <- data[out$row, pp$cens]
-  #   }
-  #   if (is.null(pp$weights)) {
-  #     attr(out, "cweights") <-rep(1, length(out$row))
-  #   } else {
-  #     attr(out, "cweights") <- pp$weights[out$row]
-  #   }
-  # }
-  out
-}
-
 
 ############ .sandwich.C ##########################
 
@@ -971,8 +1322,8 @@
       }
       if (npar %in% 3:4) {
         if (family == "bgev") {
-          inits <- quantile(likdata0$y, .5)
-          inits <- c(inits, log(diff(quantile(likdata0$y, c(.25, .75)))))
+          inits <- quantile(likdata0$y, .5, na.rm = TRUE)
+          inits <- c(inits, log(diff(quantile(likdata0$y, c(.25, .75), na.rm = TRUE))))
           inits <- c(inits, -.5)
         } else {
           inits <- c(sqrt(6) * sd(likdata0$y) / pi, .05)
@@ -1258,37 +1609,37 @@
   attr(rho0, "beta") <- beta
   
   if (outer == "fixed") {
-
+    
     fit.reml <- .reml0_fixed(rho0, likfns=likfns, likdata=likdata, Sdata=Sdata)
     fit.reml$invHessian <- diag(0 * rho0)
     
   } else {
-  
-  if (is.null(likfns$d340) & outer != "fd")
-    outer <- "fd"
-  
-  if (outer == "newton") {
-    fit.reml <- .newton_step_inner(rho0, .reml0, .search.reml, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
-  } else {
-    if (outer == "fd") {
-      fit.reml <- .BFGS(rho0, .reml0, .reml1.fd, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
+    
+    if (is.null(likfns$d340) & outer != "fd")
+      outer <- "fd"
+    
+    if (outer == "newton") {
+      fit.reml <- .newton_step_inner(rho0, .reml0, .search.reml, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
     } else {
-      fit.reml <- .BFGS(rho0, .reml0, .reml1, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
-    }
-    rho1 <- fit.reml$par
-    attr(rho1, "beta") <- fit.reml$beta
-    if (correctV) {
-      fit.reml$Hessian <- try(.reml12(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata)[[2]], silent=TRUE)
-      if (inherits(fit.reml$Hessian, "try-error")) 
-        fit.reml$Hessian <- try(.reml2.fd(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata), silent=TRUE)
-      if (inherits(fit.reml$Hessian, "try-error")) 
-        fit.reml$Hessian <- .reml2.fdfd(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata)
-    }
-  }  
-  
-  if (correctV)
-    fit.reml$invHessian <- .solve_evgam(fit.reml$Hessian)
-  
+      if (outer == "fd") {
+        fit.reml <- .BFGS(rho0, .reml0, .reml1.fd, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
+      } else {
+        fit.reml <- .BFGS(rho0, .reml0, .reml1, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
+      }
+      rho1 <- fit.reml$par
+      attr(rho1, "beta") <- fit.reml$beta
+      if (correctV) {
+        fit.reml$Hessian <- try(.reml12(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata)[[2]], silent=TRUE)
+        if (inherits(fit.reml$Hessian, "try-error")) 
+          fit.reml$Hessian <- try(.reml2.fd(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata), silent=TRUE)
+        if (inherits(fit.reml$Hessian, "try-error")) 
+          fit.reml$Hessian <- .reml2.fdfd(rho1, likfns=likfns, likdata=likdata, Sdata=Sdata)
+      }
+    }  
+    
+    if (correctV)
+      fit.reml$invHessian <- .solve_evgam(fit.reml$Hessian)
+    
   }
   
   fit.reml$trace <- trace
