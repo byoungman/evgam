@@ -2,6 +2,8 @@
 
 ### Changes:
 
+* Added option `sparse = TRUE` for `evgam(..., family = "gev2")` which coerces matrices to sparse matrices through package `Matrix` where possible.
+
 * Added `df2matdf()` for turning a vector response to a matrix response if explanatory variable combinations are repeated.
 
 * Added functionality to fit extended generalised Pareto distribution through `evgam(..., family = "egpd")`. See Naveau et al. (Water Resour. Res., 2016, (https://doi.org/10.1002/2015WR018552)) and `family.evgam`.
