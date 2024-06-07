@@ -7,16 +7,12 @@ sp <- exp(pars)
 likdata$S <- .makeS(Sdata, sp)
 fitbeta <- .newton_step(beta, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
 if (!fitbeta$gradconv) {
-  it0 <- likdata$control$inner$itlim
-  likdata$control$inner$itlim <- 10
-  fitbeta <- .newton_step(fitbeta$par, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner, newton=FALSE, alpha0=.05)
-  likdata$control$inner$itlim <- it0
+  if (!likdata$sparse)
+    fitbeta <- nlminb(fitbeta$par, .nllh.pen, .grad.pen, .hess.pen, likdata = likdata, likfns = likfns)
   fitbeta <- .newton_step(fitbeta$par, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
 }
 if (inherits(fitbeta, "try-error")) 
   return(1e20)
-# if (!fitbeta$gradconv)
-#   return(1e20)
 logdetSdata <- .logdetS(Sdata, pars)
 logdetHdata <- .d0logdetH(fitbeta)
 out <- fitbeta$objective + as.numeric(fitbeta$convergence != 0) * 1e20
@@ -76,7 +72,11 @@ if (is.null(H))
 d1beta <- .d1beta(pars, beta, spSl, H)
 dS <- .logdetS(Sdata, pars, deriv=1)
 dH <- .d1logdetH(d1beta, likdata, likfns, spSl, H)
-dbSb <- sapply(spSl, function(x) crossprod(beta, x %*% beta))
+if (!likdata$sparse) {
+  dbSb <- sapply(spSl, function(x) base::crossprod(beta, x %*% beta)[1, 1])
+} else {
+  dbSb <- sapply(spSl, function(x) Matrix::crossprod(beta, x %*% beta)[1, 1])
+}
 d1 <- .5 * dbSb
 d1 <- d1 - .5 * dS$d1
 d1 <- d1 + .5 * dH$d1
@@ -95,6 +95,22 @@ for (i in seq_along(pars)) {
   f1[i] <- .reml0(parsi, likfns, likdata, Sdata, beta=beta)
 }
 (f1 - f0) / eps
+}
+
+.reml1.fd <- function(pars, likfns, likdata, Sdata, H=NULL, beta=NULL, kept=NULL) {
+  beta <- attr(pars, "beta")
+  tol <- .Machine$double.eps^(1/4)
+  eps <- pmax(tol * abs(pars), tol)
+  fl <- fh <- 0 * pars
+  for (i in seq_along(pars)) {
+    parsi <- replace(pars, i, pars[i] + eps[i])
+    fh[i] <- .reml0(parsi, likfns, likdata, Sdata, beta = beta)
+  }
+  for (i in seq_along(pars)) {
+    parsi <- replace(pars, i, pars[i] - eps[i])
+    fl[i] <- .reml0(parsi, likfns, likdata, Sdata, beta = beta)
+  }
+  .5 * (fh - fl) / eps
 }
 
 .reml12 <- function(pars, likfns, likdata, Sdata, H=NULL, beta=NULL) {

@@ -9,25 +9,25 @@ Y <- crossprod(V, matrix(rnorm(n * r), r))
 Y + as.vector(mu)
 }
 
-.precondition <- function(H) {
-d <- 1/sqrt(abs(pmax(diag(H), 1e-8)))
-out <- d * t(t(H) * d)
-attr(out, "d") <- d
-out
-}
-
-.perturb <- function(A) {
-d <- attr(A, "d")
-eps <- 1e-16
-cholA <- suppressWarnings(chol(A, pivot=TRUE))
-while(attr(cholA, "rank") < nrow(A)) {
-diag(A) <- diag(A) + eps
-cholA <- suppressWarnings(chol(A, pivot=TRUE))
-eps <- 1e2 * eps
-}
-attr(A, "chol") <- cholA
-return(A)
-}
+# .precondition <- function(H) {
+# d <- 1/sqrt(abs(pmax(diag(H), 1e-8)))
+# out <- d * t(t(H) * d)
+# attr(out, "d") <- d
+# out
+# }
+# 
+# .perturb <- function(A) {
+# d <- attr(A, "d")
+# eps <- 1e-16
+# cholA <- suppressWarnings(chol(A, pivot=TRUE))
+# while(attr(cholA, "rank") < nrow(A)) {
+# diag(A) <- diag(A) + eps
+# cholA <- suppressWarnings(chol(A, pivot=TRUE))
+# eps <- 1e2 * eps
+# }
+# attr(A, "chol") <- cholA
+# return(A)
+# }
 
 .solve_evgam <- function(H) {
 H2 <- .precondition(H)
@@ -38,13 +38,13 @@ R <- attr(H2, "chol")
 crossprod(backsolve(R, D, transpose=TRUE))
 }
 
-.precond_solve <- function(L, x) {
-d <- attr(L, "d")
-x <- d * as.matrix(x)
-piv <- ipiv <- attr(L, "pivot")
-ipiv[piv] <- seq_len(nrow(L))
-d * backsolve(L, backsolve(L, x[piv, , drop=FALSE], upper.tri=TRUE, transpose=TRUE))[ipiv, , drop=FALSE]
-}
+# .precond_solve <- function(L, x) {
+# d <- attr(L, "d")
+# x <- d * as.matrix(x)
+# piv <- ipiv <- attr(L, "pivot")
+# ipiv[piv] <- seq_len(nrow(L))
+# d * backsolve(L, backsolve(L, x[piv, , drop=FALSE], upper.tri=TRUE, transpose=TRUE))[ipiv, , drop=FALSE]
+# }
 
 .fdHess <- function(pars, gr, ..., eps=1e-4) {
 np <- length(pars)
@@ -75,46 +75,46 @@ out
 Reduce("+", Map("*", attr(lst, "Sl"), sp))
 }
 
-.joinSmooth <- function(lst) {
-nms <- c("S", "first.para", "last.para", "rank", "null.space.dim")
-nbi <- sapply(lst, function(x) x$nb)
-starts <- cumsum(c(0, nbi))
-if (length(lst) == 1) {
-  lst <- lst[[1]]$smooth
-} else {
-  lst <- lapply(lst, function(x) x$smooth)
-  smooths <- sapply(lst, length) > 0
-  for (i in which(smooths)) {
-    for (j in seq_along(lst[[i]])) {
-      lst[[i]][[j]]$first.para <- lst[[i]][[j]]$first.para + starts[i]
-      lst[[i]][[j]]$last.para <- lst[[i]][[j]]$last.para + starts[i]
-    }
-  }
-lst <- unlist(lst, recursive=FALSE)
-}
-out <- lapply(lst, function(x) subset(x, names(x) %in% nms))
-lst2 <- list()
-nb <- tail(starts, 1)
-for (i in seq_along(lst)) {
-  temp <- list()
-  ind <- lst[[i]]$first.para:lst[[i]]$last.para
-  for (j in seq_along(lst[[i]]$S)) {
-    temp2 <- matrix(0, nb, nb)
-      temp2[ind, ind] <- lst[[i]]$S[[j]]
+# .joinSmooth <- function(lst) {
+# nms <- c("S", "first.para", "last.para", "rank", "null.space.dim")
+# nbi <- sapply(lst, function(x) x$nb)
+# starts <- cumsum(c(0, nbi))
+# if (length(lst) == 1) {
+#   lst <- lst[[1]]$smooth
+# } else {
+#   lst <- lapply(lst, function(x) x$smooth)
+#   smooths <- sapply(lst, length) > 0
+#   for (i in which(smooths)) {
+#     for (j in seq_along(lst[[i]])) {
+#       lst[[i]][[j]]$first.para <- lst[[i]][[j]]$first.para + starts[i]
+#       lst[[i]][[j]]$last.para <- lst[[i]][[j]]$last.para + starts[i]
 #     }
-    temp[[j]] <- temp2
-  }
-  lst2[[i]] <- temp
-}
-lst2 <- unlist(lst2, recursive=FALSE)
-for (i in seq_along(out)) {
-  if (length(out[[i]]$null.space.dim) == 0) 
-    out[[i]]$null.space.dim <- 0
-}
-attr(out, "Sl") <- lst2
-attr(out, "nb") <- nb
-out
-}
+#   }
+# lst <- unlist(lst, recursive=FALSE)
+# }
+# out <- lapply(lst, function(x) subset(x, names(x) %in% nms))
+# lst2 <- list()
+# nb <- tail(starts, 1)
+# for (i in seq_along(lst)) {
+#   temp <- list()
+#   ind <- lst[[i]]$first.para:lst[[i]]$last.para
+#   for (j in seq_along(lst[[i]]$S)) {
+#     temp2 <- matrix(0, nb, nb)
+#       temp2[ind, ind] <- lst[[i]]$S[[j]]
+# #     }
+#     temp[[j]] <- temp2
+#   }
+#   lst2[[i]] <- temp
+# }
+# lst2 <- unlist(lst2, recursive=FALSE)
+# for (i in seq_along(out)) {
+#   if (length(out[[i]]$null.space.dim) == 0) 
+#     out[[i]]$null.space.dim <- 0
+# }
+# attr(out, "Sl") <- lst2
+# attr(out, "nb") <- nb
+# out
+# }
 
 .grad.R <- function(pars, Sdata, R, eps, likfns, likdata, H0=NULL) {
 S <- .makeS(Sdata, exp(pars))

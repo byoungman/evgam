@@ -19,6 +19,32 @@ A matrix
 }
 \description{
 Moore-Penrose pseudo-inverse of a matrix
+
+#' Solve a sparse system of linear equations
+#'
+#' @param a a sparse square matrix
+#' @param b a dense vector or matrix
+#' @param lower.tri has just the lower triangle of a square sparse matrix been provided? Defaults to \code{FALSE}
+#' 
+#' @details
+#' 
+#' This function is merely a wrapper for Armadillo's spsolve function with its default settings.
+#'
+#' @return A dense vector or matrix of the same form as b
+#' 
+#' @references
+#'
+#' http://arma.sourceforge.net/docs.html#spsolve
+#'
+#' @export
+#' 
+spsolve <- function(a, b, lower.tri = FALSE) {
+  if (!lower.tri) {
+    armaspsolve(a, as.matrix(b))
+  } else {
+    armaspLsolve(a, as.matrix(b))
+  }
+}
 }
 \details{
 This function is merely a wrapper for Armadillo's pinv function with its

@@ -84,47 +84,47 @@ list(d1=d1H, GH=GH)
 
 }
 
-.d1H0_diag <- function(dbeta, likdata, likfns, H) {
-
-X <- likdata$X
-idpars <- likdata$idpars
-CH <- likdata$CH
-
-nb <- nrow(dbeta$d1)
-nsp <- ncol(dbeta$d1)
-nX <- length(X)
-n <- nrow(X[[1]])
-
-ind <- .indices(nX)
-
-beta <- likdata$compmode + likdata$CH %*% (dbeta$d0 - likdata$compmode)
-
-GH <- likdata$k * likfns$d340(beta, likdata)
-
-dbeta$d1 <- CH %*% dbeta$d1
-
-d1eta <- lapply(seq_len(nX), function(i) X[[i]] %*% dbeta$d1[idpars == i, , drop=FALSE])
-eH <- eigen(H$H)
-V <- CH %*% eH$vectors
-XV <- lapply(seq_len(nX), function(i) X[[i]] %*% (H$dH[idpars == i] * V[idpars == i, , drop=FALSE]))
-
-d1H <- matrix(0, nb, nsp)
-
-for (i in 1:nX) {
-  for (j in 1:nX) {
-    v <- matrix(0, n, nsp)
-    for (k in 1:nX)
-      v <- v + GH[,ind$i3[i, j, k]] * d1eta[[k]]
-    for (l in 1:nsp)
-      d1H[, l] <- d1H[, l] + colSums(XV[[i]] * XV[[j]] * v[,l])
-  }
-}
-
-trd1H <- colSums(d1H / eH$values)
-
-list(d1 = trd1H)
-
-}
+# .d1H0_diag <- function(dbeta, likdata, likfns, H) {
+# 
+# X <- likdata$X
+# idpars <- likdata$idpars
+# CH <- likdata$CH
+# 
+# nb <- nrow(dbeta$d1)
+# nsp <- ncol(dbeta$d1)
+# nX <- length(X)
+# n <- nrow(X[[1]])
+# 
+# ind <- .indices(nX)
+# 
+# beta <- likdata$compmode + likdata$CH %*% (dbeta$d0 - likdata$compmode)
+# 
+# GH <- likdata$k * likfns$d340(beta, likdata)
+# 
+# dbeta$d1 <- CH %*% dbeta$d1
+# 
+# d1eta <- lapply(seq_len(nX), function(i) X[[i]] %*% dbeta$d1[idpars == i, , drop=FALSE])
+# eH <- eigen(H$H)
+# V <- CH %*% eH$vectors
+# XV <- lapply(seq_len(nX), function(i) X[[i]] %*% (H$dH[idpars == i] * V[idpars == i, , drop=FALSE]))
+# 
+# d1H <- matrix(0, nb, nsp)
+# 
+# for (i in 1:nX) {
+#   for (j in 1:nX) {
+#     v <- matrix(0, n, nsp)
+#     for (k in 1:nX)
+#       v <- v + GH[,ind$i3[i, j, k]] * d1eta[[k]]
+#     for (l in 1:nsp)
+#       d1H[, l] <- d1H[, l] + colSums(XV[[i]] * XV[[j]] * v[,l])
+#   }
+# }
+# 
+# trd1H <- colSums(d1H / eH$values)
+# 
+# list(d1 = trd1H)
+# 
+# }
 
 .d2H0_diag <- function(dbeta, likdata, GH, H) {
 
@@ -175,15 +175,15 @@ list(d2=trd2H)
 
 }
 
-.d1beta <- function(lsp, beta, spSl, H) {
-out <- list(d0 = beta)
-# spSl <- Map("*", attr(Sdata, "Sl"), exp(lsp))
-# beta <- likdata$compmode + likdata$CH %*% (beta - likdata$compmode)
-spSlb <- sapply(spSl, function(x) x %*% beta)
-out$d1 <- -.precond_solve(H$cH, spSlb)
-out$spSlb <- spSlb
-out
-}
+# .d1beta <- function(lsp, beta, spSl, H) {
+# out <- list(d0 = beta)
+# # spSl <- Map("*", attr(Sdata, "Sl"), exp(lsp))
+# # beta <- likdata$compmode + likdata$CH %*% (beta - likdata$compmode)
+# spSlb <- sapply(spSl, function(x) x %*% beta)
+# out$d1 <- -.precond_solve(H$cH, spSlb)
+# out$spSlb <- spSlb
+# out
+# }
 
 .d2beta <- function(dbeta, gradH, spSl, H) {
 nsp <- ncol(dbeta$d1)
@@ -206,18 +206,18 @@ dbeta$d2 <- d2beta
 dbeta
 }
 
-.d0logdetH <- function(x) {
-if (is.null(x$cholHessian)) {
-  out <- as.vector(determinant(x$Hessian)[[1]])
-} else {
-  out <- 2 * sum(log(diag(x$cholHessian)))
-  out <- out - 2 * sum(log(attr(x$cholHessian, "d")))
-}
-list(d0 = out) 
-}
-
-.d1logdetH <- function(dbeta, likdata, likfns, spSl, H) {
-d1 <- .d1H0_diag(dbeta, likdata, likfns, H)$d1
-d1 <- d1 + sapply(spSl, function(x) sum(diag(.precond_solve(H$cH, x))))
-list(d1=d1, dbeta=dbeta)
-}
+# .d0logdetH <- function(x) {
+# if (is.null(x$cholHessian)) {
+#   out <- as.vector(determinant(x$Hessian)[[1]])
+# } else {
+#   out <- 2 * sum(log(diag(x$cholHessian)))
+#   out <- out - 2 * sum(log(attr(x$cholHessian, "d")))
+# }
+# list(d0 = out) 
+# }
+# 
+# .d1logdetH <- function(dbeta, likdata, likfns, spSl, H) {
+# d1 <- .d1H0_diag(dbeta, likdata, likfns, H)$d1
+# d1 <- d1 + sapply(spSl, function(x) sum(diag(.precond_solve(H$cH, x))))
+# list(d1=d1, dbeta=dbeta)
+# }

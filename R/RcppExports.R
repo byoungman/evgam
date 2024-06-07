@@ -148,6 +148,18 @@ gev2d34 <- function(pars, X1, X2, X3, ymat, dupid, dcate, nhere) {
     .Call(`_evgam_gev2d34`, pars, X1, X2, X3, ymat, dupid, dcate, nhere)
 }
 
+gev2spd0 <- function(pars, X1, X2, X3, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gev2spd0`, pars, X1, X2, X3, ymat, dupid, dcate, nhere)
+}
+
+gev2spd12 <- function(pars, X1, X2, X3, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gev2spd12`, pars, X1, X2, X3, ymat, dupid, dcate, nhere)
+}
+
+gev2spd34 <- function(pars, X1, X2, X3, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gev2spd34`, pars, X1, X2, X3, ymat, dupid, dcate, nhere)
+}
+
 gevd0 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
     .Call(`_evgam_gevd0`, pars, X1, X2, X3, yvec, dupid, dcate)
 }
@@ -266,6 +278,30 @@ gpdcd34 <- function(pars, X1, X2, ymat, dupid, dcate) {
 
 .gH6 <- function(gh, X1, X2, X3, X4, X5, X6, dupid, dcate, sand, deriv) {
     .Call(`_evgam_gH6`, gh, X1, X2, X3, X4, X5, X6, dupid, dcate, sand, deriv)
+}
+
+.gH1sp <- function(gh, X1, dupid, dcate, sand, deriv) {
+    .Call(`_evgam_gHsp1`, gh, X1, dupid, dcate, sand, deriv)
+}
+
+.gHsp2 <- function(gh, X1, X2, dupid, dcate, sand, deriv) {
+    .Call(`_evgam_gHsp2`, gh, X1, X2, dupid, dcate, sand, deriv)
+}
+
+.gHsp3 <- function(gh, X1, X2, X3, dupid, dcate, sand, deriv) {
+    .Call(`_evgam_gHsp3`, gh, X1, X2, X3, dupid, dcate, sand, deriv)
+}
+
+.gHsp4 <- function(gh, X1, X2, X3, X4, dupid, dcate, sand, deriv) {
+    .Call(`_evgam_gHsp4`, gh, X1, X2, X3, X4, dupid, dcate, sand, deriv)
+}
+
+.gHsp5 <- function(gh, X1, X2, X3, X4, X5, dupid, dcate, sand, deriv) {
+    .Call(`_evgam_gHsp5`, gh, X1, X2, X3, X4, X5, dupid, dcate, sand, deriv)
+}
+
+.gHsp6 <- function(gh, X1, X2, X3, X4, X5, X6, dupid, dcate, sand, deriv) {
+    .Call(`_evgam_gHsp6`, gh, X1, X2, X3, X4, X5, X6, dupid, dcate, sand, deriv)
 }
 
 pp1d0 <- function(pars, X1, X2, X3, yvec, wvec) {

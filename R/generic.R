@@ -29,6 +29,7 @@
 #' @param custom.fns a list of functions for a custom family; see Details
 #' @param sp a vector of fixed smoothing parameters
 #' @param gamma a total penalty adjustment, such that higher values (>1) give smoother overall fits; defaults to 1 (no adjustment)
+#' @param sparse logical: should matrices be coerced to be recognised as sparse? Default to \code{FALSE}
 #' 
 #' @details
 #' 
@@ -110,8 +111,8 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
                   knots=NULL, maxdata=1e20, maxspline=1e20, compact=FALSE, gpd.args = list(),
                   ald.args=list(), exi.args=list(), pp.args=list(), bgev.args = list(),
                   sandwich.args=list(), egpd.args=list(), custom.fns=list(), 
-                  aggregated.args = list(), sp = NULL, gamma = 1) {
-  
+                  aggregated.args = list(), sp = NULL, gamma = 1, sparse = FALSE) {
+
   ## setup family
   family.info <- .setup.family(family, gpd.args, pp.args, egpd.args, formula, custom.fns, length(aggregated.args))
   family <- family.info$family
@@ -123,7 +124,7 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
   ## setup mgcv objects and data
   temp.data <- .setup.data(data, response.name, formula, family, family.info$nms, 
                            removeData, gpd.args, exi.args, ald.args, pp.args, knots, maxdata, 
-                           maxspline, compact, sandwich.args, tolower(outer), trace, gamma, bgev.args)
+                           maxspline, compact, sandwich.args, tolower(outer), trace, gamma, bgev.args, sparse)
   data <- temp.data$data
   
   ## aggregation
@@ -151,7 +152,7 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
   if (smooths) {
     
     ## initialise outer iteration
-    S.data <- .joinSmooth(temp.data$gams)
+    S.data <- .joinSmooth(temp.data$gams, sparse)
     nsp <- length(attr(S.data, "Sl"))
     if (is.null(rho0)) {
       diagSl <- sapply(attr(S.data, "Sl"), diag)
@@ -659,6 +660,32 @@ colplot <- function(x, y, z, n = 20, z.lim = NULL, breaks = NULL, palette = heat
 pinv <- function(x, tol=-1) {
   armapinv(x, tol)
 }
+
+#' #' Solve a sparse system of linear equations
+#' #'
+#' #' @param a a sparse square matrix
+#' #' @param b a dense vector or matrix
+#' #' @param lower.tri has just the lower triangle of a square sparse matrix been provided? Defaults to \code{FALSE}
+#' #' 
+#' #' @details
+#' #' 
+#' #' This function is merely a wrapper for Armadillo's spsolve function with its default settings.
+#' #'
+#' #' @return A dense vector or matrix of the same form as b
+#' #' 
+#' #' @references
+#' #'
+#' #' http://arma.sourceforge.net/docs.html#spsolve
+#' #'
+#' #' @export
+#' #' 
+#' spsolve <- function(a, b, lower.tri = FALSE) {
+#'   if (!lower.tri) {
+#'     armaspsolve(a, as.matrix(b))
+#'   } else {
+#'     armaspLsolve(a, as.matrix(b))
+#'   }
+#' }
 
 #' @rdname pinv
 #'

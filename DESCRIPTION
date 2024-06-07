@@ -2,7 +2,7 @@ Package: evgam
 Type: Package
 Title: Generalised Additive Extreme Value Models
 Version: 1.0.1
-Date: 2024-05-10
+Date: 2024-06-07
 Author: Ben Youngman
 Maintainer: Ben Youngman <b.youngman@exeter.ac.uk>
 Description: Methods for fitting various extreme value distributions with parameters of 
@@ -12,7 +12,7 @@ Description: Methods for fitting various extreme value distributions with parame
       Safken, B. (2016) <doi:10.1080/01621459.2016.1180986>. Details of how evgam works
       and various examples are given in Youngman, B.D. (2022) <doi:10.18637/jss.v103.i03>.
 License: GPL-3
-Imports: Rcpp (>= 1.0.12), mgcv
+Imports: Rcpp (>= 1.0.12), mgcv, Matrix
 LinkingTo: Rcpp, RcppArmadillo
 Depends: R (>= 3.5.0)
 RoxygenNote: 7.3.1

@@ -135,7 +135,9 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
   
   ## X creation starts
   
-  X <- .X.evgam(object, newdata)
+  if (!got.newdata)
+    newdata <- NULL
+  X <- .X.evgam(object, newdata, object$sparse)
   nX <- length(X)
   nms <- names(object)[seq_len(nX)]
   

@@ -30,7 +30,8 @@ evgam(
   custom.fns = list(),
   aggregated.args = list(),
   sp = NULL,
-  gamma = 1
+  gamma = 1,
+  sparse = FALSE
 )
 }
 \arguments{
@@ -81,6 +82,8 @@ evgam(
 \item{sp}{a vector of fixed smoothing parameters}
 
 \item{gamma}{a total penalty adjustment, such that higher values (>1) give smoother overall fits; defaults to 1 (no adjustment)}
+
+\item{sparse}{logical: should matrices be coerced to be recognised as sparse? Default to \code{FALSE}}
 }
 \value{
 An object of class \code{evgam}

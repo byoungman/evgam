@@ -330,9 +330,9 @@
 
 ############ .X.evgam ##########################
 
-.X.evgam <- function(object, newdata) {
+.X.evgam <- function(object, newdata = NULL, sparse = FALSE) {
   object <- object[sapply(object, inherits, what="gamlist")]
-  if (missing(newdata)) {
+  if (is.null(newdata)) {
     X <- lapply(object, function(x) x$X)
   } else {
     for (i in seq_along(object)) 
@@ -341,6 +341,8 @@
   }
   for (i in seq_along(X))
     colnames(X[[i]]) <- object[[i]]$term.names
+  if (sparse) 
+    X <- lapply(X, as, 'dgCMatrix')
   names(X) <- names(object)
   X
 }
@@ -349,7 +351,7 @@
 
 .setup.data <- function(data, responsename, formula, family, nms, removeData, 
                         gpdargs, exiargs, aldargs, pp, knots, maxdata, maxspline, compact, sargs, 
-                        outer, trace, gamma, bgevargs) {
+                        outer, trace, gamma, bgevargs, sparse) {
   
   ## data
   # for (i in seq_along(responsename)) {
@@ -501,12 +503,12 @@
   
   if (!compact) {
     if (nrow(data) > maxspline) {
-      lik.data$X <- .X.evgam(gams, data)
+      lik.data$X <- .X.evgam(gams, data, sparse)
     } else {
-      lik.data$X <- .X.evgam(gams)
+      lik.data$X <- .X.evgam(gams, NULL, sparse)
     }
     if (family %in% c("pp", "ppexi")) {
-      ppX <- .X.evgam(gams, attr(data, "quad"))
+      ppX <- .X.evgam(gams, attr(data, "quad"), sparse)
       lik.data$X <- lapply(seq_along(ppX), function(i) rbind(ppX[[i]], lik.data$X[[i]]))
     }
     lik.data$dupid <- 0
@@ -514,7 +516,7 @@
   } else {
     if (family %in% c("pp", "ppexi"))
       stop("Option compact = TRUE not currently possible for pp model.")
-    lik.data$X <- .X.evgam(gams, data[unq.id,])#lapply(gams, .X.evgam, newdata=data[unq.id,])
+    lik.data$X <- .X.evgam(gams, data[unq.id,], sparse)#lapply(gams, .X.evgam, newdata=data[unq.id,])
     lik.data$dupid <- dup.id - 1
     lik.data$duplicate <- 1
   }
@@ -556,6 +558,7 @@
     sargs$force <- FALSE
   lik.data$force <- sargs$force
   lik.data$npar <- attr(formula, "npar")
+  lik.data$sparse <- sparse
   list(lik.data=lik.data, gotsmooth=gotsmooth, data=data, gams=gams, sandwich=lik.data$adjust > 0)
 }
 
@@ -927,6 +930,7 @@
 .setup.inner.inits <- function(inits, likdata, likfns, npar, family) {
   
   likdata0 <- likdata
+  likdata0$sparse <- FALSE
   likdata0$X <- lapply(seq_along(likdata$X), function(i) matrix(1, nrow=nrow(likdata$X[[i]]), ncol=1))
   # likdata0$pp$X <- lapply(seq_along(likdata$pp$X), function(x) matrix(1, nrow=nrow(likdata$pp$X[[x]]), ncol=1))
   if (!is.null(likdata$agg)) 
@@ -1314,50 +1318,63 @@
 
 ############ .VpVc ##########################
 
-.VpVc <- function(fitreml, likfns, likdata, Sdata, correctV, sandwich, smooths, trace) {
-  lsp <- fitreml$par
-  H0 <- .gH.nopen(fitreml$beta, likdata, likfns)[[2]]
-  if (smooths) {
-    sp <- exp(lsp)
-    H <- H0 + likdata$S
-  } else {
-    H <- H0
-  }
-  cholH <- try(chol(H), silent=TRUE)
-  if (inherits(cholH, "try-error") & trace >= 0)
-    message("Final Hessian of negative penalized log-likelihood not numerically positive definite.")
-  Vc <- Vp <- pinv(H)
-  if (smooths) {
-    if (correctV) {
-      cholVp <- try(chol(Vp), silent=TRUE)
-      if (inherits(cholVp, "try-error")) {
-        cholVp <- attr(.perturb(Vp), "chol")
-      }
-      attr(lsp, "beta") <- fitreml$beta
-      spSl <- Map("*", attr(Sdata, "Sl"), exp(lsp))
-      dbeta <- .d1beta(lsp, fitreml$beta, spSl, .Hdata(H))$d1
-      Vrho <- fitreml$invHessian
-      Vbetarho <- tcrossprod(dbeta %*% Vrho, dbeta)
-      # eps <- 1e-4
-      # R0 <- .grad.R(fitreml$par, Sdata=Sdata, R=0, eps=1, likfns=likfns, likdata=likdata, H0=H0)
-      # dR <- lapply(seq_along(sp), function(i) grad.R(replace(fitreml$par, i, fitreml$par[i] + eps), Sdata=Sdata, R=R0, eps=eps, likfns=likfns, likdata=likdata, H0=H0))
-      VR <- matrix(0, nrow=likdata$nb, ncol=likdata$nb)
-      # for (k in seq_along(sp)) for (l in seq_along(sp)) VR <- VR + crossprod(dR[[k]] * Vrho[k, l], dR[[l]])
-      # VR <- .5 * (VR + t(VR))
-      Vc <- .perturb(Vp + Vbetarho + VR)
-    } else {
-      Vrho <- 0
-    }
-  } else {
-    Vrho <- 0
-  }
-  list(Vp=Vp, Vc=Vc, Vlsp=Vrho, H0=H0, H=H)
-}
+# .VpVc <- function(fitreml, likfns, likdata, Sdata, correctV, sandwich, smooths, trace) {
+#   lsp <- fitreml$par
+#   H0 <- .gH.nopen(fitreml$beta, likdata, likfns)[[2]]
+#   if (smooths) {
+#     sp <- exp(lsp)
+#     H <- H0 + likdata$S
+#   } else {
+#     H <- H0
+#   }
+#   cholH <- try(chol(H), silent=TRUE)
+#   if (inherits(cholH, "try-error") & trace >= 0)
+#     message("Final Hessian of negative penalized log-likelihood not numerically positive definite.")
+#   if (!likdata$sparse) {
+#     Vc <- Vp <- pinv(H)
+#   } else {
+#     Vc <- Vp <- Matrix::solve(H)
+#   }
+#   if (smooths) {
+#     if (correctV) {
+#       cholVp <- try(chol(Vp), silent=TRUE)
+#       if (inherits(cholVp, "try-error")) {
+#         cholVp <- attr(.perturb(Vp), "chol")
+#       }
+#       attr(lsp, "beta") <- fitreml$beta
+#       spSl <- Map("*", attr(Sdata, "Sl"), exp(lsp))
+#       dbeta <- .d1beta(lsp, fitreml$beta, spSl, .Hdata(H))$d1
+#       Vrho <- fitreml$invHessian
+#       if (!likdata$sparse) {
+#         Vbetarho <- base::tcrossprod(dbeta %*% Vrho, dbeta)
+#       } else {
+#         Vbetarho <- Matrix::tcrossprod(dbeta %*% Vrho, dbeta)
+#       }
+#       # eps <- 1e-4
+#       # R0 <- .grad.R(fitreml$par, Sdata=Sdata, R=0, eps=1, likfns=likfns, likdata=likdata, H0=H0)
+#       # dR <- lapply(seq_along(sp), function(i) grad.R(replace(fitreml$par, i, fitreml$par[i] + eps), Sdata=Sdata, R=R0, eps=eps, likfns=likfns, likdata=likdata, H0=H0))
+#       VR <- matrix(0, nrow=likdata$nb, ncol=likdata$nb)
+#       # for (k in seq_along(sp)) for (l in seq_along(sp)) VR <- VR + crossprod(dR[[k]] * Vrho[k, l], dR[[l]])
+#       # VR <- .5 * (VR + t(VR))
+#       Vc <- .perturb(Vp + Vbetarho + VR)
+#     } else {
+#       Vrho <- 0
+#     }
+#   } else {
+#     Vrho <- 0
+#   }
+#   list(Vp=Vp, Vc=Vc, Vlsp=Vrho, H0=H0, H=H)
+# }
 
 ############ .edf ##########################
 
 .edf <- function(beta, likfns, likdata, VpVc, sandwich) {
-  diag(crossprod(VpVc$Vp, VpVc$H0))
+  if (!likdata$sparse) {
+    out <- base::diag(base::crossprod(VpVc$Vp, VpVc$H0))
+  } else {
+    out <- Matrix::diag(Matrix::crossprod(VpVc$Vp, VpVc$H0))
+  }
+  out
 }
 
 ############ .swap ##########################
@@ -1518,6 +1535,7 @@
   # }
   names(gams$coefficients) <- unlist(lapply(seq_along(likdata$X), function(i) paste(names(gams)[i], names(gams[[i]]$coefficients), sep = "_")))
   gams$ngam <- length(formula)
+  gams$sparse <- likdata$sparse
   for (i in seq_along(gams[nms])[-gotsmooth])
     gams[[i]]$smooth <- NULL
   class(gams) <- "evgam"

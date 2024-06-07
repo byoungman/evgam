@@ -21,6 +21,21 @@ double iF(double p, double qalpha, double sbeta, double xi, double alpha, double
   return out;
 }
 
+double txi_from_zero(double xi, double eps)
+{
+  // double mid = -0.6931472;
+  // if (xi < mid - eps & xi > mid + eps) {
+  //   if (xi > mid) {
+  //     xi = mid + eps;
+  //   } else {
+  //     xi = mid - eps;
+  //   }
+  // }
+  return xi;
+}
+
+const double txieps = 0.0003;
+
 // //' Blended generalized extreme value (bGEV) distribution negative log-likelihood
 // //'
 // //' @param pars a list of vectors of coefficients for each bGEV parameter
@@ -38,7 +53,7 @@ double iF(double p, double qalpha, double sbeta, double xi, double alpha, double
 // [[Rcpp::export]]
 double bgevd0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::vec other, arma::uvec nhere)
 {
-    
+
 arma::vec qavec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lsbvec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec txivec = X3 * Rcpp::as<arma::vec>(pars[2]);
@@ -67,13 +82,14 @@ for (int j=0; j < nobs; j++) {
 qalpha = qavec[j];
 lsbeta = lsbvec[j];
 txi = txivec[j];
+txi = txi_from_zero(txi, txieps);
 sbeta = exp(lsbeta);
 xi = 1.5 / (1.0 + exp(-txi)) - 0.5;
 
 for (int l=0; l < nhere[j]; l++) {
-  
+
 y = ymat(j, l);
-  
+
 iFa = iF(psuba, qalpha, sbeta, xi, alpha, beta);
 iFb = iF(psubb, qalpha, sbeta, xi, alpha, beta);
 
@@ -81,7 +97,7 @@ tqalpha = iFa - (iFb - iFa) * (ell2(alpha) - ell2(psuba)) / (ell2(psuba) - ell2(
 tsbeta = (iFb - iFa) * (ell2(hbeta) - ell2(1.0 - hbeta)) / (ell2(psuba) - ell2(psubb));
 
 if (y < iFa) { // Gumbel
-  
+
   z2d = (ell2(hbeta) - ell2(1.0 - hbeta)) / tsbeta;
   z2 = (y - tqalpha) * (ell2(hbeta) - ell2(1.0 - hbeta)) / tsbeta - ell2(alpha);
   t2 = exp(-z2);
@@ -89,11 +105,11 @@ if (y < iFa) { // Gumbel
   // nllh += log(G * t2 * z2d);
   // nllh += log(G) + log(t2) + log(z2d);
   nllh += t2 + z2 - log(z2d);
-  
+
 } else {
-  
+
   if (y > iFb) { // GEV
-    
+
     z1d = (ell1(1.0 - hbeta, xi) - ell1(hbeta, xi)) / sbeta;
     z1 = (y - qalpha) * z1d + ell1(alpha, xi);
     t1 = R_pow(z1, -1/xi);
@@ -101,16 +117,16 @@ if (y < iFa) { // Gumbel
     // nllh += log(F * R_pow(z1, -(1 + 1/xi)) * z1d / xi);
     // nllh += log(F) + log(R_pow(z1, -(1 + 1/xi))) + log(ell1(1.0 - hbeta, xi) - ell1(hbeta, xi)) - log(sb)- log(xi);
     nllh += t1 + (1 + 1 / xi) * log(z1) - log(z1d) + log(xi);
-    
+
   } else { // bGEV
-    
+
     z2d = (ell2(hbeta) - ell2(1.0 - hbeta)) / tsbeta;
     z2 = (y - tqalpha) * (ell2(hbeta) - ell2(1.0 - hbeta)) / tsbeta - ell2(alpha);
     t2 = exp(-z2);
     z1d = (ell1(1.0 - hbeta, xi) - ell1(hbeta, xi)) / sbeta;
     z1 = (y - qalpha) * z1d + ell1(alpha, xi);
     t1 = R_pow(z1, -1/xi);
-    
+
     y2 = (y - iFa) / (iFb - iFa);
     px = (R_pow(y2, 5)*(70*R_pow(y2, 4)-315*R_pow(y2, 3)+540*R_pow(y2, 2)-420*(y2)+126));
     dx = 630 * (R_pow(y2, 4)) * (R_pow(1 - y2, 4)) / (iFb - iFa);
@@ -124,7 +140,7 @@ if (y < iFa) { // Gumbel
     fiF = R_pow(z1, -(1 + 1/xi)) * z1d / xi;
     giG = t2 * z2d;
     nllh += -log(- dx * t1 + px * fiF + dx * t2 + (1 - px) * giG);
-    
+
     // ee4 = 1.5/(1 + exp(-txi)) - 0.5;
     // ee5 = -log(alpha);
     // ee7 = 1/R_pow(ee5, ee4);
@@ -139,17 +155,17 @@ if (y < iFa) { // Gumbel
     // ee29 = ee14 * ee27/ee23;
     // ee30 = log(ee8);
     // ee31 = ee30 - log(ee18);
-    // ee35 = (ee14 * (70 * ee29 - 315) * ee27/ee23 + 540) * R_pow(ee29, 2) + 
+    // ee35 = (ee14 * (70 * ee29 - 315) * ee27/ee23 + 540) * R_pow(ee29, 2) +
     // 126 - 420 * ee29;
     //             ee37 = ee35 * R_pow(ee29, 5);
     //             ee40 = ee14 * (y - qalpha)/ee17 + ee7;
     //             ee41 = 1/ee4;
-    //             ee42 = exp(-(ee14 * ee31 * (y - ((ee16 - (ee22 * (log(ee5) - 
+    //             ee42 = exp(-(ee14 * ee31 * (y - ((ee16 - (ee22 * (log(ee5) -
     //             ee30)/ee31 + ee7)) * ee17/ee14 + qalpha))/ee23 - log(ee5)));
     //             ee43 = R_pow(ee40, ee41);
     //             ee44 = (1 - ee37) * ee42;
-    //             nllh += ee37/ee43 + ee44 + log(ee22) + lsbeta - (log((ee35 * ee14 * 
-    //             ee27/(R_pow(ee40, (1 + ee41)) * ee4 * ee17) + R_pow((1 - ee29), 4) * 
+    //             nllh += ee37/ee43 + ee44 + log(ee22) + lsbeta - (log((ee35 * ee14 *
+    //             ee27/(R_pow(ee40, (1 + ee41)) * ee4 * ee17) + R_pow((1 - ee29), 4) *
     // (630 * ee42 - 630/ee43)) * R_pow(ee29, 4) + ee44 * ee31) + log(ee14));
 
   }
@@ -166,70 +182,70 @@ return(nllh);
 // // [[Rcpp::export]]
 // double bgevd0_test(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::vec yvec, arma::uvec dupid, int dcate, arma::vec other)
 // {
-//   
+//
 //   arma::vec qavec = X1 * Rcpp::as<arma::vec>(pars[0]);
 //   arma::vec lsbvec = X2 * Rcpp::as<arma::vec>(pars[1]);
 //   arma::vec txivec = X3 * Rcpp::as<arma::vec>(pars[2]);
 //   int nobs = yvec.size();
-//   
+//
 //   double psuba = other[0];
 //   double psubb = other[1];
 //   double alpha = other[2];
 //   double beta = other[3];
 //   double hbeta = 0.5 * beta;
-//   
+//
 //   if (dcate == 1) {
 //     qavec = qavec.elem(dupid);
 //     lsbvec = lsbvec.elem(dupid);
 //     txivec = txivec.elem(dupid);
 //   }
-//   
+//
 //   double y, qalpha, lsbeta, txi, xi, tqalpha, sbeta, tsbeta, iFa, iFb;
 //   double z1d, z1, t1, z2d, z2, t2;
 //   double ee1, ee2;
 //   double nllh=0.0;
-//   
+//
 //   for (int j=0; j < nobs; j++) {
-//     
+//
 //     y = yvec[j];
 //     qalpha = qavec[j];
 //     lsbeta = lsbvec[j];
 //     txi = txivec[j];
 //     sbeta = exp(lsbeta);
 //     xi = 1.5 / (1.0 + exp(-txi)) - 0.5;
-//     
+//
 //     iFa = iF(psuba, qalpha, sbeta, xi, alpha, beta);
 //     iFb = iF(psubb, qalpha, sbeta, xi, alpha, beta);
-//     
+//
 //     tqalpha = iFa - (iFb - iFa) * (ell2(alpha) - ell2(psuba)) / (ell2(psuba) - ell2(psubb));
 //     tsbeta = (iFb - iFa) * (ell2(hbeta) - ell2(1.0 - hbeta)) / (ell2(psuba) - ell2(psubb));
-//     
+//
 //     if (y < iFa) { // Gumbel
-//       
+//
 //       // z2d = (ell2(hbeta) - ell2(1.0 - hbeta)) / tsbeta;
 //       // z2 = (y - tqalpha) * (ell2(hbeta) - ell2(1.0 - hbeta)) / tsbeta - ell2(alpha);
 //       // t2 = exp(-z2);
 //       // // G = exp(-t2);
 //       // // nllh += log(G * t2 * z2d);
 //       // // nllh += log(G) + log(t2) + log(z2d);
-//       // nllh += -log(exp(-exp(-((y - (iFa - (iFb - iFa) * (log(-log(alpha)) - 
-//       //   log(-log(psuba)))/(log(-log(psuba)) - log(-log(psubb))))) * 
-//       //   (log(-log(hbeta)) - log(-log(1 - hbeta)))/((iFb - iFa) * 
-//       //   (log(-log(hbeta)) - log(-log(1 - hbeta)))/(log(-log(psuba)) - 
-//       //   log(-log(psubb)))) - log(-log(alpha)))))) - log(exp(-((y - 
-//       //   (iFa - (iFb - iFa) * (log(-log(alpha)) - log(-log(psuba)))/(log(-log(psuba)) - 
-//       //   log(-log(psubb))))) * (log(-log(hbeta)) - log(-log(1 - 
-//       //   hbeta)))/((iFb - iFa) * (log(-log(hbeta)) - log(-log(1 - 
-//       //   hbeta)))/(log(-log(psuba)) - log(-log(psubb)))) - log(-log(alpha))))) - 
-//       //   log(((log(-log(hbeta)) - log(-log(1 - hbeta)))/((iFb - iFa) * 
-//       //   (log(-log(hbeta)) - log(-log(1 - hbeta)))/(log(-log(psuba)) - 
+//       // nllh += -log(exp(-exp(-((y - (iFa - (iFb - iFa) * (log(-log(alpha)) -
+//       //   log(-log(psuba)))/(log(-log(psuba)) - log(-log(psubb))))) *
+//       //   (log(-log(hbeta)) - log(-log(1 - hbeta)))/((iFb - iFa) *
+//       //   (log(-log(hbeta)) - log(-log(1 - hbeta)))/(log(-log(psuba)) -
+//       //   log(-log(psubb)))) - log(-log(alpha)))))) - log(exp(-((y -
+//       //   (iFa - (iFb - iFa) * (log(-log(alpha)) - log(-log(psuba)))/(log(-log(psuba)) -
+//       //   log(-log(psubb))))) * (log(-log(hbeta)) - log(-log(1 -
+//       //   hbeta)))/((iFb - iFa) * (log(-log(hbeta)) - log(-log(1 -
+//       //   hbeta)))/(log(-log(psuba)) - log(-log(psubb)))) - log(-log(alpha))))) -
+//       //   log(((log(-log(hbeta)) - log(-log(1 - hbeta)))/((iFb - iFa) *
+//       //   (log(-log(hbeta)) - log(-log(1 - hbeta)))/(log(-log(psuba)) -
 //       //   log(-log(psubb))))));
 //       nllh += -log(exp(-exp(-((y-((qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))*(log(-log(alpha))-log(-log(psuba)))/(log(-log(psuba))-log(-log(psubb)))))*(log(-log(hbeta))-log(-log(1-hbeta)))/(((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))*(log(-log(hbeta))-log(-log(1-hbeta)))/(log(-log(psuba))-log(-log(psubb))))-log(-log(alpha))))))-log(exp(-((y-((qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))*(log(-log(alpha))-log(-log(psuba)))/(log(-log(psuba))-log(-log(psubb)))))*(log(-log(hbeta))-log(-log(1-hbeta)))/(((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))*(log(-log(hbeta))-log(-log(1-hbeta)))/(log(-log(psuba))-log(-log(psubb))))-log(-log(alpha)))))-log(((log(-log(hbeta))-log(-log(1-hbeta)))/(((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))*(log(-log(hbeta))-log(-log(1-hbeta)))/(log(-log(psuba))-log(-log(psubb))))));
-//       
+//
 //     } else {
-//       
+//
 //       if (y > iFb) { // GEV
-//         
+//
 //         z1d = (ell1(1.0 - hbeta, xi) - ell1(hbeta, xi)) / sbeta;
 //         z1 = (y - qalpha) * z1d + ell1(alpha, xi);
 //         t1 = R_pow(z1, -1/xi);
@@ -238,16 +254,16 @@ return(nllh);
 //         // nllh += log(F) + log(R_pow(z1, -(1 + 1/xi))) + log(ell1(1.0 - hbeta, xi) - ell1(hbeta, xi)) - log(sb)- log(xi);
 //         // nllh += log((1.5/(1+exp(-txi))-.5))-log(exp(-(R_pow(((y-qalpha)*((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))/exp(lsbeta)+(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5)))),-1/(1.5/(1+exp(-txi))-.5)))))+(1/1+(1.5/(1+exp(-txi))-.5))*log(((y-qalpha)*((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))/exp(lsbeta)+(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5)))))-log((((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))/exp(lsbeta)));
 //         nllh += log((1.5/(1+exp(-txi))-.5))+(R_pow(((y-qalpha)*((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))/exp(lsbeta)+(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5)))),-1/(1.5/(1+exp(-txi))-.5)))+(1+1/(1.5/(1+exp(-txi))-.5))*log(((y-qalpha)*((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))/exp(lsbeta)+(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5)))))-log((((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))/exp(lsbeta)));
-//         
+//
 //       } else { // bGEV
-//         
+//
 //         // z2d = (ell2(hbeta) - ell2(1.0 - hbeta)) / tsbeta;
 //         // z2 = (y - qa2) * (ell2(hbeta) - ell2(1.0 - hbeta)) / tsbeta - ell2(alpha);
 //         // t2 = exp(-z2);
 //         // z1d = (ell1(1.0 - hbeta, xi) - ell1(hbeta, xi)) / sbeta;
 //         // z1 = (y - qa) * z1d + ell1(alpha, xi);
 //         // t1 = R_pow(z1, -1/xi);
-//         // 
+//         //
 //         // px = ...;
 //         // dx = ...;
 //         // H = exp(px * log(F) + (1 - px) * log(G));
@@ -261,45 +277,45 @@ return(nllh);
 //         nllh += ((R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),5)*(70*R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),4)-315*R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),3)+540*R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),2)-420*((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))))+126)))*(R_pow(((y-qalpha)*((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))/exp(lsbeta)+(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5)))),-1/(1.5/(1+exp(-txi))-.5)))+(1-((R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),5)*(70*R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),4)-315*R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),3)+540*R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),2)-420*((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))))+126))))*exp(-((y-((qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))*(log(-log(alpha))-log(-log(psuba)))/(log(-log(psuba))-log(-log(psubb)))))*(log(-log(hbeta))-log(-log(1-hbeta)))/(((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))*(log(-log(hbeta))-log(-log(1-hbeta)))/(log(-log(psuba))-log(-log(psubb))))-log(-log(alpha))))-log(-630*(R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),4))*(R_pow((1-((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))))),4))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))*(R_pow(((y-qalpha)*((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))/exp(lsbeta)+(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5)))),-1/(1.5/(1+exp(-txi))-.5)))+((R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),5)*(70*R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),4)-315*R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),3)+540*R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),2)-420*((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))))+126)))*(R_pow(((y-qalpha)*((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))/exp(lsbeta)+(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5)))),-(1+1/(1.5/(1+exp(-txi))-.5))))*(((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))/exp(lsbeta))/(1.5/(1+exp(-txi))-.5)+630*(R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),4))*(R_pow((1-((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))))),4))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))*exp(-((y-((qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))*(log(-log(alpha))-log(-log(psuba)))/(log(-log(psuba))-log(-log(psubb)))))*(log(-log(hbeta))-log(-log(1-hbeta)))/(((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))*(log(-log(hbeta))-log(-log(1-hbeta)))/(log(-log(psuba))-log(-log(psubb))))-log(-log(alpha))))+(1-((R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),5)*(70*R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),4)-315*R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),3)+540*R_pow(((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))),2)-420*((y-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))/((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))))+126))))*exp(-((y-((qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))*(log(-log(alpha))-log(-log(psuba)))/(log(-log(psuba))-log(-log(psubb)))))*(log(-log(hbeta))-log(-log(1-hbeta)))/(((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))*(log(-log(hbeta))-log(-log(1-hbeta)))/(log(-log(psuba))-log(-log(psubb))))-log(-log(alpha))))*((log(-log(hbeta))-log(-log(1-hbeta)))/(((qalpha+((R_pow(-log(psubb),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5)))))-(qalpha+((R_pow(-log(psuba),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(alpha),-(1.5/(1+exp(-txi))-.5))))*exp(lsbeta)/((R_pow(-log(1-hbeta),-(1.5/(1+exp(-txi))-.5)))-(R_pow(-log(hbeta),-(1.5/(1+exp(-txi))-.5))))))*(log(-log(hbeta))-log(-log(1-hbeta)))/(log(-log(psuba))-log(-log(psubb))))));
 //       }
 //     }
-//     
+//
 //   }
-//   
+//
 //   return(nllh);
-//   
+//
 // }
 
 // //' @rdname bgevd0
 // [[Rcpp::export]]
 arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::vec other, arma::uvec nhere)
 {
-  
+
   arma::vec qavec = X1 * Rcpp::as<arma::vec>(pars[0]);
   arma::vec lsbvec = X2 * Rcpp::as<arma::vec>(pars[1]);
   arma::vec txivec = X3 * Rcpp::as<arma::vec>(pars[2]);
   int nobs = nhere.size();
   arma::mat out = arma::mat(nobs, 9, arma::fill::zeros);
-  
+
   double psuba = other[0];
   double psubb = other[1];
   double alpha = other[2];
   double beta = other[3];
   double hbeta = 0.5 * beta;
-  
+
   if (dcate == 1) {
     qavec = qavec.elem(dupid);
     lsbvec = lsbvec.elem(dupid);
     txivec = txivec.elem(dupid);
   }
-  
+
   double y, qalpha, tqalpha, lsbeta, txi, xi, sbeta, tsbeta, iFa, iFb;
-  
+
   // double ee16, ee27, ee29, ee51, ee52, ee53, ee65, ee66;
   // double ee94;
   // double ee106;
-  // 
+  //
   // double ee34, ee60, ee77, ee79, ee86, ee91, ee97;
   // double ee100, ee105, ee118, ee119, ee121, ee128, ee129;
-  // 
+  //
   // double ee2, ee3, ee5, ee6, ee7, ee8, ee9;
   // double ee10, ee11, ee12, ee13, ee14, ee15, ee17, ee18, ee19;
   // double ee20, ee21, ee22, ee23, ee24, ee25, ee26, ee28;
@@ -328,7 +344,7 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
   // double ee250, ee251, ee252, ee255, ee258;
   // double ee261, ee265, ee268, ee269;
   // double ee270, ee271, ee272, ee273, ee274, ee275, ee276;
-  // 
+  //
   double ee3, ee5, ee6, ee8, ee9;
   double ee12, ee13, ee15, ee17, ee18, ee19;
   double ee21, ee22, ee23, ee25, ee26, ee27, ee29;
@@ -443,12 +459,12 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
   double ee1372;
   double ee1402;
   double ee1413;
-  
+
   double ee2, ee7, ee10, ee11, ee14, ee16, ee20, ee24, ee28, ee31, ee34, ee35, ee36;
   double ee44, ee47, ee48, ee59, ee77, ee78, ee82, ee84, ee89, ee91, ee94, ee97;
   double ee100, ee101, ee104, ee105, ee106, ee116, ee119, ee121, ee125, ee128, ee130;
-  
-  // 
+
+  //
   // double ee2, ee3, ee5, ee6, ee7, ee8, ee9;
   // double ee10, ee11, ee12, ee13, ee14, ee15, ee16, ee17, ee18, ee19;
   // double ee21, ee22, ee23, ee24, ee25, ee26, ee27, ee28, ee29;
@@ -463,31 +479,32 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
   // double ee112, ee114, ee116, ee117, ee118, ee119;
   // double ee121, ee124, ee125, ee128, ee129;
   // double ee130, ee131;
-  // 
+  //
   // double ee20, ee33, ee51, ee56, ee60;
-  
+
   double ee4;
 
   for (int j=0; j < nobs; j++) {
-    
+
     qalpha = qavec[j];
     lsbeta = lsbvec[j];
     txi = txivec[j];
+    txi = txi_from_zero(txi, txieps);
     sbeta = exp(lsbeta);
     xi = 1.5 / (1.0 + exp(-txi)) - 0.5;
-    
+
     iFa = iF(psuba, qalpha, sbeta, xi, alpha, beta);
     iFb = iF(psubb, qalpha, sbeta, xi, alpha, beta);
-    
+
     tqalpha = iFa - (iFb - iFa) * (ell2(alpha) - ell2(psuba)) / (ell2(psuba) - ell2(psubb));
     tsbeta = (iFb - iFa) * (ell2(hbeta) - ell2(1.0 - hbeta)) / (ell2(psuba) - ell2(psubb));
-    
+
     for (int l=0; l < nhere[j]; l++) {
-      
+
       y = ymat(j, l);
-      
+
       if (y < iFa) { // Gumbel
-      
+
       ee2 = exp(-txi);
       ee3 = 1 + ee2;
       ee5 = 1.5/ee3 - 0.5;
@@ -575,7 +592,7 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
       ee129 = 1/ee105;
       ee130 = 2 * ee42;
       ee131 = ee66 - 1;
-      
+
       out(j, 0) += ee21 * ee131 * ee25/ee32;
       out(j, 1) += (((1 + ee14 - ee30) * ee26/ee25 + ee17 - ee10) * ee29/ee21 +
         qalpha - y) * ee26 * ee29 * ee44/ee58 + ee101 * ee66 -
@@ -599,11 +616,11 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
         ee89 - ee78) * ee26 + ee118 * ee2 * ee44/(ee105 * ee43 * ee37))/ee25 +
         ee116/ee37) * ee29/ee21 -
         ee112) * ee29 * ee44/ee58) * ee2/ee37);
-      
+
     } else {
-      
+
       if (y > iFb) { // GEV
-        
+
         ee2 = exp(-txi);
         ee3 = 1 + ee2;
         ee5 = 1.5/ee3 - 0.5;
@@ -650,7 +667,7 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
         ee61 = ((4.5/(ee3 * ee5) - 3) * ee2/ee3 + 1.5) * ee33;
         ee65 = ee16/ee38;
         ee66 = (1/ee31 - ee22 * ee13 * ee14/(ee36 * ee11))/ee5;
-        
+
         out(j, 0) += -(ee53/ee38);
         out(j, 1) += -(ee53 * ee14/ee38 - 1);
         out(j, 2) += ((ee57 + (1.5/ee34 - 1.5) * ee33/ee5 + 1.5)/ee5 +
@@ -667,9 +684,9 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ((ee51 - R_pow(ee30, 2) * ee2/ee58) * ee22 + 1.5 * (ee45/(ee25 * ee35)))/ee18 +
           R_pow(ee27, 2) * ee2/(ee46 * ee25 * ee47) -
           ee42/ee13) * ee2/ee25;
-        
+
       } else {
-        
+
         ee3 = -log(1 - hbeta);
         ee5 = exp(-txi);
         ee6 = 1 + ee5;
@@ -996,7 +1013,7 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
         ee1372 = ee714 * ee496;
         ee1402 = ee682 * ee688;
         ee1413 = ee757 * ee558;
-        
+
         out(j, 0) +=  ee129 - (ee124/ee58 - ee136/ee137) - ee173/ee102;
         out(j, 1) +=  ee487 - (ee356/ee58 - ee784/ee137) + 1 - ee489/ee102;
         out(j, 2) +=  ee631/ee58 + ee1115/ee137 - ee776 - ee533/ee37 - (ee778/ee102 - ee518/ee15);
@@ -1006,12 +1023,12 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           out(j, 6) +=  ee859 - (ee841/ee58 + ee861/ee137 - ((ee52 * ee873 - ee861)/ee137 + ee784 * ee388/ee216)) - (((4 * (ee802 * ee141 + ee295 * ee395) * ee96 + ee887 + (ee887 + ee93 * (630 * ee856 - (630 * ee873/ee137 + ee402 * ee388/ee216))) - ((ee445 - ee899 + (ee838 * ee15 * ee29 - ee899))/ee90 - ee906/ee162 + ((ee86 * (ee431 - ((ee156 * (ee87 * ee869) - ee438 * ee427) * ee8 * ee25 + ee430)) - ee906)/ee162 - ee465 * ee452/ee260))) * ee99 - ee926 - (ee926 + ee98 * (4 * (ee802 * ee167 - ee295 * ee471))) + ee859 * ee63)/ee102 - ee489 * ee489/ee279);
           out(j, 7) +=  ee1024 - (ee1001/ee58 + ee356 * ee646/ee137 - ((ee631 * ee371 - ee52 * ee1037)/ee137 + ee784 * ee666/ee216)) - (((4 * (ee957 * ee141 - ee295 * ee691) * ee96 - ee408 * ee688 + (ee93 * (630 * ee1020 + (630 * ee1037/ee137 - ee402 * ee666/ee216)) - ee682 * ee404) - ((ee701 * ee27 - ee722 + ((ee997 * ee15 - ee348 * ee518) * ee29 + ee424 * ee522))/ee90 - ee447 * ee717/ee162 + ((ee723 * ee431 + ee86 * (ee717 - (ee428 * ee496 - (ee156 * (ee87 * ee1031 + ee1033) + ee732 * ee427) * ee8) * ee25))/ee162 - ee465 * ee742/ee260))) * ee99 + ee468 * ee558 - (ee757 * ee338 + ee98 * (4 * (ee957 * ee167 + ee295 * ee760))) + ee1024 * ee63)/ee102 - ee489 * ee778/ee279);
           out(j, 8) += ee1269/ee58 + ee1271/ee137 + ((ee1271 + ee52 * ee1297)/ee137 + ee1115 * ee666/ee216) - ee1347 - (ee1215/ee37 + ee533 * ee533/R_pow(ee37, 2)) - (((((ee1259 * ee15 - ee1356 - (ee1356 + ee50 * ee1181)) * ee29 + ee1362 + (ee1362 + ee85 * ee1191))/ee90 - ee1368/ee162 - ((ee1368 - ee86 * ((ee88 * ee1131 + ee1372 + ((ee156 * (ee87 * ee1276 - ee1278) - ee732 * ee712 - (ee88 * ee1293 + ee714 * ee639)) * ee8 + ee1372)) * ee25))/ee162 - ee751 * ee742/ee260) - (ee93 * (630 * ee1341 + (630 * ee1297/ee137 + ee686 * ee666/ee216)) - ee1402 + (4 * (ee1223 * ee141 - ee537 * ee691) * ee96 - ee1402))) * ee99 + ee1413 + (ee1413 + ee98 * (4 * (ee1223 * ee167 + ee537 * ee760))) - ee1347 * ee63)/ee102 - ee778 * ee778/ee279 - (ee1181/ee15 + ee518 * ee518/ee520));
-        
+
         }
     }}}
-  
+
   return out;
-  
+
 }
 
 // //' @rdname bgevd0
@@ -1024,21 +1041,21 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
   arma::vec txivec = X3 * Rcpp::as<arma::vec>(pars[2]);
   int nobs = nhere.size();
   arma::mat out = arma::mat(nobs, 25, arma::fill::zeros);
-  
+
   double psuba = other[0];
   double psubb = other[1];
   double alpha = other[2];
   double beta = other[3];
   double hbeta = 0.5 * beta;
-  
+
   if (dcate == 1) {
     qavec = qavec.elem(dupid);
     lsbvec = lsbvec.elem(dupid);
     txivec = txivec.elem(dupid);
   }
-  
+
   double y, qalpha, tqalpha, lsbeta, txi, xi, sbeta, tsbeta, iFa, iFb;
-  
+
   double ee10, ee100, ee1000, ee1001, ee1002, ee1003, ee1004, ee1006, ee1007;
   double ee101, ee1010, ee1011, ee1012, ee1014, ee1015, ee1017, ee102, ee1021, ee1023;
   double ee1024, ee1027, ee103, ee1034, ee1036, ee1038, ee104, ee1040, ee1041, ee1044;
@@ -1160,27 +1177,28 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
   double ee96, ee961, ee964, ee967, ee968, ee969, ee97, ee971, ee974, ee977;
   double ee978, ee979, ee98, ee983, ee985, ee987, ee988, ee989, ee99, ee990;
   double ee992, ee994, ee996, ee997;
-  
+
   for (int j=0; j < nobs; j++) {
-    
+
     qalpha = qavec[j];
     lsbeta = lsbvec[j];
     txi = txivec[j];
+    txi = txi_from_zero(txi, txieps);
     sbeta = exp(lsbeta);
     xi = 1.5 / (1.0 + exp(-txi)) - 0.5;
-    
+
     iFa = iF(psuba, qalpha, sbeta, xi, alpha, beta);
     iFb = iF(psubb, qalpha, sbeta, xi, alpha, beta);
-    
+
     tqalpha = iFa - (iFb - iFa) * (ell2(alpha) - ell2(psuba)) / (ell2(psuba) - ell2(psubb));
     tsbeta = (iFb - iFa) * (ell2(hbeta) - ell2(1.0 - hbeta)) / (ell2(psuba) - ell2(psubb));
-    
+
     for (int l=0; l < nhere[j]; l++) {
-      
+
       y = ymat(j, l);
-      
+
       if (y < iFa) { // Gumbel
-      
+
       ee2 = exp(-txi);
       ee3 = 1 + ee2;
       ee5 = 1.5/ee3 - 0.5;
@@ -1378,7 +1396,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
       ee304 = ee235 - 2;
       ee305 = 4 * ee46;
       ee306 = R_pow(ee106, 2);
-      
+
       out(j, 0) += ((2 * ee213 + ee235 - 2) * ee106 + 1) * R_pow(ee21, 3) * ee106 * R_pow(ee27, 3)/(R_pow(ee28, 3) * R_pow(ee29, 3));
       out(j, 1) += (((ee194 * ee238 * ee27/ee37 + 2 * (ee276 * ee21 * ee27/ee37 -
         ee170) + ee303) * ee106 + ee276 * (1 + ee106) * ee21 * ee27/ee37 -
@@ -1433,9 +1451,9 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
         ee160) + ee295)) * ee106 + ee204 + 3 * ee160 -
         3 * ee173) * ee111 * ee2/ee31 + ee257) * ee106 - (ee257 +
         ee111 * (2 * ee224 + ee295 + 2 * ee204 - ee294) * ee2/ee31)) * ee2/ee31);
-      
+
     } else {
-      
+
       if (y > iFb) { // GEV
 
         ee2 = exp(-txi);
@@ -1562,7 +1580,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
         ee194 = 2 * (ee16/(ee110 * ee11));
         ee195 = 2/ee110;
         ee196 = ee103 - ee51;
-        
+
         out(j, 0) +=  - (((ee22 * (2/ee180 - ee190) - (ee195 - 2 * ee189)/ee5)/ee5 +
           2 * (ee22/R_pow(ee18, 3))) * R_pow(ee15, 3)/R_pow(ee11, 3));
         out(j, 1) += -((((ee171 + ee151 * ee196 + (ee189 - ee195) * ee15 * ee12/ee11)/ee5 +
@@ -1599,9 +1617,9 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           1.5)/ee5 + ee140/ee15 - (((ee166 + ee172 - (ee60 + 2 * ee60 -
           2 * ee108) * ee35 * ee2/ee67) * ee22 + (ee105 + 3 * ee122) * ee2/ee113)/ee18 +
           (ee46 + 2 * ee50 - (ee47 + 2 * (ee187 * ee15 * ee2/ee183))) * ee29 * ee2/ee183)) * ee2/ee23;
-        
+
       } else {
-        
+
         ee2 = -log(psuba);
         ee4 = exp(-txi);
         ee5 = 1 + ee4;
@@ -2299,7 +2317,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
         ee3123 = ee1570 * ee1079;
         ee3135 = ee1522 * ee1185;
         ee3142 = ee1555 * ee1531;
-        
+
         out(j, 0) +=  ee424 + (ee396 * ee120 - ee426 - ee429 - (ee429 + (ee92 * ee436 + ee428))) - ((((ee448 + (ee444 + (ee442 + ee129 * ee461)))/ee34 - ee468 - ee472 - (ee472 - ((ee470 + ee137 * ee338)/ee198 - ee276 * ee344/ee346))) * ee120 - ee483 - ee486 - (ee486 - (ee485 - ee141 * ee436)) + (ee92 * (ee494 * (ee286 * ee116) * ee289 * ee149) - ee500 - ee503 - (ee503 - (ee396 * ee153 + ee502))) * ee116/ee7 + (((ee159 * ee461 - ee442 - ee444 - ee448)/ee34 - ee518 - ee522 - (ee522 - ((ee520 + ee164 * ee338)/ee198 - ee308 * ee344/ee346))) * ee90 + ee533 + ee536 + (ee536 + (ee535 + ee168 * ee420))) + (ee424 * ee172 - ee544 - ee547 - (ee547 - (ee546 + ee174 * (ee175 * ee404/ee237 - ee322 * ee410/ee412)))))/ee188 - ee560/ee330 - ((ee560 + ee179 * ee327)/ee330 - ee329 * (2 * (ee179 * ee188))/ee569));
           out(j, 1) +=  ee759 + (ee725 * ee120 - ee228 * ee765 - ee778 - (ee778 + (ee92 * ee788 + ee732 * ee253))) - ((((ee811 + (ee804 + (ee813 + ee129 * ee827)))/ee34 - ee271 * ee574/ee40 - ee847 - (ee847 - ((ee852 * ee196 + ee137 * ee661)/ee198 - ee276 * ee667/ee346))) * ee120 - ee279 * ee765 - ee876 - (ee876 - (ee881 * ee253 - ee141 * ee788)) + ((ee92 * ((ee888 * ee289 - ee288 * (ee146 * ee769)) * ee149 - ee290 * ee894) - ee732 * ee291 - ee907 - (ee907 - (ee725 * ee153 + ee228 * ee911))) * ee116 - ee297 * ee769)/ee7 + (((ee159 * ee827 - ee813 - ee804 - ee811)/ee34 - ee303 * ee574/ee40 - ee936 - (ee936 - ((ee940 * ee196 + ee164 * ee661)/ee198 - ee308 * ee667/ee346))) * ee90 + ee311 * ee585 + ee964 + (ee964 + (ee969 * ee242 + ee168 * ee755))) + (ee759 * ee172 - ee245 * ee978 - ee992 - (ee992 - (ee996 * ee323 + ee174 * (ee175 * ee739/ee237 - ee322 * ee745/ee412)))))/ee188 - ee327 * ee1027/ee330 - ((ee1065 * ee179 + ee179 * ee1065)/ee330 - ee329 * ee1071/ee569));
           out(j, 2) +=  ee1289 + (ee1310 + (ee1255 * ee120 + ee228 * ee1315) + (ee1285 * ee253 + ee92 * ee1331 + ee1310)) - ((((ee1353 + (ee1346 + (ee129 * ee1367 - ee1370)))/ee34 + ee271 * ee1105/ee40 - ee1389 - (ee1389 + ((ee137 * ee1200 + ee1395 * ee196)/ee198 - ee276 * ee1205/ee346))) * ee120 + ee279 * ee1315 - ee1418 - (ee1418 - (ee141 * ee1331 - ee1424 * ee253)) + (((ee1285 * ee291 + ee92 * ((ee1433 * ee289 - ee288 * (ee146 * ee1304 + ee1303)) * ee149 - ee290 * ee1441) - ee1455 - (ee1455 - (ee1255 * ee153 + ee228 * ee1461))) * ee116 - ee297 * ee1304)/ee7 - ee298 * ee1079/ee1292) + (((ee1370 + ee159 * ee1367 - ee1346 - ee1353)/ee34 + ee303 * ee1105/ee40 - ee1489 - (ee1489 - ((ee1493 * ee196 - ee164 * ee1200)/ee198 + ee308 * ee1205/ee346))) * ee90 - ee311 * ee1185 + ee1517 + (ee1517 + (ee1522 * ee242 + ee168 * ee1281))) + (ee1289 * ee172 + ee245 * ee1531 - ee1545 - (ee1545 + (ee174 * (ee175 * ee1267/ee237 - ee322 * ee1272/ee412) + ee1555 * ee323))))/ee188 - ee327 * ee1583/ee330 - ((ee1624 * ee179 + ee179 * ee1624)/ee330 - ee329 * ee1630/ee569));
@@ -2819,11 +2837,11 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee1910 = ee1270 * ee697;
           ee1922 = ee1221 * ee864;
           ee1929 = ee1258 * ee1230;
-          
+
           out(j, 6) +=  ee483 - (ee92 * ee510 - ee512 - ee515 + (ee442 * ee122 - ee514 - ee515)) - ((((ee528 + (ee527 + (ee526 + ee131 * ee541)))/ee34 - ee547/ee40 - (ee550/ee40 - ee296 * ee204/ee206) - ((ee550 + ee299)/ee40 - ee558/ee206 - ((ee558 + ee139 * ee386)/ee206 - ee301 * ee391/ee393))) * ee122 - ee570 - ee573 - (ee573 + (ee572 + ee143 * ee510)) + ((ee92 * ((ee581 * (ee311 * ee118) * ee314 + ee313 * (ee148 * ee265)) * ee151 + ee589 + (ee589 + ee150 * (ee147 * ee495))) - ee596 - ee599 - (ee442 * ee155 + ee598 + ee599)) * ee158 - ee606 - ee609 - (ee609 + (ee608 + ee160 * (ee331 - ((ee329 + ee161 * ee485)/ee263 - ee329 * ee490/ee492)))))/ee7 + (((ee167 * ee541 - ee526 - ee527 - ee528)/ee34 - ee629/ee40 - (ee632/ee40 - ee341 * ee204/ee206) - ((ee632 + ee344)/ee40 - ee640/ee206 - ((ee640 + ee172 * ee386)/ee206 - ee346 * ee391/ee393))) * ee90 + ee652 + ee655 + (ee655 + (ee654 + ee176 * ee479))) + (ee483 * ee180 - ee663 - ee666 - (ee666 + (ee665 + ee182 * (ee362 - ((ee360 + ee183 * ee465)/ee251 - ee360 * ee470/ee472))))))/ee195 - ee681/ee369 - ((ee681 + ee187 * ee366)/ee369 - ee368 * (2 * (ee187 * ee195))/ee690));
           out(j, 7) +=  ee932 - (ee928 * ee273 + ee92 * ee971 - ee979 + (ee852 * ee122 + ee238 * ee985 - ee979)) - ((((ee1007 + (ee1006 + (ee131 * ee1021 - ee1024)))/ee34 + ee294 * ee723/ee40 - (ee1041/ee40 + ee296 * ee737/ee206) - ((ee1041 - ee1052)/ee40 + ee299 * ee737/ee206 + ((ee139 * ee744 + ee1052 * ee204)/ee206 - ee301 * ee749/ee393))) * ee122 + ee304 * ee985 - ee1080 - (ee1080 + (ee143 * ee971 - ee1085 * ee273)) + (((ee928 * ee319 + ee92 * ((ee1094 * ee314 - ee313 * (ee148 * ee948 + ee961)) * ee151 - ee315 * ee1102 + (ee1108 * ee317 - ee150 * (ee147 * ee951 + ee946))) - ee1122 - (ee852 * ee155 + ee238 * ee1128 + ee1122)) * ee158 - ee325 * ee1134 - ee1148 - (ee1148 + (ee1152 * ee331 - ee160 * (ee1146 - ee1145 * ee261/ee263))))/ee7 - ee334 * ee697/ee935) + (((ee1024 + ee167 * ee1021 - ee1006 - ee1007)/ee34 + ee339 * ee723/ee40 - (ee1179/ee40 + ee341 * ee737/ee206) - ((ee1179 + ee1189)/ee40 + ee344 * ee737/ee206 - ((ee1189 * ee204 - ee172 * ee744)/ee206 + ee346 * ee749/ee393))) * ee90 - ee349 * ee864 + ee1217 + (ee1217 + (ee1221 * ee256 + ee176 * ee924))) + (ee932 * ee180 + ee259 * ee1230 - ee1245 - (ee1245 - (ee182 * (ee1243 - ((ee183 * ee905 + ee1229 * ee249)/ee251 - ee360 * ee910/ee472)) + ee1258 * ee362))))/ee195 - ee366 * ee1283/ee369 - ((ee1321 * ee187 + ee187 * ee1321)/ee369 - ee368 * ee1327/ee690));
-          out(j, 8) +=  ee1581 - (ee1577 * ee120 + ee1583 + (ee1583 + ee92 * ee1622) + (ee1510 * ee122 + ee1627 + (ee1627 + ee71 * ee1637))) - ((((ee1653 + (ee131 * ee1664 - ee1666 - ee1670))/ee34 + ee1674/ee40 + ((ee1674 - ee136 * ee1403)/ee40 + ee1040 * ee737/ee206) + ((ee1689 * ee38 - ee1691 - ee1694)/ee40 + ee1697/ee206 + ((ee139 * ee1425 + ee1697)/ee206 - ee1074 * ee749/ee393))) * ee122 + ee1709 + (ee1709 + ee141 * ee1637) - (ee143 * ee1622 - ee1715 - (ee1724 * ee120 + ee1715)) + (((ee1577 * ee152 + ee1730 + (ee1730 + ee92 * ((ee1094 * ee1105 - ee313 * (ee148 * ee1603 + ee1600) + (ee1108 * ee937 - ee150 * ee1596)) * ee151 - ee1742 - (ee1742 - ee150 * (ee1614 + (ee147 * ee1616 + ee1612))))) - (ee1510 * ee155 + ee1754 + (ee1754 + ee71 * ee1764))) * ee158 - ee1770 - (ee1770 - ee157 * ee1772) - (ee1781 * ee162 - ee1783 - (ee1783 - ee160 * (ee1375 * ee14/ee117))))/ee7 - ee1792/ee935 - ((ee1792 - ee164 * ee1352)/ee935 - ee1302 * ee1588/ee1590)) + (((ee1670 + (ee1666 + ee167 * ee1664) - ee1653)/ee34 + ee1808/ee40 + ((ee1808 - ee169 * ee1403)/ee40 + ee1178 * ee737/ee206) - ((ee1820 * ee38 - ee1822 - ee1825)/ee40 + ee1828/ee206 + ((ee1828 - ee172 * ee1425)/ee206 + ee1211 * ee749/ee393))) * ee90 - ee1840 - (ee1840 + ee174 * ee1533) + (ee1852 * ee105 + ee1854 + (ee1854 + ee176 * ee1568))) + (ee1581 * ee180 + ee1862 + (ee1862 - ee107 * ee1868) + (ee1877 * ee184 - ee1879 - (ee182 * (ee1868 - ((ee183 * ee1541 + ee1866)/ee251 - ee1241 * ee910/ee472)) + ee1879))))/ee195 - ee1894/ee369 - ((ee1894 + ee187 * (ee143 * ee1637 - ee1898 - (ee1724 * ee122 + ee1898) + ((ee1781 * ee158 - ee1904 - (ee1904 - ee160 * ee1772))/ee7 - ee1910/ee935 - ((ee1910 - ee189 * ee1352)/ee935 - ee1272 * ee1588/ee1590)) + (ee1852 * ee90 - ee1922 - (ee1922 + ee176 * ee1533)) - (ee182 * ee1868 + ee1929 + (ee1877 * ee180 + ee1929))))/ee369 - ee1342 * ee1327/ee690));      
-          
+          out(j, 8) +=  ee1581 - (ee1577 * ee120 + ee1583 + (ee1583 + ee92 * ee1622) + (ee1510 * ee122 + ee1627 + (ee1627 + ee71 * ee1637))) - ((((ee1653 + (ee131 * ee1664 - ee1666 - ee1670))/ee34 + ee1674/ee40 + ((ee1674 - ee136 * ee1403)/ee40 + ee1040 * ee737/ee206) + ((ee1689 * ee38 - ee1691 - ee1694)/ee40 + ee1697/ee206 + ((ee139 * ee1425 + ee1697)/ee206 - ee1074 * ee749/ee393))) * ee122 + ee1709 + (ee1709 + ee141 * ee1637) - (ee143 * ee1622 - ee1715 - (ee1724 * ee120 + ee1715)) + (((ee1577 * ee152 + ee1730 + (ee1730 + ee92 * ((ee1094 * ee1105 - ee313 * (ee148 * ee1603 + ee1600) + (ee1108 * ee937 - ee150 * ee1596)) * ee151 - ee1742 - (ee1742 - ee150 * (ee1614 + (ee147 * ee1616 + ee1612))))) - (ee1510 * ee155 + ee1754 + (ee1754 + ee71 * ee1764))) * ee158 - ee1770 - (ee1770 - ee157 * ee1772) - (ee1781 * ee162 - ee1783 - (ee1783 - ee160 * (ee1375 * ee14/ee117))))/ee7 - ee1792/ee935 - ((ee1792 - ee164 * ee1352)/ee935 - ee1302 * ee1588/ee1590)) + (((ee1670 + (ee1666 + ee167 * ee1664) - ee1653)/ee34 + ee1808/ee40 + ((ee1808 - ee169 * ee1403)/ee40 + ee1178 * ee737/ee206) - ((ee1820 * ee38 - ee1822 - ee1825)/ee40 + ee1828/ee206 + ((ee1828 - ee172 * ee1425)/ee206 + ee1211 * ee749/ee393))) * ee90 - ee1840 - (ee1840 + ee174 * ee1533) + (ee1852 * ee105 + ee1854 + (ee1854 + ee176 * ee1568))) + (ee1581 * ee180 + ee1862 + (ee1862 - ee107 * ee1868) + (ee1877 * ee184 - ee1879 - (ee182 * (ee1868 - ((ee183 * ee1541 + ee1866)/ee251 - ee1241 * ee910/ee472)) + ee1879))))/ee195 - ee1894/ee369 - ((ee1894 + ee187 * (ee143 * ee1637 - ee1898 - (ee1724 * ee122 + ee1898) + ((ee1781 * ee158 - ee1904 - (ee1904 - ee160 * ee1772))/ee7 - ee1910/ee935 - ((ee1910 - ee189 * ee1352)/ee935 - ee1272 * ee1588/ee1590)) + (ee1852 * ee90 - ee1922 - (ee1922 + ee176 * ee1533)) - (ee182 * ee1868 + ee1929 + (ee1877 * ee180 + ee1929))))/ee369 - ee1342 * ee1327/ee690));
+
           ee2 = -log(psuba);
             ee4 = exp(-txi);
             ee5 = 1 + ee4;
@@ -2898,7 +2916,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee116 = ee35 * ee94 + ee112;
           ee118 = ee43 * ee99;
           ee121 = ee110/ee32 - ee112/ee44 - (ee116/ee44 - ee118/ee101);
-            ee122 = ee81/ee32 - ee83/ee44 - (ee96/ee44 - ee100/ee101) - 
+            ee122 = ee81/ee32 - ee83/ee44 - (ee96/ee44 - ee100/ee101) -
               ee121;
               ee124 = ee62 - ee65 * ee122;
           ee127 = qalpha + ee57/ee32 - ee64;
@@ -2915,7 +2933,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee149 = 4 * (ee146 * ee147);
             ee152 = 5 * (ee140 * ee142 + ee146 * ee149);
             ee156 = R_pow(ee141, 2);
-          ee161 = 70 * ee142 - 315 * ee147 + 540 * ee156 - 420 * ee141 + 
+          ee161 = 70 * ee142 - 315 * ee147 + 540 * ee156 - 420 * ee141 +
             126;
             ee164 = 5 * (ee146 * ee142);
             ee167 = 3 * (ee146 * ee156);
@@ -2957,7 +2975,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee249 = ee214 * ee221;
           ee252 = ee201 * ee94/ee23 + ee79;
           ee254 = ee249 - ee206 * ee252;
-          ee257 = ee224 * ee215 - ee207 * ee239 - (ee247 * ee222 + 
+          ee257 = ee224 * ee215 - ee207 * ee239 - (ee247 * ee222 +
             ee218 * ee254);
             ee261 = 1 - ee227;
           ee262 = ee19 - ee10;
@@ -3019,7 +3037,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee383 = ee371 * ee221;
           ee386 = ee382 * ee383 + ee373 * ee215;
           ee389 = ee367 * ee252 + ee249;
-          ee395 = ee386 * ee374 - ee373 * ee389 + (ee377 * ee215 - 
+          ee395 = ee386 * ee374 - ee373 * ee389 + (ee377 * ee215 -
             ee369 * ee239);
             ee398 = ee200 * ee369 + ee378 + (ee378 + ee227 * ee395);
             ee399 = ee32/ee23;
@@ -3056,14 +3074,14 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee470 = ee462/ee287;
           ee471 = ee469 * ee470;
           ee473 = ee268/ee271;
-          ee477 = ee323 * ee257 - ee336 - (ee362 * ee207 + ee336) + 
-            (ee411/ee7 - ee416/ee213 - (ee421/ee213 - ee424/ee233)) + 
-            (ee447 * ee275 - ee452 - (ee452 + ee454 * ee310)) - (ee459 * 
+          ee477 = ee323 * ee257 - ee336 - (ee362 * ee207 + ee336) +
+            (ee411/ee7 - ee416/ee213 - (ee421/ee213 - ee424/ee233)) +
+            (ee447 * ee275 - ee452 - (ee452 + ee454 * ee310)) - (ee459 *
             ee465 + ee471 + (ee316 * ee473 + ee471));
-            ee484 = ee323 * ee207 + ee419/ee7 + ee454 * ee275 + ee459 * 
+            ee484 = ee323 * ee207 + ee419/ee7 + ee454 * ee275 + ee459 *
               ee473;
-              ee500 = ee323 * ee224 - ee335 * ee207 + (ee415/ee7 - ee423/ee213) + 
-                (ee451 * ee275 - ee454 * ee308) + (ee459 * ee470 - ee469 * 
+              ee500 = ee323 * ee224 - ee335 * ee207 + (ee415/ee7 - ee423/ee213) +
+                (ee451 * ee275 - ee454 * ee308) + (ee459 * ee470 - ee469 *
                 ee473);
             ee501 = ee500 * ee500;
           ee502 = R_pow(ee484, 2);
@@ -3075,7 +3093,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee521 = ee121 * ee61;
           ee522 = ee520 + ee521;
           ee523 = ee52 * ee72;
-          ee538 = ee71 - ((ee11 * (2 * (ee4 * ee4 + ee66)) + ee68)/ee69 - 
+          ee538 = ee71 - ((ee11 * (2 * (ee4 * ee4 + ee66)) + ee68)/ee69 -
             ee68 * (2 * (ee67 * ee12))/R_pow(ee69, 2));
             ee543 = ee21 * ee76;
           ee549 = ee543 + ee79 * ee20 + (ee18 * (ee19 * ee538) + ee543);
@@ -3084,7 +3102,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee557 = ee556 + ee553;
           ee563 = ee38 * ee86;
           ee570 = ee41 * ee90;
-          ee577 = ee563 + ee89 * ee37 + (ee28 * (ee36 * ee538) + ee563) - 
+          ee577 = ee563 + ee89 * ee37 + (ee28 * (ee36 * ee538) + ee563) -
             (ee570 + ee93 * ee40 + (ee31 * (ee39 * ee538) + ee570));
             ee582 = ee96 * ee99;
           ee588 = 2 * (ee42 * ee42 + ee94 * ee32);
@@ -3095,18 +3113,18 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee613 = ee24 * ee94;
           ee614 = ee613 + ee610;
           ee624 = ee116 * ee99;
-          ee634 = (ee600 + ee108 * ee14 + (ee9 * (ee10 * ee538) + 
-            ee600) - ee549) * ee23/ee32 - ee610/ee44 - (ee614/ee44 - 
-            ee112 * ee99/ee101) - ((ee614 + (ee35 * ee577 + ee613))/ee44 - 
-            ee624/ee101 - ((ee43 * ee588 + ee624)/ee101 - ee118 * 
+          ee634 = (ee600 + ee108 * ee14 + (ee9 * (ee10 * ee538) +
+            ee600) - ee549) * ee23/ee32 - ee610/ee44 - (ee614/ee44 -
+            ee112 * ee99/ee101) - ((ee614 + (ee35 * ee577 + ee613))/ee44 -
+            ee624/ee101 - ((ee43 * ee588 + ee624)/ee101 - ee118 *
             ee593/ee595));
-            ee635 = (ee523 + ee75 * ee51 + (ee49 * (ee50 * ee538) + 
-              ee523) - ee549) * ee23/ee32 - ee553/ee44 - (ee557/ee44 - 
-              ee83 * ee99/ee101) - ((ee557 + (ee57 * ee577 + ee556))/ee44 - 
-              ee582/ee101 - ((ee58 * ee588 + ee582)/ee101 - ee100 * 
+            ee635 = (ee523 + ee75 * ee51 + (ee49 * (ee50 * ee538) +
+              ee523) - ee549) * ee23/ee32 - ee553/ee44 - (ee557/ee44 -
+              ee83 * ee99/ee101) - ((ee557 + (ee57 * ee577 + ee556))/ee44 -
+              ee582/ee101 - ((ee58 * ee588 + ee582)/ee101 - ee100 *
               ee593/ee595)) - ee634;
-          ee651 = (ee506 - ee130 * ee510)/ee134 + ee133 * ee515/ee517 - 
-            ((ee522 + (ee520 - ee65 * ee635))/ee128 - ee506/ee134) + 
+          ee651 = (ee506 - ee130 * ee510)/ee134 + ee133 * ee515/ee517 -
+            ((ee522 + (ee520 - ee65 * ee635))/ee128 - ee506/ee134) +
             (ee634/ee127 - ee521/ee128 - (ee522/ee128 - ee62 * ee132/ee134));
             ee653 = ee140 * ee149;
           ee660 = ee152 * ee175;
@@ -3116,10 +3134,10 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee671 = 4 * (ee651 * ee147 + ee666 + (ee666 + ee146 * ee187));
             ee674 = ee140 * ee171;
           ee683 = ee140 * ee146;
-          ee696 = 5 * (ee651 * ee142 + ee653 + (ee653 + ee146 * ee182)) * 
-            ee161 + ee660 + ee663 + (ee663 + (ee662 + ee178 * (70 * 
-            ee671 - 315 * (3 * (ee651 * ee156 + ee674 + (ee674 + 
-            ee146 * ee193))) + 540 * (2 * (ee651 * ee141 + ee683 + 
+          ee696 = 5 * (ee651 * ee142 + ee653 + (ee653 + ee146 * ee182)) *
+            ee161 + ee660 + ee663 + (ee663 + (ee662 + ee178 * (70 *
+            ee671 - 315 * (3 * (ee651 * ee156 + ee674 + (ee674 +
+            ee146 * ee193))) + 540 * (2 * (ee651 * ee141 + ee683 +
             (ee683 + ee146 * ee140))) - 420 * ee651)));
             ee698 = ee200 * ee224;
           ee700 = ee211 * ee257;
@@ -3130,17 +3148,17 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee715 = 2 * (ee231 * ee213);
             ee717 = R_pow(ee233, 2);
           ee725 = ee237 * ee235;
-          ee734 = ee212 * ((ee13 * ee709 - ee711)/ee233 - ee232 * 
-            ee715/ee717 - (ee538/ee213 + ee711/ee233)) - ee725 - 
+          ee734 = ee212 * ((ee13 * ee709 - ee711)/ee233 - ee232 *
+            ee715/ee717 - (ee538/ee213 + ee711/ee233)) - ee725 -
             (ee725 + (ee252/ee204 - ee221 * ee221/R_pow(ee204, 2)) * ee214);
             ee754 = ee247 * ee254;
           ee756 = ee214 * ee252;
           ee758 = ee756 + ee235 * ee221;
           ee761 = ee549 + ee201 * ee577/ee23;
-          ee768 = ee257 * ee215 - ee704 - (ee704 + ee207 * ee734) - 
-            ((ee247 * ee215 - ee218 * ee239 - ((ee244 * ee215 - R_pow(ee204, (ee243 - 
-            1)) * (ee243 * ee221)) * ee245 + ee244 * (ee249 - 
-            ee217 * ee252))) * ee222 + ee754 + (ee754 - ee218 * 
+          ee768 = ee257 * ee215 - ee704 - (ee704 + ee207 * ee734) -
+            ((ee247 * ee215 - ee218 * ee239 - ((ee244 * ee215 - R_pow(ee204, (ee243 -
+            1)) * (ee243 * ee221)) * ee245 + ee244 * (ee249 -
+            ee217 * ee252))) * ee222 + ee754 + (ee754 - ee218 *
             (ee758 + (ee756 - ee206 * ee761))));
             ee773 = ee286 * ee291;
           ee777 = 2 * (ee281 * ee281 + ee284 * ee271);
@@ -3151,21 +3169,21 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee789 = ee787 + ee788;
           ee791 = ee635 * ee268/ee264;
           ee813 = ee308 * ee303;
-          ee817 = ee275 * ((ee773 - ee289 * ee777)/ee293 + ee292 * 
-            ee782/ee784 - ((ee789 + (ee787 - ee269 * ee791))/ee287 - 
-            ee773/ee293) + ((ee634 - ee635 * ee262/ee264) * ee268/ee271 - 
-            ee788/ee287 - (ee789/ee287 - ee282 * ee291/ee293))) - 
+          ee817 = ee275 * ((ee773 - ee289 * ee777)/ee293 + ee292 *
+            ee782/ee784 - ((ee789 + (ee787 - ee269 * ee791))/ee287 -
+            ee773/ee293) + ((ee634 - ee635 * ee262/ee264) * ee268/ee271 -
+            ee788/ee287 - (ee789/ee287 - ee282 * ee291/ee293))) -
             ee813 - (ee310 * ee307 + ee813);
             ee819 = ee211 * ee310;
           ee821 = ee200 * ee308;
           ee822 = ee821 + ee819;
-          ee827 = ee261 * ee817 - ee819 - ee822 + (ee696 * ee275 - 
+          ee827 = ee261 * ee817 - ee819 - ee822 + (ee696 * ee275 -
             ee821 - ee822);
             ee830 = ee335 * ee257;
           ee832 = ee362 * ee224;
           ee833 = ee832 + ee830;
           ee836 = ee140 * ee341;
-          ee847 = 4 * (ee651 * ee325 - ee836 - (ee836 + ee146 * (3 * 
+          ee847 = 4 * (ee651 * ee325 - ee836 - (ee836 + ee146 * (3 *
             (ee140 * ee339 - ee146 * (2 * (ee146 * ee320))))));
             ee849 = ee329 * ee344;
           ee851 = ee348 * ee327;
@@ -3200,34 +3218,34 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee1015 = ee460 * ee291;
           ee1034 = ee477 * ee500;
 
-          out(j, 9) += ee696 * ee207 + ee698 + ee701 + (ee701 + 
-          (ee700 + ee227 * ee768)) - ee827 - ((ee323 * ee768 - 
-          ee830 - ee833 - (((ee319 * ee847 - ee849 - ee852 + ee857)/ee127 + 
-          ee860/ee128 + (ee864/ee128 + ee353 * ee132/ee134) + ((ee864 - 
-          (ee322 * ee635 + ee863))/ee128 + ee874/ee134 + ((ee333 * 
-          ee510 + ee874)/ee134 - ee359 * ee515/ee517))) * ee207 + 
-          ee832 + ee833) + (((ee696 * ee369 + ee890 + ee893 + (ee893 + 
-          (ee892 + ee227 * (((R_pow(ee204, -(ee380 + 1)) * (ee380 * ee221) + 
-          ee382 * ee215) * ee383 - ee382 * (ee371 * ee252 + 
-          ee249) + (ee386 * ee215 - ee373 * ee239)) * ee374 - 
-          ee912 - (ee912 - ee373 * (ee758 + (ee367 * ee761 + 
-          ee756))) + (ee395 * ee215 - ee921 - (ee921 + ee369 * 
-          ee734)))))) * ee399 - ee932 - ee935 - (ee935 - (ee934 - 
-          ee407 * (ee577/ee23))))/ee7 - ee943/ee213 - (ee947/ee213 - 
-          ee416 * ee231/ee233) - ((ee947 - (ee946 - ee419 * ee538))/ee213 - 
-          ee957/ee233 - ((ee957 + ee423 * ee709)/ee233 - ee424 * 
-          ee715/ee717))) + (((ee857 - (ee852 + (ee849 + ee429 * 
-          ee847)))/ee127 + ee974/ee128 + (ee978/ee128 + ee436 * 
-          ee132/ee134) + ((ee978 - (ee977 - ee439 * ee635))/ee128 + 
-          ee988/ee134 + ((ee988 - ee443 * ee510)/ee134 + ee444 * 
-          ee515/ee517))) * ee275 - ee1000 - ee1003 - (ee1003 + 
-          (ee1002 + ee454 * ee817))) - (ee1012 - (ee459 * (ee268 * 
-          ee791/ee287 - ee1015/ee293 - ((ee462 * ee777 + ee1015)/ee293 - 
-          ee463 * ee782/ee784)) + ee1011) + (ee827 * ee473 + ee1010 + 
-          ee1012)))/ee484 - ee1034/ee502 - ((ee1034 + ee500 * ee477)/ee502 - 
+          out(j, 9) += ee696 * ee207 + ee698 + ee701 + (ee701 +
+          (ee700 + ee227 * ee768)) - ee827 - ((ee323 * ee768 -
+          ee830 - ee833 - (((ee319 * ee847 - ee849 - ee852 + ee857)/ee127 +
+          ee860/ee128 + (ee864/ee128 + ee353 * ee132/ee134) + ((ee864 -
+          (ee322 * ee635 + ee863))/ee128 + ee874/ee134 + ((ee333 *
+          ee510 + ee874)/ee134 - ee359 * ee515/ee517))) * ee207 +
+          ee832 + ee833) + (((ee696 * ee369 + ee890 + ee893 + (ee893 +
+          (ee892 + ee227 * (((R_pow(ee204, -(ee380 + 1)) * (ee380 * ee221) +
+          ee382 * ee215) * ee383 - ee382 * (ee371 * ee252 +
+          ee249) + (ee386 * ee215 - ee373 * ee239)) * ee374 -
+          ee912 - (ee912 - ee373 * (ee758 + (ee367 * ee761 +
+          ee756))) + (ee395 * ee215 - ee921 - (ee921 + ee369 *
+          ee734)))))) * ee399 - ee932 - ee935 - (ee935 - (ee934 -
+          ee407 * (ee577/ee23))))/ee7 - ee943/ee213 - (ee947/ee213 -
+          ee416 * ee231/ee233) - ((ee947 - (ee946 - ee419 * ee538))/ee213 -
+          ee957/ee233 - ((ee957 + ee423 * ee709)/ee233 - ee424 *
+          ee715/ee717))) + (((ee857 - (ee852 + (ee849 + ee429 *
+          ee847)))/ee127 + ee974/ee128 + (ee978/ee128 + ee436 *
+          ee132/ee134) + ((ee978 - (ee977 - ee439 * ee635))/ee128 +
+          ee988/ee134 + ((ee988 - ee443 * ee510)/ee134 + ee444 *
+          ee515/ee517))) * ee275 - ee1000 - ee1003 - (ee1003 +
+          (ee1002 + ee454 * ee817))) - (ee1012 - (ee459 * (ee268 *
+          ee791/ee287 - ee1015/ee293 - ((ee462 * ee777 + ee1015)/ee293 -
+          ee463 * ee782/ee784)) + ee1011) + (ee827 * ee473 + ee1010 +
+          ee1012)))/ee484 - ee1034/ee502 - ((ee1034 + ee500 * ee477)/ee502 -
           ee501 * (2 * (ee500 * ee484))/R_pow(ee502, 2)));
       }}}}
-    
+
 return out;
 
 }
