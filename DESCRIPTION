@@ -2,7 +2,7 @@ Package: evgam
 Type: Package
 Title: Generalised Additive Extreme Value Models
 Version: 1.0.1
-Date: 2024-06-07
+Date: 2024-06-11
 Author: Ben Youngman
 Maintainer: Ben Youngman <b.youngman@exeter.ac.uk>
 Description: Methods for fitting various extreme value distributions with parameters of 

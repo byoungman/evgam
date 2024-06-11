@@ -417,7 +417,7 @@
     sum(Matrix::diag(.precond_solve(x, b)))
   }
 }
-  
+
 .d1H0_diag <- function(dbeta, likdata, likfns, H) {
 
   X <- likdata$X

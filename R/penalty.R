@@ -21,7 +21,7 @@ out
 
 .nllh.pen <- function(pars, likdata, likfns, newton=TRUE) {
 out <- .nllh.nopen(pars, likdata, likfns, newton)
-out <- out + .5 * crossprod(pars, likdata$S %*% pars)[1, 1]
+out <- out + .5 * crossprod(pars, as.vector(likdata$S %*% pars))[1, 1]
 out
 }
 
