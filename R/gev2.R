@@ -35,7 +35,7 @@ out
 
 .gev2fns <- list(d0 = .gev2.d0, d120 = .gev2.d12, d340 = .gev2.d34)
 
-.gev2_unlink <- list(NULL, function(x) exp(x), function(x) 1.5 / (1 + exp(-x)) - .5)
+.gev2_unlink <- list(NULL, function(x) exp(x), function(x) 1.5 / (1 + exp(-x)) - 1.0)
 attr(.gev2_unlink[[2]], "deriv") <- .gev2_unlink[[2]]
 attr(.gev2_unlink[[3]], "deriv") <- function(x) 1.5 * exp(-x)/(1 + exp(-x))^2
 
