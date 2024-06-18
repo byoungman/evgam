@@ -918,7 +918,7 @@
           inits <- c(sqrt(6) * sd(likdata0$y) / pi, .05)
           inits <- c(mean(likdata0$y) - .5772 * inits[1], log(inits[1]), inits[2])
           if (family == "gev2")
-            inits[3] <- -.5
+            inits[3] <- .85
           if (npar == 4) 
             inits <- c(inits, .1)
         }
