@@ -3,6 +3,10 @@
 # .setup.family
 # --- identifies family, its # parameters, their names and its functions
 #
+# .smooth_info
+# --- uses mgcv:::interpret.gam to obtain vectors of smoothing parameter names
+# and smoothing basis types
+#
 # .setup.formula
 # --- takes evgam formula and returns something useful for fitting
 #
@@ -45,6 +49,8 @@
 # .finalise
 # --- adds other useful things to final objects for user functions
 #
+# .re_process
+# --- process stuff if any s(..., bs = 're')
 
 ############ .setup.family ##########################
 
@@ -235,10 +241,65 @@
   out <- list(npar=npar, npar2=npar, lik.fns=lik.fns, nms=nms, family=family, nms2 = nms2)
 }
 
-############ .setup.formula ##########################
+############ .smooth.info ##########################
+
+.smooth_info <- function(formula) {
+  
+  info <- mgcv::interpret.gam(formula)
+  info <- info[1:(length(info) - 4)]
+  
+  cinfo <- unlist(info)
+  
+  get.smooth.n <- function(x) {
+    if (length(x$margin)) {
+      out <- length(sapply(x$margin, class))
+    } else {
+      out <- 1
+    }
+    out
+  }
+  
+  get.smooth.spec <- function(x) {
+    if (length(x$margin)) {
+      out <- sapply(x$margin, class)
+    } else {
+      out <- class(x)
+    }
+    out
+  }
+  
+  get.smooth.label <- function(x) {
+    if (length(x$margin)) {
+      out <- paste(x$label, sapply(x$margin, function(y) y$label), sep = ':')
+    } else {
+      out <- x$label
+    }
+    out
+  }
+  
+  n.smooth.list <- sapply(info, function(x) sapply(x$smooth.spec, get.smooth.n))
+  
+  n.smooth <- unlist(n.smooth.list)
+  
+  out <- list(id = rep(seq_along(n.smooth), n.smooth))
+  
+  out$basis <- unlist(sapply(info, function(x) sapply(x$smooth.spec, get.smooth.spec)))
+  
+  out$names <- unlist(sapply(info, function(x) sapply(x$smooth.spec, get.smooth.label)))
+  
+  par.id <- sapply(n.smooth.list, function(x) ifelse(is.numeric(x), x, 0))
+  
+  out$par.id <- rep(seq_along(par.id), par.id)
+  
+  out
+  
+}
+
+################ .setup.formula ##########################
 
 .setup.formulae <- function(formula, npar, npar2, data, trace, nms) {
   # turn formula into list, which will be repeated.
+  smooth.specs <- .smooth_info(formula)
   if (inherits(formula, "formula"))
     formula <- lapply(seq_len(npar), function(i) formula)
   # if (inherits(formula, "formula"))
@@ -309,6 +370,10 @@
     attr(formula[[i]], "smooth") <- got.specials[i]
   }
   names(formula) <- nms
+  int_list <- mgcv::interpret.gam(formula)[which(got.specials)]
+  spnms <- unlist(lapply(lapply(int_list, function(x) x$smooth.spec), function(y) lapply(y, function(z) z$label)))
+  spspecs <- unlist(lapply(lapply(int_list, function(x) x$smooth.spec), function(y) lapply(y, function(z) attr(z, 'class'))))
+  attr(formula, 'smooth.specs') <- smooth.specs
   formula
 }
 
@@ -1182,6 +1247,7 @@
   # if (family == "custom") {
   #   nms <- attr(formula, "nms")
   # }
+  smooth.specs <- attr(formula, 'smooth.specs')
   names(gams) <- linkNames
   smooths <- length(gotsmooth) > 0
   Vp <- VpVc$Vp
@@ -1278,7 +1344,26 @@
   gams$sparse <- likdata$sparse
   for (i in seq_along(gams[nms])[-gotsmooth])
     gams[[i]]$smooth <- NULL
+  names(gams$sp) <- smooth.specs$names
+  gams$smooth.basis <- smooth.specs$basis
+  gams$sp.par.id <- smooth.specs$par.id
+  gams$re.info <- .re_process(gams)
+  gams$re.some <- ifelse(is.null(gams$re.info), FALSE, TRUE)
   class(gams) <- "evgam"
   return(gams)
 }
 
+############ .re_process ######################################
+
+.re_process <- function(obj) {
+  basis <- obj$smooth.basis
+  if (length(basis)) {
+    is.re <- substr(basis, 1, 2) == 're'
+    if (any(is.re)) {
+      precs <- obj$sp[is.re]
+      vars <- 1 / precs
+      attr(vars, 'par.id') <- obj$sp.par.id[is.re]
+      return(vars)
+    }
+  }
+}
