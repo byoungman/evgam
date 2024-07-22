@@ -299,9 +299,9 @@
 
 .setup.formulae <- function(formula, npar, npar2, data, trace, nms) {
   # turn formula into list, which will be repeated.
-  smooth.specs <- .smooth_info(formula)
   if (inherits(formula, "formula"))
     formula <- lapply(seq_len(npar), function(i) formula)
+  smooth.specs <- .smooth_info(formula)
   # if (inherits(formula, "formula"))
   #   formula <- list(formula)
   # get variable names
@@ -1116,6 +1116,8 @@
     
     fit.reml <- .reml0_fixed(rho0, likfns=likfns, likdata=likdata, Sdata=Sdata)
     fit.reml$invHessian <- diag(0 * rho0)
+    fit.reml$gradient <- 0 * rho0
+    fit.reml$gradient[] <- NA
     
   } else {
     

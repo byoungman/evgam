@@ -1,4 +1,4 @@
-.joinSmooth <- function(lst, sparse) {
+.joinSmooth <- function(lst, sparse = FALSE) {
   nms <- c("S", "first.para", "last.para", "rank", "null.space.dim")
   nbi <- sapply(lst, function(x) x$nb)
   starts <- cumsum(c(0, nbi))
