@@ -394,22 +394,6 @@ ppexi2d34 <- function(pars, X1, X2, X3, X4, yvec, wvec) {
     .Call(`_evgam_ppexi2d34`, pars, X1, X2, X3, X4, yvec, wvec)
 }
 
-rcpparma_hello_world <- function() {
-    .Call(`_evgam_rcpparma_hello_world`)
-}
-
-rcpparma_outerproduct <- function(x) {
-    .Call(`_evgam_rcpparma_outerproduct`, x)
-}
-
-rcpparma_innerproduct <- function(x) {
-    .Call(`_evgam_rcpparma_innerproduct`, x)
-}
-
-rcpparma_bothproducts <- function(x) {
-    .Call(`_evgam_rcpparma_bothproducts`, x)
-}
-
 weibd0 <- function(pars, X1, X2, yvec, dupid, dcate) {
     .Call(`_evgam_weibd0`, pars, X1, X2, yvec, dupid, dcate)
 }
