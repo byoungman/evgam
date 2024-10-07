@@ -29,7 +29,8 @@
 #' @param custom.fns a list of functions for a custom family; see Details
 #' @param sp a vector of fixed smoothing parameters
 #' @param gamma a total penalty adjustment, such that higher values (>1) give smoother overall fits; defaults to 1 (no adjustment)
-#' @param sparse logical: should matrices be coerced to be recognised as sparse? Default to \code{FALSE}
+#' @param sparse logical: should matrices be coerced to be recognised as sparse? Defaults to \code{FALSE}
+#' @param args a list of arguments to supply to the likelihood. Default to none, which is \code{list()}
 #' 
 #' @details
 #' 
@@ -111,7 +112,7 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
                   knots=NULL, maxdata=1e20, maxspline=1e20, compact=FALSE, gpd.args = list(),
                   ald.args=list(), exi.args=list(), pp.args=list(), bgev.args = list(),
                   sandwich.args=list(), egpd.args=list(), custom.fns=list(), 
-                  aggregated.args = list(), sp = NULL, gamma = 1, sparse = FALSE) {
+                  aggregated.args = list(), sp = NULL, gamma = 1, sparse = FALSE, args = list()) {
 
   ## setup family
   family.info <- .setup.family(family, gpd.args, pp.args, egpd.args, formula, custom.fns, length(aggregated.args))
@@ -124,7 +125,7 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
   ## setup mgcv objects and data
   temp.data <- .setup.data(data, response.name, formula, family, family.info$nms, 
                            removeData, gpd.args, exi.args, ald.args, pp.args, knots, maxdata, 
-                           maxspline, compact, sandwich.args, tolower(outer), trace, gamma, bgev.args, sparse)
+                           maxspline, compact, sandwich.args, tolower(outer), trace, gamma, bgev.args, sparse, args)
   data <- temp.data$data
   
   ## aggregation

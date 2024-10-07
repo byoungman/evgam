@@ -25,6 +25,36 @@ bgevd34 <- function(pars, X1, X2, X3, ymat, dupid, dcate, other, nhere) {
     .Call(`_evgam_bgevd34`, pars, X1, X2, X3, ymat, dupid, dcate, other, nhere)
 }
 
+#' Conditional extreme value model negative log-likelihood
+#'
+#' @param pars a list of vectors of coefficients for each bGEV parameter
+#' @param X1 a design matrix for (transformed) alpha
+#' @param X2 a design matrix for (transformed) beta
+#' @param X3 a design matrix for mu
+#' @param X4 a design matrix for (transformed) sigma
+#' @param ymat a matrix
+#' @param xmat a matrix
+#' @param dupid a scalar or vector, identifying duplicates in Xs; -1 corresponds to no duplicates
+#' @return condexd0 a scalar, the negative log-likelihood
+#' @return condexd12 a matrix, first then second derivatives w.r.t. parameters
+#' @return condexd34 a matrix, third then fourth derivatives w.r.t. parameters
+#' @examples
+#' ## to follow
+#' @export
+condexd0 <- function(pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere) {
+    .Call(`_evgam_condexd0`, pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere)
+}
+
+#' @rdname condexd0
+condexd12 <- function(pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere) {
+    .Call(`_evgam_condexd12`, pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere)
+}
+
+#' @rdname condexd0
+condexd34 <- function(pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere) {
+    .Call(`_evgam_condexd34`, pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere)
+}
+
 egpd1d0 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
     .Call(`_evgam_egpd1d0`, pars, X1, X2, X3, yvec, dupid, dcate)
 }
@@ -362,6 +392,22 @@ ppexi2d12 <- function(pars, X1, X2, X3, X4, yvec, wvec) {
 
 ppexi2d34 <- function(pars, X1, X2, X3, X4, yvec, wvec) {
     .Call(`_evgam_ppexi2d34`, pars, X1, X2, X3, X4, yvec, wvec)
+}
+
+rcpparma_hello_world <- function() {
+    .Call(`_evgam_rcpparma_hello_world`)
+}
+
+rcpparma_outerproduct <- function(x) {
+    .Call(`_evgam_rcpparma_outerproduct`, x)
+}
+
+rcpparma_innerproduct <- function(x) {
+    .Call(`_evgam_rcpparma_innerproduct`, x)
+}
+
+rcpparma_bothproducts <- function(x) {
+    .Call(`_evgam_rcpparma_bothproducts`, x)
 }
 
 weibd0 <- function(pars, X1, X2, yvec, dupid, dcate) {

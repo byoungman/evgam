@@ -25,6 +25,7 @@ through \eqn{r}-largest order statistics. See Details below.
   \item \code{"egpd"}, the extended generalised Pareto distribution. See Naveau
 et al. (2016) and Details below;
   \item \code{"bgev"}, the blended GEV distribution. See Castro-Camilo et al (2022) and Details
+  \item \code{"condex"}, the conditional extreme value model. See Details
   \item \code{"custom"}, custom distributions. See \code{custom.evgam} for an example of use. 
 }
 

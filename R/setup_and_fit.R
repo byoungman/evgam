@@ -166,7 +166,13 @@
                                 nms <- c("qalpha", "lsbeta", "transxi")
                                 nms2 <- c('location', 'logscale', 'transshape')
                               } else {
-                                if (family == 'gev2') {
+                                if (family == 'condex') {
+                                  lik.fns <- .condexfns
+                                  npar <- 4
+                                  nms <- c("talpha", "tbeta", "mu", "tsigma")
+                                  nms2 <- c('alpha', 'beta', 'location', 'scale')
+                                } else {
+                                  if (family == 'gev2') {
                                   lik.fns <- .gev2fns
                                   npar <- 3
                                   nms <- c("mu", "lpsi", "txi")
@@ -230,6 +236,7 @@
             }
           }
         }
+      }
       }
     }
   } else {
@@ -416,7 +423,7 @@
 
 .setup.data <- function(data, responsename, formula, family, nms, removeData, 
                         gpdargs, exiargs, aldargs, pp, knots, maxdata, maxspline, compact, sargs, 
-                        outer, trace, gamma, bgevargs, sparse) {
+                        outer, trace, gamma, bgevargs, sparse, args) {
   
   # data
   
@@ -466,7 +473,7 @@
   gc()
   
   ## likelihood
-  lik.data <- list()
+  lik.data <- list(args = args)
   lik.data$control <- list()
   lik.data$outer <- outer
   lik.data$control$outer <- list(steptol=1e-12, itlim=1e2, fntol=1e-8, gradtol=1e-2, stepmax=3)
@@ -986,6 +993,8 @@
             inits[3] <- .85
           if (npar == 4) 
             inits <- c(inits, .1)
+          if (family == 'condex')
+            inits <- c(0, 0, mean(likdata0$y), log(sd(likdata0$y)))
         }
       }
       if (npar == 6) {

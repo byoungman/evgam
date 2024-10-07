@@ -31,7 +31,8 @@ evgam(
   aggregated.args = list(),
   sp = NULL,
   gamma = 1,
-  sparse = FALSE
+  sparse = FALSE,
+  args = list()
 )
 }
 \arguments{
@@ -83,7 +84,9 @@ evgam(
 
 \item{gamma}{a total penalty adjustment, such that higher values (>1) give smoother overall fits; defaults to 1 (no adjustment)}
 
-\item{sparse}{logical: should matrices be coerced to be recognised as sparse? Default to \code{FALSE}}
+\item{sparse}{logical: should matrices be coerced to be recognised as sparse? Defaults to \code{FALSE}}
+
+\item{args}{a list of arguments to supply to the likelihood. Default to none, which is \code{list()}}
 }
 \value{
 An object of class \code{evgam}
