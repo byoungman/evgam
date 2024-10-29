@@ -73,7 +73,7 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
     egpd_iG <- object$likfns$iG
   }
   
-  if (family %in% c("custom", "bgev", "gev2", "condex")) {
+  if (family %in% c("custom", "bgev", "gev2", "condex", "beta")) {
     q_fn <- object$likfns$q
     unlink_fns <- object$likfns$unlink
   }

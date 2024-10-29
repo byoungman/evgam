@@ -4,7 +4,10 @@
   likdata$y <- as.matrix(likdata$y)
   likdata$args$x <- as.matrix(likdata$args$x)
   nhere <- rowSums(is.finite(likdata$y))  
-  out <- condexd0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], likdata$y, likdata$args$x, likdata$dupid, likdata$duplicate, nhere)
+  out <- condexd0(split(pars, likdata$idpars), 
+                  likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], 
+                  likdata$y, likdata$args$x, likdata$args$weights, 
+                  likdata$dupid, likdata$duplicate, nhere)
   out
 }
 
@@ -12,7 +15,10 @@
   likdata$y <- as.matrix(likdata$y)
   likdata$args$x <- as.matrix(likdata$args$x)
   nhere <- rowSums(is.finite(likdata$y))  
-  out <- condexd12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], likdata$y, likdata$args$x, likdata$dupid, likdata$duplicate, nhere)
+  out <- condexd12(split(pars, likdata$idpars), 
+                   likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], 
+                   likdata$y, likdata$args$x, likdata$args$weights, 
+                   likdata$dupid, likdata$duplicate, nhere)
   out
 }
 
@@ -20,7 +26,10 @@
   likdata$y <- as.matrix(likdata$y)
   likdata$args$x <- as.matrix(likdata$args$x)
   nhere <- rowSums(is.finite(likdata$y))  
-  out <- condexd34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], likdata$y, likdata$args$x, likdata$dupid, likdata$duplicate, nhere)
+  out <- condexd34(split(pars, likdata$idpars), 
+                   likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], 
+                   likdata$y, likdata$args$x, likdata$args$weights, 
+                   likdata$dupid, likdata$duplicate, nhere)
   out
 }
 

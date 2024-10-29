@@ -6,11 +6,11 @@
 \alias{condexd34}
 \title{Conditional extreme value model negative log-likelihood}
 \usage{
-condexd0(pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere)
+condexd0(pars, X1, X2, X3, X4, ymat, xmat, wmat, dupid, dcate, nhere)
 
-condexd12(pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere)
+condexd12(pars, X1, X2, X3, X4, ymat, xmat, wmat, dupid, dcate, nhere)
 
-condexd34(pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere)
+condexd34(pars, X1, X2, X3, X4, ymat, xmat, wmat, dupid, dcate, nhere)
 }
 \arguments{
 \item{pars}{a list of vectors of coefficients for each bGEV parameter}
@@ -26,6 +26,8 @@ condexd34(pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere)
 \item{ymat}{a matrix}
 
 \item{xmat}{a matrix}
+
+\item{wmat}{a matrix}
 
 \item{dupid}{a scalar or vector, identifying duplicates in Xs; -1 corresponds to no duplicates}
 }

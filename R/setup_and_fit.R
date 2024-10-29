@@ -172,6 +172,12 @@
                                   nms <- c("talpha", "tbeta", "mu", "tsigma")
                                   nms2 <- c('alpha', 'beta', 'location', 'scale')
                                 } else {
+                                  if (family == 'beta') {
+                                    lik.fns <- .betafns
+                                    npar <- 2
+                                    nms <- c("lshape1", "lshape2")
+                                    nms2 <- c('shape1', 'shape2')
+                                  } else {
                                   if (family == 'gev2') {
                                   lik.fns <- .gev2fns
                                   npar <- 3
@@ -238,7 +244,7 @@
         }
       }
       }
-    }
+    }}
   } else {
     lik.fns <- .gevaggfns
     npar <- npar2 <- 4
@@ -429,7 +435,8 @@
   
   for (i in seq_along(responsename)) {
     dm <- as.matrix(data[,responsename[i]])
-    data <- data[rowSums(!is.na(dm)) == ncol(dm), ]
+    if (family != 'condex')
+      data <- data[rowSums(!is.na(dm)) == ncol(dm), ]
   }
   
   if (nrow(data) > maxdata) {
@@ -479,6 +486,10 @@
   lik.data$control$outer <- list(steptol=1e-12, itlim=1e2, fntol=1e-8, gradtol=1e-2, stepmax=3)
   lik.data$control$inner <- list(steptol=1e-12, itlim=1e2, fntol=1e-8, gradtol=1e-4, stepmax=1e2)
   lik.data$y <- as.matrix(data[,responsename, drop=FALSE])
+  if (family == 'condex') {
+    if (is.null(lik.data$args$weights))
+      lik.data$args$weights <- 0 * lik.data$y + 1
+  }
   lik.data$Mp <- sum(unlist(sapply(gams, function(y) c(1, sapply(y$smooth, function(x) x$null.space.dim)))))
   lik.data$const <- .5 * lik.data$Mp * log(2 * pi)
   lik.data$nobs <- nrow(lik.data$y)
@@ -979,6 +990,12 @@
             likdata$ab <- c(likdata$gpdlohi[1:2], likdata$gpdlohi[3:4] - likdata$gpdlohi[1:2])
             inits <- -log(likdata$ab[3:4] / (inits - likdata$ab[1:2]) - 1)
           }
+          if (family == 'beta') {
+            ybar <- mean(likdata0$y, na.rm = TRUE)
+            vbar <- var(as.vector(likdata0$y), na.rm = TRUE)
+            t1 <- (ybar * (1 - ybar) / vbar - 1)
+            inits <- log(c(ybar * t1, (1 - ybar) * t1))
+          }
         }
       }
       if (npar %in% 3:4) {
@@ -994,7 +1011,7 @@
           if (npar == 4) 
             inits <- c(inits, .1)
           if (family == 'condex')
-            inits <- c(0, 0, mean(likdata0$y), log(sd(likdata0$y)))
+            inits <- c(0, 0, mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)))
         }
       }
       if (npar == 6) {

@@ -13,6 +13,18 @@ aldd34 <- function(pars, X1, X2, ymat, tau, C, dupid, dcate, nhere) {
     .Call(`_evgam_aldd34`, pars, X1, X2, ymat, tau, C, dupid, dcate, nhere)
 }
 
+betad0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_betad0`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
+betad12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_betad12`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
+betad34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_betad34`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
 bgevd0 <- function(pars, X1, X2, X3, ymat, dupid, dcate, other, nhere) {
     .Call(`_evgam_bgevd0`, pars, X1, X2, X3, ymat, dupid, dcate, other, nhere)
 }
@@ -34,6 +46,7 @@ bgevd34 <- function(pars, X1, X2, X3, ymat, dupid, dcate, other, nhere) {
 #' @param X4 a design matrix for (transformed) sigma
 #' @param ymat a matrix
 #' @param xmat a matrix
+#' @param wmat a matrix
 #' @param dupid a scalar or vector, identifying duplicates in Xs; -1 corresponds to no duplicates
 #' @return condexd0 a scalar, the negative log-likelihood
 #' @return condexd12 a matrix, first then second derivatives w.r.t. parameters
@@ -41,18 +54,18 @@ bgevd34 <- function(pars, X1, X2, X3, ymat, dupid, dcate, other, nhere) {
 #' @examples
 #' ## to follow
 #' @export
-condexd0 <- function(pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere) {
-    .Call(`_evgam_condexd0`, pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere)
+condexd0 <- function(pars, X1, X2, X3, X4, ymat, xmat, wmat, dupid, dcate, nhere) {
+    .Call(`_evgam_condexd0`, pars, X1, X2, X3, X4, ymat, xmat, wmat, dupid, dcate, nhere)
 }
 
 #' @rdname condexd0
-condexd12 <- function(pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere) {
-    .Call(`_evgam_condexd12`, pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere)
+condexd12 <- function(pars, X1, X2, X3, X4, ymat, xmat, wmat, dupid, dcate, nhere) {
+    .Call(`_evgam_condexd12`, pars, X1, X2, X3, X4, ymat, xmat, wmat, dupid, dcate, nhere)
 }
 
 #' @rdname condexd0
-condexd34 <- function(pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere) {
-    .Call(`_evgam_condexd34`, pars, X1, X2, X3, X4, ymat, xmat, dupid, dcate, nhere)
+condexd34 <- function(pars, X1, X2, X3, X4, ymat, xmat, wmat, dupid, dcate, nhere) {
+    .Call(`_evgam_condexd34`, pars, X1, X2, X3, X4, ymat, xmat, wmat, dupid, dcate, nhere)
 }
 
 egpd1d0 <- function(pars, X1, X2, X3, yvec, dupid, dcate) {
