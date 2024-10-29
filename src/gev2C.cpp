@@ -36,7 +36,7 @@ return -log(1.5 / (1.0 + xi) - 1.0);
 // //' ## to follow
 // //' @export
 // [[Rcpp::export]]
-double gev2d0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::uvec nhere)
+double gev2d0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere)
 {
     
 arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
@@ -91,7 +91,7 @@ return(nllh);
 
 // //' @rdname gev2d0
 // [[Rcpp::export]]
-arma::mat gev2d12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::uvec nhere)
+arma::mat gev2d12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere)
 {
     
 arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
@@ -186,7 +186,7 @@ return out;
 
 // //' @rdname gev2d0
 // [[Rcpp::export]]
-arma::mat gev2d34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::uvec nhere)
+arma::mat gev2d34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere)
 {
     
 arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);

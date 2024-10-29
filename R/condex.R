@@ -4,10 +4,17 @@
   likdata$y <- as.matrix(likdata$y)
   likdata$args$x <- as.matrix(likdata$args$x)
   nhere <- rowSums(is.finite(likdata$y))  
-  out <- condexd0(split(pars, likdata$idpars), 
+  if (!likdata$sparse) {
+    out <- condexd0(split(pars, likdata$idpars), 
                   likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], 
                   likdata$y, likdata$args$x, likdata$args$weights, 
                   likdata$dupid, likdata$duplicate, nhere)
+  } else {
+    out <- condexspd0(split(pars, likdata$idpars), 
+                    likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], 
+                    likdata$y, likdata$args$x, likdata$args$weights, 
+                    likdata$dupid, likdata$duplicate, nhere)
+  }
   out
 }
 
@@ -15,22 +22,38 @@
   likdata$y <- as.matrix(likdata$y)
   likdata$args$x <- as.matrix(likdata$args$x)
   nhere <- rowSums(is.finite(likdata$y))  
-  out <- condexd12(split(pars, likdata$idpars), 
+  if (!likdata$sparse) {
+    out <- condexd12(split(pars, likdata$idpars), 
                    likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], 
                    likdata$y, likdata$args$x, likdata$args$weights, 
                    likdata$dupid, likdata$duplicate, nhere)
-  out
+  } else {
+    out <- condexspd12(split(pars, likdata$idpars), 
+                     likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], 
+                     likdata$y, likdata$args$x, likdata$args$weights, 
+                     likdata$dupid, likdata$duplicate, nhere)
+    
+}
+out
 }
 
 .condex.d34 <- function(pars, likdata) {
   likdata$y <- as.matrix(likdata$y)
   likdata$args$x <- as.matrix(likdata$args$x)
   nhere <- rowSums(is.finite(likdata$y))  
-  out <- condexd34(split(pars, likdata$idpars), 
+  if (!likdata$sparse) {
+    out <- condexd34(split(pars, likdata$idpars), 
                    likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], 
                    likdata$y, likdata$args$x, likdata$args$weights, 
                    likdata$dupid, likdata$duplicate, nhere)
-  out
+} else {
+  out <- condexspd34(split(pars, likdata$idpars), 
+                   likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], likdata$X[[4]], 
+                   likdata$y, likdata$args$x, likdata$args$weights, 
+                   likdata$dupid, likdata$duplicate, nhere)
+  
+}
+out
 }
 
 .condexfns <- list(d0 = .condex.d0, d120 = .condex.d12, d340 = .condex.d34)

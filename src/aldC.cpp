@@ -11,14 +11,14 @@
 // //' @param tau a scalar, the quantile sought
 // //' @param C a scalar, for the Ho et al. (2000) correction
 // //' @param dupid a scalar or vector, identifying duplicates in X1 and X2
-// //' @return aldd0 a scalar, the negative log-liklihood
+// //' @return aldd0 a scalar, the negative log-likelihood
 // //' @return aldd12 a matrix, first then second derivatives w.r.t. ALD parameters
 // //' @return aldd34 a matrix, third then fourth derivatives w.r.t. ALD parameters
 // //' @examples
 // //' ## to follow
 // //' @export
 // [[Rcpp::export]]
-double aldd0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, arma::vec tau, arma::vec C, arma::uvec dupid, int dcate, arma::uvec nhere)
+double aldd0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, arma::vec tau, arma::vec C, arma::uvec dupid, int dcate, arma::ivec nhere)
 {
   
   arma::vec mu = X1 * Rcpp::as<arma::vec>(pars[0]);
@@ -70,7 +70,7 @@ double aldd0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, arma::
 
 // //' @rdname aldd0
 // [[Rcpp::export]]
-arma::mat aldd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, arma::vec tau, arma::vec C, arma::uvec dupid, int dcate, arma::uvec nhere)
+arma::mat aldd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, arma::vec tau, arma::vec C, arma::uvec dupid, int dcate, arma::ivec nhere)
 {   
   
   arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
@@ -166,7 +166,7 @@ arma::mat aldd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, ar
 
 // //' @rdname aldd0
 // [[Rcpp::export]]
-arma::mat aldd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, arma::vec tau, arma::vec C, arma::uvec dupid, int dcate, arma::uvec nhere)
+arma::mat aldd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, arma::vec tau, arma::vec C, arma::uvec dupid, int dcate, arma::ivec nhere)
 {   
   
   arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);

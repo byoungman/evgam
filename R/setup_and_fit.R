@@ -471,7 +471,7 @@
       gams[[i]] <- mgcv::gam(formula[[i]], data=data[id,], fit=FALSE, knots=knots, method="REML")
     } else {
       datau <- data
-      datau[, responsename] <- as.vector(as.matrix(datau[, responsename])[, 1])
+      datau[, responsename] <- rowMeans(as.matrix(datau[, responsename]), na.rm = TRUE)
       gams[[i]] <- mgcv::gam(formula[[i]], data=datau, fit=FALSE, knots=knots, method="REML")
     }
     gams[[i]] <- .predictable.gam(gams[[i]], formula[[i]])
