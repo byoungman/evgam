@@ -415,6 +415,18 @@ ppexi2d34 <- function(pars, X1, X2, X3, X4, yvec, wvec) {
     .Call(`_evgam_ppexi2d34`, pars, X1, X2, X3, X4, yvec, wvec)
 }
 
+rlarged0 <- function(pars, X1, X2, X3, ymat, dupid, dcate) {
+    .Call(`_evgam_rlarged0`, pars, X1, X2, X3, ymat, dupid, dcate)
+}
+
+rlarged12 <- function(pars, X1, X2, X3, ymat, dupid, dcate) {
+    .Call(`_evgam_rlarged12`, pars, X1, X2, X3, ymat, dupid, dcate)
+}
+
+rlarged34 <- function(pars, X1, X2, X3, ymat, dupid, dcate) {
+    .Call(`_evgam_rlarged34`, pars, X1, X2, X3, ymat, dupid, dcate)
+}
+
 weibd0 <- function(pars, X1, X2, yvec, dupid, dcate) {
     .Call(`_evgam_weibd0`, pars, X1, X2, yvec, dupid, dcate)
 }

@@ -73,7 +73,7 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
     egpd_iG <- object$likfns$iG
   }
   
-  if (family %in% c("custom", "bgev", "gev2", "condex", "beta")) {
+  if (family %in% c("custom", "bgev", "gev2", "condex", "beta", "rlarge")) {
     q_fn <- object$likfns$q
     unlink_fns <- object$likfns$unlink
   }
@@ -168,7 +168,7 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
       if (type == "qqplot") 
         se.fit <- FALSE
       
-      if (family %in% c("custom", "bgev", "gev2", "condex")) {
+      if (family %in% c("custom", "bgev", "gev2", "condex", "beta", "rlarge")) {
         
         for (i in seq_along(nms)) {
           
@@ -244,7 +244,7 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
           stop("No response data.")
         
         if (!pit) {
-          if (!(family %in% c("gev", "gev2", "gpd", "gpdab", "weibull")))
+          if (!(family %in% c("gev", "gev2", "gpd", "gpdab", "weibull", "rlarge")))
             stop("Unsuitable `family' for `type == 'qqplot''")
           if (family %in% c("gev", "gev2"))
             x <- .qgev(x, out[,1], out[,2], out[,3])
@@ -256,7 +256,7 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
           if (trace > 0)
             message("Margins converted to unit exponential by probability integral transformation.")
           x <- qexp(x)
-          if (family %in% c("gev", "gev2"))
+          if (family %in% c("gev", "gev2", "rlarge"))
             y <- .pgev(y, out[,1], out[,2], out[,3])
           if (family %in% c("gpd", "gpdab"))
             y <- .pgpd(y, 0, out[,1], out[,2], 0)
@@ -295,7 +295,7 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
               }
             }
             
-            if (family %in% c("custom", "bgev", "gev2")) {
+            if (family %in% c("custom", "bgev", "gev2", "beta", "rlarge")) {
               
               if (family == 'bgev') {
                 out[, j] <- q_fn(pj, pars[,1], pars[,2], pars[,3], 
@@ -341,7 +341,7 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
           
           if (se.fit) { ## standard errors for quantile predictions using Delta method
             
-            if (family %in% c("egpd", "custom", "bgev", "gev2")) 
+            if (family %in% c("egpd", "custom", "bgev", "gev2", "beta", "rlarge")) 
               stop("Standard errors not yet available for this family.")
             
             Sigma <- array(NA, dim=c(ndat, nX, nX))

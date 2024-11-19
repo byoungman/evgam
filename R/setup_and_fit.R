@@ -184,6 +184,12 @@
                                   nms <- c("mu", "lpsi", "txi")
                                   nms2 <- c('location', 'logscale', 'transshape')
                                 } else {
+                                  if (family == 'rlarge') {
+                                    lik.fns <- .rlargefns
+                                    npar <- 3
+                                    nms <- c("mu", "lpsi", "txi")
+                                    nms2 <- c('location', 'logscale', 'transshape')
+                                  } else {
                                   if (family == "egpd") {
                                     if (is.null(egpd$model))
                                       egpd$model <- 1
@@ -244,7 +250,7 @@
         }
       }
       }
-    }}
+    }}}
   } else {
     lik.fns <- .gevaggfns
     npar <- npar2 <- 4
@@ -1004,14 +1010,14 @@
           inits <- c(inits, log(diff(quantile(likdata0$y, c(.25, .75), na.rm = TRUE))))
           inits <- c(inits, -.5)
         } else {
-          inits <- c(sqrt(6) * sd(likdata0$y) / pi, .05)
-          inits <- c(mean(likdata0$y) - .5772 * inits[1], log(inits[1]), inits[2])
-          if (family == "gev2")
+          inits <- c(sqrt(6) * sd(as.matrix(likdata0$y)[, 1]) / pi, .05)
+          inits <- c(mean(as.matrix(likdata0$y)[, 1]) - .5772 * inits[1], log(inits[1]), inits[2])
+          if (family %in% c("gev2", "rlarge"))
             inits[3] <- .85
           if (npar == 4) 
             inits <- c(inits, .1)
           if (family == 'condex')
-            inits <- c(0, 0, mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)))
+            inits <- c(0, -1, mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)))
         }
       }
       if (npar == 6) {

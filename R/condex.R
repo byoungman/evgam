@@ -58,9 +58,10 @@ out
 
 .condexfns <- list(d0 = .condex.d0, d120 = .condex.d12, d340 = .condex.d34)
 
-.condex_unlink <- list(function(x) 2 / (1 + exp(-x)) - 1, function(x) 1 - exp(x), function(x) x, function(x) exp(x))
-attr(.condex_unlink[[2]], "deriv") <- .condex_unlink[[2]]
-attr(.condex_unlink[[3]], "deriv") <- function(x) 1.5 * exp(-x)/(1 + exp(-x))^2
+.condex_unlink <- list(function(x) 2 / (1 + exp(-x)) - 1, function(x) 1 / (1 + exp(-x)), function(x) x, function(x) exp(x))
+attr(.condex_unlink[[2]], "deriv") <- function(x) exp(-x)/(1 + exp(-x))^2
+attr(.condex_unlink[[3]], "deriv") <- function(x) x
+attr(.condex_unlink[[4]], "deriv") <- function(x) exp(x)
 
 .condexfns$q <- NULL
 .condexfns$unlink <- .condex_unlink

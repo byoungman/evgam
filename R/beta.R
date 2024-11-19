@@ -40,5 +40,5 @@
 attr(.beta_unlink[[1]], "deriv") <- .beta_unlink[[1]]
 attr(.beta_unlink[[2]], "deriv") <- .beta_unlink[[2]]
 
-.betafns$q <- NULL
+.betafns$q <- qbeta
 .betafns$unlink <- .beta_unlink
