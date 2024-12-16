@@ -355,6 +355,58 @@ gpdcd34 <- function(pars, X1, X2, ymat, dupid, dcate) {
     .Call(`_evgam_gHsp6`, gh, X1, X2, X3, X4, X5, X6, dupid, dcate, sand, deriv)
 }
 
+logitgaussd0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_logitgaussd0`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
+logitgaussd12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_logitgaussd12`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
+logitgaussd34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_logitgaussd34`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
+logitgaussspd0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_logitgaussspd0`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
+logitgaussspd12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_logitgaussspd12`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
+logitgaussspd34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_logitgaussspd34`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
+ldenom <- function(left, alpha, beta) {
+    .Call(`_evgam_ldenom`, left, alpha, beta)
+}
+
+ltgammad0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, leftmat) {
+    .Call(`_evgam_ltgammad0`, pars, X1, X2, ymat, dupid, dcate, nhere, leftmat)
+}
+
+ltgammad12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, leftmat) {
+    .Call(`_evgam_ltgammad12`, pars, X1, X2, ymat, dupid, dcate, nhere, leftmat)
+}
+
+ltgammad34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, leftmat) {
+    .Call(`_evgam_ltgammad34`, pars, X1, X2, ymat, dupid, dcate, nhere, leftmat)
+}
+
+ltgammabd0 <- function(pars, X1, ymat, dupid, dcate, nhere, leftmat, alphamat) {
+    .Call(`_evgam_ltgammabd0`, pars, X1, ymat, dupid, dcate, nhere, leftmat, alphamat)
+}
+
+ltgammabd12 <- function(pars, X1, ymat, dupid, dcate, nhere, leftmat, alphamat) {
+    .Call(`_evgam_ltgammabd12`, pars, X1, ymat, dupid, dcate, nhere, leftmat, alphamat)
+}
+
+ltgammabd34 <- function(pars, X1, ymat, dupid, dcate, nhere, leftmat, alphamat) {
+    .Call(`_evgam_ltgammabd34`, pars, X1, ymat, dupid, dcate, nhere, leftmat, alphamat)
+}
+
 pp1d0 <- function(pars, X1, X2, X3, yvec, wvec) {
     .Call(`_evgam_pp1d0`, pars, X1, X2, X3, yvec, wvec)
 }
@@ -425,6 +477,18 @@ rlarged12 <- function(pars, X1, X2, X3, ymat, dupid, dcate) {
 
 rlarged34 <- function(pars, X1, X2, X3, ymat, dupid, dcate) {
     .Call(`_evgam_rlarged34`, pars, X1, X2, X3, ymat, dupid, dcate)
+}
+
+rlargecd0 <- function(pars, X1, X2, X3, ymat, dupid, dcate, drop) {
+    .Call(`_evgam_rlargecd0`, pars, X1, X2, X3, ymat, dupid, dcate, drop)
+}
+
+rlargecd12 <- function(pars, X1, X2, X3, ymat, dupid, dcate, drop) {
+    .Call(`_evgam_rlargecd12`, pars, X1, X2, X3, ymat, dupid, dcate, drop)
+}
+
+rlargecd34 <- function(pars, X1, X2, X3, ymat, dupid, dcate, drop) {
+    .Call(`_evgam_rlargecd34`, pars, X1, X2, X3, ymat, dupid, dcate, drop)
 }
 
 weibd0 <- function(pars, X1, X2, yvec, dupid, dcate) {

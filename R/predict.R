@@ -73,7 +73,9 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
     egpd_iG <- object$likfns$iG
   }
   
-  if (family %in% c("custom", "bgev", "gev2", "condex", "beta", "rlarge")) {
+  customs <- c("custom", "bgev", "gev2", "condex", "beta", "rlarge", "rlargec", "ltgamma", "ltgammab")
+  
+  if (family %in% customs) {
     q_fn <- object$likfns$q
     unlink_fns <- object$likfns$unlink
   }
@@ -87,6 +89,11 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
       stop("custom.fns$q needs supplying for type = 'quantile' and family = 'custom'.")
     if (is.null(unlink_fns))
       stop("custom.fns$unlink needs supplying for type = 'response' and family = 'custom'.")
+  }
+  
+  if (type == 'quantile') {
+    if (family %in% c('ltgamma', 'ltgammab'))
+      stop ("Quantile predictions not yet implemented for lower truncated gamma.")
   }
   
   ## end checks
@@ -168,7 +175,7 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
       if (type == "qqplot") 
         se.fit <- FALSE
       
-      if (family %in% c("custom", "bgev", "gev2", "condex", "beta", "rlarge")) {
+      if (family %in% customs) {
         
         for (i in seq_along(nms)) {
           
@@ -244,7 +251,7 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
           stop("No response data.")
         
         if (!pit) {
-          if (!(family %in% c("gev", "gev2", "gpd", "gpdab", "weibull", "rlarge")))
+          if (!(family %in% customs))
             stop("Unsuitable `family' for `type == 'qqplot''")
           if (family %in% c("gev", "gev2"))
             x <- .qgev(x, out[,1], out[,2], out[,3])
@@ -295,7 +302,7 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
               }
             }
             
-            if (family %in% c("custom", "bgev", "gev2", "beta", "rlarge")) {
+            if (family %in% customs) {
               
               if (family == 'bgev') {
                 out[, j] <- q_fn(pj, pars[,1], pars[,2], pars[,3], 
@@ -341,7 +348,7 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
           
           if (se.fit) { ## standard errors for quantile predictions using Delta method
             
-            if (family %in% c("egpd", "custom", "bgev", "gev2", "beta", "rlarge")) 
+            if (family %in% customs) 
               stop("Standard errors not yet available for this family.")
             
             Sigma <- array(NA, dim=c(ndat, nX, nX))

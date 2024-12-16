@@ -125,6 +125,18 @@
                     nms <- c("ltheta", "lk")
                     nms2 <- c('logscale', 'logshape')
                   } else {
+                    if (family == "ltgamma") {
+                      lik.fns <- .ltgammafns
+                      npar <- 2
+                      nms <- c("lalpha", "lbeta")
+                      nms2 <- c('logshape', 'lograte')
+                    } else {
+                      if (family == "ltgammab") {
+                        lik.fns <- .ltgammabfns
+                        npar <- 1
+                        nms <- c("lbeta")
+                        nms2 <- c('lograte')
+                      } else {
                     if (family == "orthoggpd") {
                       stop("'family='orthoggpd'' may not return return")
                       # gone, and possibly forgotten
@@ -160,6 +172,12 @@
                               nms <- c("mu", "logsigma")
                               nms2 <- c('location', 'logscale')
                             } else {
+                              if (family == "logitgauss") {
+                                lik.fns <- .logitgaussfns
+                                npar <- 2
+                                nms <- c("mu", "logsigma")
+                                nms2 <- c('location', 'logscale')
+                              } else {
                               if (family == 'bgev') {
                                 lik.fns <- .bgevfns
                                 npar <- 3
@@ -190,6 +208,12 @@
                                     nms <- c("mu", "lpsi", "txi")
                                     nms2 <- c('location', 'logscale', 'transshape')
                                   } else {
+                                    if (family == 'rlargec') {
+                                      lik.fns <- .rlargecfns
+                                      npar <- 3
+                                      nms <- c("mu", "lpsi", "txi")
+                                      nms2 <- c('location', 'logscale', 'transshape')
+                                    } else {
                                   if (family == "egpd") {
                                     if (is.null(egpd$model))
                                       egpd$model <- 1
@@ -250,7 +274,7 @@
         }
       }
       }
-    }}}
+    }}}}}}}
   } else {
     lik.fns <- .gevaggfns
     npar <- npar2 <- 4
@@ -1002,6 +1026,18 @@
             t1 <- (ybar * (1 - ybar) / vbar - 1)
             inits <- log(c(ybar * t1, (1 - ybar) * t1))
           }
+          if (family %in% c('gauss', 'logitgauss')) {
+            if (family == 'logitgauss')
+              likdata0$y <- 1 / (1 + exp(-likdata0$y))
+            inits <- c(mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)))
+          }
+          if (family == 'ltgamma') {
+            ybar <- mean(likdata0$y - likdata0$args$left, na.rm = TRUE)
+            vbar <- var(as.vector(likdata0$y - likdata0$args$left), na.rm = TRUE)
+            inits <- ybar / vbar
+            inits <- c(log(ybar * inits), log(inits))
+            inits <- c(0, -log(ybar))
+          }
         }
       }
       if (npar %in% 3:4) {
@@ -1010,9 +1046,10 @@
           inits <- c(inits, log(diff(quantile(likdata0$y, c(.25, .75), na.rm = TRUE))))
           inits <- c(inits, -.5)
         } else {
-          inits <- c(sqrt(6) * sd(as.matrix(likdata0$y)[, 1]) / pi, .05)
-          inits <- c(mean(as.matrix(likdata0$y)[, 1]) - .5772 * inits[1], log(inits[1]), inits[2])
-          if (family %in% c("gev2", "rlarge"))
+          col <- ifelse(family == 'rlargec', likdata0$args$drop + 1, 1)
+          inits <- c(sqrt(6) * sd(as.matrix(likdata0$y)[, col]) / pi, .05)
+          inits <- c(mean(as.matrix(likdata0$y)[, col]) - .5772 * inits[1], log(inits[1]), inits[2])
+          if (family %in% c("gev2", "rlarge", "rlargec"))
             inits[3] <- .85
           if (npar == 4) 
             inits <- c(inits, .1)

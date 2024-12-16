@@ -1,4 +1,4 @@
-## Asymmetric Laplace negative log-likelihood functions
+## Beta negative log-likelihood functions
 
 .beta.d0 <- function(pars, likdata) {
   likdata$y <- as.matrix(likdata$y)
