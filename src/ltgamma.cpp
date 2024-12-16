@@ -2,39 +2,6 @@
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
 
-double pgam(double y, double a, double b)
-{
-  return Rf_pgamma(y, a, b, 1, 0);
-}
-
-const double eps0 = 1e-8;
-const double eps1 = 1e-4;
-
-// double dpgama(double y, double a, double b, double eps)
-// {
-//   return 0.5 * (pgam(y, a + eps, b) - pgam(y, a - eps, b)) / eps;
-// }
-// 
-// double dpgamb(double y, double a, double b) {
-//   return y * R_pow(b * y, a - 1) * exp(-b*y) / gamma(a);
-// }
-//   
-// double dpgama(double y, double a, double b) 
-// {
-//   return 0.5 * (pgam(y, a + eps0, b) - pgam(y, a - eps0, b)) / eps0;
-// }
-// 
-// double dpgamaa(double y, double a, double b) 
-// {
-//   return (pgam(y, a + eps1, b) + pgam(y, a - eps1, b) - 2 * pgam(y, a, b)) / eps0;
-// }
-// 
-// double dpgamab(double y, double a, double b) 
-// {
-//   return .25 * (pgam(y, a + eps1, b + eps1) + pgam(y, a - eps1, b - eps1) - 
-//                 pgam(y, a + eps1, b - eps1) + pgam(y, a - eps1, b + eps1)) / eps0;
-// }
-
 // [[Rcpp::export]]
 double ldenom(double left, double alpha, double beta) {
   double bl = beta * left;
@@ -45,36 +12,6 @@ double ldenom(double left, double alpha, double beta) {
   out = out * R_pow(bl, alpha) * exp(-bl);
   return log(1 - out);
 }
-
-// double fj(double y, double p1, double p2, double left) {
-//   double alpha = exp(p1);
-//   double beta = exp(p2);
-//   double ldenom = log(1 - pgam(left, alpha, beta));
-//   double lnum = (alpha - 1) * log(y) - beta * y + alpha * p2 - lgamma(alpha);
-//   return ldenom - lnum;
-// }
-//     
-// arma::rowvec dfj(double y, double p1, double p2, double left) {
-//   double f0 = fj(y, p1, p2, left);
-//   arma::rowvec out(5);
-//   double p1h = p1 + eps1;
-//   double p2h = p2 + eps1;
-//   double p1l = p1 - eps1;
-//   double p2l = p2 - eps1;
-//   double f1h = fj(y, p1h, p2, left);
-//   double f1l = fj(y, p1l, p2, left);
-//   double f2h = fj(y, p1, p2h, left);
-//   double f2l = fj(y, p1, p2l, left);
-//   out[0] = 0.5 * (f1h - f1l) / eps1;
-//   out[1] = 0.5 * (f2h - f2l) / eps1;
-//   out[2] = 0.25 * (f1h + f1l - 2 * f0) / eps0;
-//   out[4] = 0.25 * (f2h + f2l - 2 * f0) / eps0;
-//   double fhh = fj(y, p1h, p2h, left);
-//   double fll = fj(y, p1l, p2l, left);
-//   out[3] = 0.5 * (fhh - f1h - f2h + 2 * f0 - f1l - f2l + fll) / eps0;
-//   return out;
-// }
-// 
 
 // //' Left-truncated Gamma distribution negative log-likelihood
 // //'

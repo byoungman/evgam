@@ -6,7 +6,7 @@
   left <- likdata$args$left
   if (length(left) == 1)
     left <- array(left, dim(likdata$y))
-  out <- ltgammad0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, left)
+  out <- ltgammad0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, as.matrix(left))
   if (!is.finite(out))
     out <- 1e20
   out
@@ -18,7 +18,7 @@
   left <- likdata$args$left
   if (length(left) == 1)
     left <- array(left, dim(likdata$y))
-  out <- ltgammad12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, left)
+  out <- ltgammad12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, as.matrix(left))
   out
 }
 
@@ -28,7 +28,7 @@
   left <- likdata$args$left
   if (length(left) == 1)
     left <- array(left, dim(likdata$y))
-  out <- ltgammad34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, left)
+  out <- ltgammad34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, as.matrix(left))
   out
 }
 
