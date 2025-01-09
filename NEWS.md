@@ -2,6 +2,10 @@
 
 ### Changes:
 
+* Added `ltgamma` and `ltgammab` families for the left truncated gamma distribution with unknown and know shape, respectively. Use `args = list(lower = )` to give the scalar, vector or matrix of left-truncation points, and `args = list(alpha = )` to give scalar, vector or matrix of gamma distribution shape parameters with family `ltgammab`.
+
+* Added `condex`, `beta`, `logitgauss` families.
+
 * Added option `sparse = TRUE` for `evgam(..., family = "gev2")` which coerces matrices to sparse matrices through package `Matrix` where possible.
 
 * Added `df2matdf()` for turning a vector response to a matrix response if explanatory variable combinations are repeated.
