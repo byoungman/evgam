@@ -93,7 +93,7 @@ for (int l=0; l < r; l++) {
 
       if (l < drop && z[l] <= 0.0) {
       
-        nllh += (1 / xi) * log(w[l + drop]);
+        nllh += (1 / xi) * log(z[l + drop]);
       
       } else {
         
