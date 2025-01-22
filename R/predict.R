@@ -73,7 +73,7 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
     egpd_iG <- object$likfns$iG
   }
   
-  customs <- c("custom", "bgev", "gev2", "condex", "beta", "rlarge", "rlargec", "ltgamma", "ltgammab")
+  customs <- c("custom", "bgev", "gev2", "condex", "beta", "rlarge", "rlargec", "ltgamma", "ltgammab", "gevr", "weibull3")
   
   if (family %in% customs) {
     q_fn <- object$likfns$q
@@ -259,6 +259,8 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
             x <- .qgpd(x, 0, out[,1], out[,2])
           if (family == "weibull") 
             x <- .qweibull(x, out[,1], out[,2])
+          if (family == "weibull3") 
+            x <- out[, 1] + .qweibull(x, out[, 2], out[, 3])
         } else {
           if (trace > 0)
             message("Margins converted to unit exponential by probability integral transformation.")
@@ -268,7 +270,9 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
           if (family %in% c("gpd", "gpdab"))
             y <- .pgpd(y, 0, out[,1], out[,2], 0)
           if (family == "weibull") 
-            y <- .pweibull(y, out[,1], out[,2])
+            y <- .pweibull(y, out[, 1], out[, 2])
+          if (family == "weibull3") 
+            y <- .pweibull(y - out[, 1], out[, 2], out[, 3])
           y <- qexp(y)
         }
         
@@ -338,7 +342,11 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
                   if (family == "weibull") {
                     out[, j] <- .qweibull(pj, scale=pars[,1], shape=pars[,2])
                   } else {
-                    stop("invalid family")
+                    if (family == "weibull3") {
+                      out[, j] <- pars[, 1] + .qweibull(pj, scale=pars[, 2], shape=pars[, 3])
+                    } else {
+                      stop("invalid family")
+                    }
                   } 
                 }
               }

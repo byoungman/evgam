@@ -1,6 +1,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
+#include "shared.h"
 
 double xi_from_zero(double xi, double eps) 
 {
@@ -13,8 +14,6 @@ if (fabs(xi) <= eps) {
 }
 return xi;
 }
-
-const double xieps = 0.0001;
 
 double xi2txi(double xi) 
 {
@@ -202,8 +201,6 @@ if (dcate == 1) {
 
 double y, mu, lpsi, txi, xi;
 
-arma::mat out = arma::mat(nobs, 25, arma::fill::zeros);
-
 double ee2, ee3, ee5, ee6, ee7, ee8, ee9;
 double ee10, ee11, ee12, ee13, ee14, ee15, ee16, ee17, ee18, ee19;
 double ee20, ee21, ee22, ee23, ee24, ee25, ee28, ee29;
@@ -231,6 +228,8 @@ double ee237;
 double ee241, ee242, ee243, ee244, ee246, ee248, ee249;
 double ee251, ee252, ee253, ee255, ee256, ee259;
 double ee260, ee261, ee263;
+
+arma::mat out = arma::mat(nobs, 25, arma::fill::zeros);
 
 for (int j=0; j < nobs; j++) {
 

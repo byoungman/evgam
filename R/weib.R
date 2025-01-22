@@ -1,24 +1,24 @@
 ## Weibull negative log-likelihood functions
 
 .weib.d0 <- function(pars, likdata) {
-ny <- ncol(likdata$y)
-out <- lapply(seq_len(ny), function(i) weibd0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y[,i], likdata$dupid, likdata$duplicate))
-out <- Reduce("+", out) / ny
+likdata$y <- as.matrix(likdata$y)
+nhere <- rowSums(is.finite(likdata$y))  
+out <- weibd0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere)
 out
 }
 
 .weib.d12 <- function(pars, likdata, sandwich = FALSE) {
-ny <- ncol(likdata$y)
-out <- lapply(seq_len(ny), function(i) weibd12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y[,i], likdata$dupid, likdata$duplicate))
-out <- Reduce("+", out) / ny
-out
+  likdata$y <- as.matrix(likdata$y)
+  nhere <- rowSums(is.finite(likdata$y))  
+  out <- weibd12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere)
+  out
 }
 
 .weib.d34 <- function(pars, likdata) {
-ny <- ncol(likdata$y)
-out <- lapply(seq_len(ny), function(i) weibd34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y[,i], likdata$dupid, likdata$duplicate))
-out <- Reduce("+", out) / ny
-out
+  likdata$y <- as.matrix(likdata$y)
+  nhere <- rowSums(is.finite(likdata$y))  
+  out <- weibd34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere)
+  out
 }
 
 .weibfns <- list(d0=.weib.d0, d120=.weib.d12, d340=.weib.d34)

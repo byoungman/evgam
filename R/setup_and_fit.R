@@ -67,220 +67,243 @@
   )
   
   if (!aggregated) {
+    
     if (family == "gev") {
       lik.fns <- .gevfns
       npar <- 3
       nms <- c("mu", "lpsi", "xi")
       nms2 <- c('location', 'logscale', 'shape')
-    } else {
-      if (family == "gpd") {
-        if (is.null(gpd$lower)) {
-          lik.fns <- .gpdfns
-          npar <- 2
-          nms <- c("lpsi", "xi")
-          nms2 <- c('logscale', 'shape')
-        } else {
-          family <- 'gpdab'
-          lik.fns <- .gpdabfns
-          npar <- 2
-          nms <- c("psi0", "xi0")
-          nms2 <- c('logitscale', 'logitshape')
-        } 
+    } 
+      
+    if (family == "gpd") {
+      if (is.null(gpd$lower)) {
+        lik.fns <- .gpdfns
+        npar <- 2
+        nms <- c("lpsi", "xi")
+        nms2 <- c('logscale', 'shape')
       } else {
-        if (family == "modgpd") {
-          stop("'family='modgpd'' will return; in the mean time use `family='gpd''")
-          # gone, but not forgotten
-          lik.fns <- NULL
-          npar <- 2
-          nms <- c("lmodpsi", "xi")
-          nms2 <- c('logscale', 'shape')
+        family <- 'gpdab'
+        lik.fns <- .gpdabfns
+        npar <- 2
+        nms <- c("psi0", "xi0")
+        nms2 <- c('logitscale', 'logitshape')
+      } 
+    } 
+    
+    if (family == "modgpd") {
+      stop("'family='modgpd'' will return; in the mean time use `family='gpd''")
+      # gone, but not forgotten
+      lik.fns <- NULL
+      npar <- 2
+      nms <- c("lmodpsi", "xi")
+      nms2 <- c('logscale', 'shape')
+    }
+    
+    if (family == "pp") {
+      lik.fns <- .ppfns
+      npar <- 3
+      nms <- c("mu", "lpsi", "xi")
+      nms2 <- c('location', 'logscale', 'shape')
+    }
+    
+    if (family == "weibull") {
+      lik.fns <- .weibfns
+      npar <- 2
+      nms <- c("llambda", "lk")
+      nms2 <- c('logscale', 'logshape')
+    }
+    
+    if (family == "exi") {
+      lik.fns <- .exifns
+      npar <- 1
+      nms <- c("location")
+      nms2 <- c('translocation')
+    }
+    
+    if (family == "ald") {
+      lik.fns <- .aldfns
+      npar <- 2
+      nms <- c("mu", "lsigma")
+      nms2 <- c('location', 'logscale')
+    }
+    
+    if (family == "gamma") {
+      lik.fns <- NULL#gammafns
+      npar <- 2
+      nms <- c("ltheta", "lk")
+      nms2 <- c('logscale', 'logshape')
+    }
+    
+    if (family == "ltgamma") {
+      lik.fns <- .ltgammafns
+      npar <- 2
+      nms <- c("lalpha", "lbeta")
+      nms2 <- c('logshape', 'lograte')
+    }
+    
+    if (family == "ltgammab") {
+      lik.fns <- .ltgammabfns
+      npar <- 1
+      nms <- c("lbeta")
+      nms2 <- c('lograte')
+    }
+    
+    if (family == "orthoggpd") {
+      stop("'family='orthoggpd'' may not return return")
+      # gone, and possibly forgotten
+      lik.fns <- NULL#ogpdfns
+      npar <- 2
+      nms <- c("lnu", "xi")
+      nms2 <- c('logscale', 'shape')
+    }
+    
+    if (family == "transxigpd") {
+      stop("'family='transxigpd'' may not return")
+      # gone, and possibly forgotten
+      lik.fns <- NULL#txigpdfns
+      npar <- 2
+      nms <- c("lpsi", "xi")
+    }
+    
+    if (family == "transgev") {
+      stop("'family='transgev'' may not return")
+      # gone, and possibly forgotten
+      lik.fns <- NULL#transgevfns
+      npar <- 6
+      nms <- c("mu", "lpsi", "xi", "A", "lB", "C")
+      nms2 <- c('location', 'logscale', 'shape', 'A', 'logB', 'C')
+    }
+    
+    if (family == "exponential") {
+      lik.fns <- .expfns
+      npar <- 1
+      nms <- c("llambda")
+      nms2 <- c('lograte')
+    }
+    
+    if (family == "gauss") {
+      lik.fns <- .gaussfns
+      npar <- 2
+      nms <- c("mu", "logsigma")
+      nms2 <- c('location', 'logscale')
+    }
+    
+    if (family == "logitgauss") {
+      lik.fns <- .logitgaussfns
+      npar <- 2
+      nms <- c("mu", "logsigma")
+      nms2 <- c('location', 'logscale')
+    }
+    
+    if (family == 'bgev') {
+      lik.fns <- .bgevfns
+      npar <- 3
+      nms <- c("qalpha", "lsbeta", "transxi")
+      nms2 <- c('location', 'logscale', 'transshape')
+    }
+    
+    if (family == 'condex') {
+      lik.fns <- .condexfns
+      npar <- 4
+      nms <- c("talpha", "tbeta", "mu", "tsigma")
+      nms2 <- c('alpha', 'beta', 'location', 'scale')
+    }
+    
+    if (family == 'beta') {
+      lik.fns <- .betafns
+      npar <- 2
+      nms <- c("lshape1", "lshape2")
+      nms2 <- c('shape1', 'shape2')
+    }
+    
+    if (family == 'gev2') {
+      lik.fns <- .gev2fns
+      npar <- 3
+      nms <- c("mu", "lpsi", "txi")
+      nms2 <- c('location', 'logscale', 'transshape')
+    }
+
+    if (family == 'gevr') {
+      lik.fns <- .gevrfns
+      npar <- 3
+      nms <- c("mu", "lpsi", "txi")
+      nms2 <- c('location', 'logscale', 'transshape')
+    }
+
+    if (family == 'rlarge') {
+      lik.fns <- .rlargefns
+      npar <- 3
+      nms <- c("mu", "lpsi", "txi")
+      nms2 <- c('location', 'logscale', 'transshape')
+    }
+    
+    if (family == 'rlargec') {
+      lik.fns <- .rlargecfns
+      npar <- 3
+      nms <- c("mu", "lpsi", "txi")
+      nms2 <- c('location', 'logscale', 'transshape')
+    }
+    
+    if (family == 'weibull3') {
+      lik.fns <- .weib3fns
+      npar <- 3
+      nms <- c("mu", "llambda", "lkappa")
+      nms2 <- c('location', 'logscale', 'logshape')
+    }
+    
+    if (family == "egpd") {
+      if (is.null(egpd$model))
+        egpd$model <- 1
+      if (egpd$model == 1) {
+        lik.fns <- .egpd1fns
+        npar <- 3
+        nms <- c("lpsi", "xi", "lkappa")
+        nms2 <- c('logscale', 'shape', 'logkappa')
+        attr(family, "type") <- 1
+      } else {
+        if (egpd$model == 2) {
+          lik.fns <- .egpd2fns
+          npar <- 5
+          nms <- c("lpsi", "xi", "lkappa1", "lkappa2", "logitp")
+          nms2 <- c('logscale', 'shape', 'logkappa1', 'logkappa2', 'logitp')
+          attr(family, "type") <- 2
         } else {
-          if (family == "pp") {
-            lik.fns <- .ppfns
+          if (egpd$model == 3) {
+            lik.fns <- .egpd3fns
             npar <- 3
-            nms <- c("mu", "lpsi", "xi")
-            nms2 <- c('location', 'logscale', 'shape')
+            nms <- c("lpsi", "xi", "ldelta")
+            nms2 <- c('logscale', 'shape', 'logdelta')
+            attr(family, "type") <- 3
           } else {
-            if (family == "weibull") {
-              lik.fns <- .weibfns
-              npar <- 2
-              nms <- c("llambda", "lk")
-              nms2 <- c('logscale', 'logshape')
-            } else {
-              if (family == "exi") {
-                lik.fns <- .exifns
-                npar <- 1
-                nms <- c("location")
-                nms2 <- c('translocation')
-              } else { 
-                if (family == "ald") {
-                  lik.fns <- .aldfns
-                  npar <- 2
-                  nms <- c("mu", "lsigma")
-                  nms2 <- c('location', 'logscale')
-                } else {
-                  if (family == "gamma") {
-                    lik.fns <- NULL#gammafns
-                    npar <- 2
-                    nms <- c("ltheta", "lk")
-                    nms2 <- c('logscale', 'logshape')
-                  } else {
-                    if (family == "ltgamma") {
-                      lik.fns <- .ltgammafns
-                      npar <- 2
-                      nms <- c("lalpha", "lbeta")
-                      nms2 <- c('logshape', 'lograte')
-                    } else {
-                      if (family == "ltgammab") {
-                        lik.fns <- .ltgammabfns
-                        npar <- 1
-                        nms <- c("lbeta")
-                        nms2 <- c('lograte')
-                      } else {
-                    if (family == "orthoggpd") {
-                      stop("'family='orthoggpd'' may not return return")
-                      # gone, and possibly forgotten
-                      lik.fns <- NULL#ogpdfns
-                      npar <- 2
-                      nms <- c("lnu", "xi")
-                      nms2 <- c('logscale', 'shape')
-                    } else {
-                      if (family == "transxigpd") {
-                        stop("'family='transxigpd'' may not return")
-                        # gone, and possibly forgotten
-                        lik.fns <- NULL#txigpdfns
-                        npar <- 2
-                        nms <- c("lpsi", "xi")
-                      } else {
-                        if (family == "transgev") {
-                          stop("'family='transgev'' may not return")
-                          # gone, and possibly forgotten
-                          lik.fns <- NULL#transgevfns
-                          npar <- 6
-                          nms <- c("mu", "lpsi", "xi", "A", "lB", "C")
-                          nms2 <- c('location', 'logscale', 'shape', 'A', 'logB', 'C')
-                        } else {
-                          if (family == "exponential") {
-                            lik.fns <- .expfns
-                            npar <- 1
-                            nms <- c("llambda")
-                            nms2 <- c('lograte')
-                          } else {
-                            if (family == "gauss") {
-                              lik.fns <- .gaussfns
-                              npar <- 2
-                              nms <- c("mu", "logsigma")
-                              nms2 <- c('location', 'logscale')
-                            } else {
-                              if (family == "logitgauss") {
-                                lik.fns <- .logitgaussfns
-                                npar <- 2
-                                nms <- c("mu", "logsigma")
-                                nms2 <- c('location', 'logscale')
-                              } else {
-                              if (family == 'bgev') {
-                                lik.fns <- .bgevfns
-                                npar <- 3
-                                nms <- c("qalpha", "lsbeta", "transxi")
-                                nms2 <- c('location', 'logscale', 'transshape')
-                              } else {
-                                if (family == 'condex') {
-                                  lik.fns <- .condexfns
-                                  npar <- 4
-                                  nms <- c("talpha", "tbeta", "mu", "tsigma")
-                                  nms2 <- c('alpha', 'beta', 'location', 'scale')
-                                } else {
-                                  if (family == 'beta') {
-                                    lik.fns <- .betafns
-                                    npar <- 2
-                                    nms <- c("lshape1", "lshape2")
-                                    nms2 <- c('shape1', 'shape2')
-                                  } else {
-                                  if (family == 'gev2') {
-                                  lik.fns <- .gev2fns
-                                  npar <- 3
-                                  nms <- c("mu", "lpsi", "txi")
-                                  nms2 <- c('location', 'logscale', 'transshape')
-                                } else {
-                                  if (family == 'rlarge') {
-                                    lik.fns <- .rlargefns
-                                    npar <- 3
-                                    nms <- c("mu", "lpsi", "txi")
-                                    nms2 <- c('location', 'logscale', 'transshape')
-                                  } else {
-                                    if (family == 'rlargec') {
-                                      lik.fns <- .rlargecfns
-                                      npar <- 3
-                                      nms <- c("mu", "lpsi", "txi")
-                                      nms2 <- c('location', 'logscale', 'transshape')
-                                    } else {
-                                  if (family == "egpd") {
-                                    if (is.null(egpd$model))
-                                      egpd$model <- 1
-                                    if (egpd$model == 1) {
-                                      lik.fns <- .egpd1fns
-                                      npar <- 3
-                                      nms <- c("lpsi", "xi", "lkappa")
-                                      nms2 <- c('logscale', 'shape', 'logkappa')
-                                      attr(family, "type") <- 1
-                                    } else {
-                                      if (egpd$model == 2) {
-                                        lik.fns <- .egpd2fns
-                                        npar <- 5
-                                        nms <- c("lpsi", "xi", "lkappa1", "lkappa2", "logitp")
-                                        nms2 <- c('logscale', 'shape', 'logkappa1', 'logkappa2', 'logitp')
-                                        attr(family, "type") <- 2
-                                      } else {
-                                        if (egpd$model == 3) {
-                                          lik.fns <- .egpd3fns
-                                          npar <- 3
-                                          nms <- c("lpsi", "xi", "ldelta")
-                                          nms2 <- c('logscale', 'shape', 'logdelta')
-                                          attr(family, "type") <- 3
-                                        } else {
-                                          lik.fns <- .egpd4fns
-                                          npar <- 4
-                                          nms <- c("lpsi", "xi", "ldelta", "lkappa")
-                                          nms2 <- c('logscale', 'shape', 'logdelta', 'logkappa')
-                                          attr(family, "type") <- 4
-                                        }
-                                      }
-                                    }
-                                  } else {
-                                    if (length(likfns)) {
-                                      lik.fns <- likfns
-                                      family <- "custom"
-                                      npar <- length(formula)
-                                      if (is.null(names(formula))) {
-                                        nms <- paste("par", seq_along(formula), sep = "_")
-                                      } else {
-                                        nms <- names(formula)
-                                      }
-                                      nms2 <- nms
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            lik.fns <- .egpd4fns
+            npar <- 4
+            nms <- c("lpsi", "xi", "ldelta", "lkappa")
+            nms2 <- c('logscale', 'shape', 'logdelta', 'logkappa')
+            attr(family, "type") <- 4
           }
         }
       }
+    }
+    
+    if (length(likfns)) {
+      lik.fns <- likfns
+      family <- "custom"
+      npar <- length(formula)
+      if (is.null(names(formula))) {
+        nms <- paste("par", seq_along(formula), sep = "_")
+      } else {
+        nms <- names(formula)
       }
-    }}}}}}}
+    nms2 <- nms
+    }
   } else {
     lik.fns <- .gevaggfns
     npar <- npar2 <- 4
     nms <- c("mu", "lpsi", "xi", "ltheta")
     nms2 <- c("location", "logscale", "shape", "logitdep")
   }
+  if (!exists("lik.fns"))
+    stop(paste('family', family, 'unrecognised'))
   out <- list(npar=npar, npar2=npar, lik.fns=lik.fns, nms=nms, family=family, nms2 = nms2)
 }
 
@@ -397,6 +420,14 @@
     if (length(response.name) > 2)
       stop("Censored response can only contain two variables.")
     rr <- response.name[2]
+    # new_formula <- function(x) {
+    #   fd <- deparse(x)
+    #   fd2 <- strsplit(fd, '~')[[1]]
+    #   fd2[1] <- response.name[1]
+    #   fd3 <- paste(fd2, collapse = ' ~')
+    #   as.formula(fd3)
+    # }
+    # formula <- lapply(formula, new_formula)
     formula <- lapply(termlabels.list, function(x) reformulate(termlabels=x, response=rr))
     censored <- TRUE
   }
@@ -1049,12 +1080,18 @@
           col <- ifelse(family == 'rlargec', likdata0$args$drop + 1, 1)
           inits <- c(sqrt(6) * sd(as.matrix(likdata0$y)[, col]) / pi, .05)
           inits <- c(mean(as.matrix(likdata0$y)[, col]) - .5772 * inits[1], log(inits[1]), inits[2])
-          if (family %in% c("gev2", "rlarge", "rlargec"))
+          if (family %in% c("gev2", "rlarge", "rlargec", "gevr"))
             inits[3] <- .85
           if (npar == 4) 
             inits <- c(inits, .1)
           if (family == 'condex')
             inits <- c(0, -1, mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)))
+          if (family == 'weibull3') {
+            yy <- likdata0$y
+            inits <- min(yy) - .1
+            yy <- yy - inits
+            inits <- c(inits, log(mean(yy)), .5)
+          }
         }
       }
       if (npar == 6) {

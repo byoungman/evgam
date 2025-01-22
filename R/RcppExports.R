@@ -271,6 +271,18 @@ gevcd34 <- function(pars, X1, X2, X3, ymat, dupid, dcate) {
     .Call(`_evgam_gevcd34`, pars, X1, X2, X3, ymat, dupid, dcate)
 }
 
+gevrd0 <- function(pars, X1, X2, X3, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gevrd0`, pars, X1, X2, X3, ymat, dupid, dcate, nhere)
+}
+
+gevrd12 <- function(pars, X1, X2, X3, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gevrd12`, pars, X1, X2, X3, ymat, dupid, dcate, nhere)
+}
+
+gevrd34 <- function(pars, X1, X2, X3, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gevrd34`, pars, X1, X2, X3, ymat, dupid, dcate, nhere)
+}
+
 gpdd0 <- function(pars, X1, X2, yvec, dupid, dcate) {
     .Call(`_evgam_gpdd0`, pars, X1, X2, yvec, dupid, dcate)
 }
@@ -491,15 +503,27 @@ rlargecd34 <- function(pars, X1, X2, X3, ymat, dupid, dcate, drop) {
     .Call(`_evgam_rlargecd34`, pars, X1, X2, X3, ymat, dupid, dcate, drop)
 }
 
-weibd0 <- function(pars, X1, X2, yvec, dupid, dcate) {
-    .Call(`_evgam_weibd0`, pars, X1, X2, yvec, dupid, dcate)
+weib3d0 <- function(pars, X1, X2, X3, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_weib3d0`, pars, X1, X2, X3, ymat, dupid, dcate, nhere)
 }
 
-weibd12 <- function(pars, X1, X2, yvec, dupid, dcate) {
-    .Call(`_evgam_weibd12`, pars, X1, X2, yvec, dupid, dcate)
+weib3d12 <- function(pars, X1, X2, X3, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_weib3d12`, pars, X1, X2, X3, ymat, dupid, dcate, nhere)
 }
 
-weibd34 <- function(pars, X1, X2, yvec, dupid, dcate) {
-    .Call(`_evgam_weibd34`, pars, X1, X2, yvec, dupid, dcate)
+weib3d34 <- function(pars, X1, X2, X3, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_weib3d34`, pars, X1, X2, X3, ymat, dupid, dcate, nhere)
+}
+
+weibd0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_weibd0`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
+weibd12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_weibd12`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
+weibd34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_weibd34`, pars, X1, X2, ymat, dupid, dcate, nhere)
 }
 
