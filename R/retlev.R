@@ -83,15 +83,20 @@ alpha <- t(t(alpha)  / colSums(alpha))
 theta <- matrix(theta, nr, nc)
 weights <- m * alpha * theta
 tau <- matrix(tau, nr, nc)
-if (method == "uniroot") {
-  out <- numeric(nc)
-  for (i in seq_len(nc)) {
-    out[i] <- .rlvec(p, loc[,i], scale[,i], shape[,i], m, nr, weights[,i], family, 
-                     tau[,i], theta[,i], bgev.args, start)
+if (nr > 1) {
+  if (method == "uniroot") {
+    out <- numeric(nc)
+    for (i in seq_len(nc)) {
+      out[i] <- .rlvec(p, loc[,i], scale[,i], shape[,i], m, nr, weights[,i], family, 
+                       tau[,i], theta[,i], bgev.args, start)
+    }
+  } else {
+    out <- .rlvec2(p, loc, scale, shape, m, nr, weights, family, tau, theta, 
+                 bgev.args, start)
   }
 } else {
-  out <- .rlvec2(p, loc, scale, shape, m, nr, weights, family, tau, theta, 
-                 bgev.args, start)
+  out <- .rlvec0(p, loc, scale, shape, m, nr, weights, family, tau, theta, 
+                 bgev.args)
 }
 out
 }
@@ -203,6 +208,24 @@ if (log)
     it <- it + 1
   }
   rl0
+}
+
+.rlvec0 <- function(p, loc, scale, shape, m, n, weights, family, tau, theta, 
+                    bgev.args) {
+  if (family == "gpd") {
+    out <- .qgpd(p, loc, scale, shape, 1 - tau, theta, m)
+  } else {
+    if (family == "gev") {
+      out <- .qgev(p^(1/n), loc, scale, shape)
+    } else {
+      pa <- bgev.args$pa
+      pb <- bgev.args$pb
+      alpha <- bgev.args$alpha
+      beta <- bgev.args$beta
+      out <- qbgev(p^(1/n), loc, scale, shape, pa, pb, alpha, beta)
+    }
+  }
+  out
 }
 
 .pmax2 <- function(x, loc, scale, shape, tau, weights, log, family, 
