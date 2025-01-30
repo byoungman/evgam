@@ -106,6 +106,20 @@
       nms2 <- c('location', 'logscale', 'shape')
     }
     
+    if (family == "gamma3") {
+      lik.fns <- .gamma3fns
+      npar <- 3
+      nms <- c("mu", "ltheta", "lalpha")
+      nms2 <- c('location', 'logscale', 'logshape')
+    }
+
+    if (family == "gamma") {
+      lik.fns <- .gammafns
+      npar <- 2
+      nms <- c("ltheta", "lalpha")
+      nms2 <- c('logscale', 'logshape')
+    }
+
     if (family == "weibull") {
       lik.fns <- .weibfns
       npar <- 2
@@ -125,13 +139,6 @@
       npar <- 2
       nms <- c("mu", "lsigma")
       nms2 <- c('location', 'logscale')
-    }
-    
-    if (family == "gamma") {
-      lik.fns <- NULL#gammafns
-      npar <- 2
-      nms <- c("ltheta", "lk")
-      nms2 <- c('logscale', 'logshape')
     }
     
     if (family == "ltgamma") {
@@ -1069,6 +1076,13 @@
             inits <- c(log(ybar * inits), log(inits))
             inits <- c(0, -log(ybar))
           }
+          if (family == 'gamma') {
+            ybar <- mean(likdata0$y, na.rm = TRUE)
+            vbar <- var(as.vector(likdata0$y), na.rm = TRUE)
+            inits <- vbar / ybar
+            inits <- c(inits, c(ybar / inits))
+            inits <- log(inits)
+          }
         }
       }
       if (npar %in% 3:4) {
@@ -1091,6 +1105,17 @@
             inits <- min(yy) - .1
             yy <- yy - inits
             inits <- c(inits, log(mean(yy)), .5)
+          }
+          if (family == 'gamma3') {
+            yy <- likdata0$y
+            loc <- min(yy) - .1
+            yy <- yy - loc
+            ybar <- mean(yy, na.rm = TRUE)
+            vbar <- var(as.vector(yy), na.rm = TRUE)
+            inits <- vbar / ybar
+            inits <- c(inits, c(ybar / inits))
+            inits <- log(inits)
+            inits <- c(loc, inits)
           }
         }
       }

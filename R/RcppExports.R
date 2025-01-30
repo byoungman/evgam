@@ -175,6 +175,30 @@ armaginv <- function(x, tol) {
     .Call(`_evgam_armaginv`, x, tol)
 }
 
+gamma3d0 <- function(pars, X1, X2, X3, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gamma3d0`, pars, X1, X2, X3, ymat, dupid, dcate, nhere)
+}
+
+gamma3d12 <- function(pars, X1, X2, X3, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gamma3d12`, pars, X1, X2, X3, ymat, dupid, dcate, nhere)
+}
+
+gamma3d34 <- function(pars, X1, X2, X3, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gamma3d34`, pars, X1, X2, X3, ymat, dupid, dcate, nhere)
+}
+
+gammad0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gammad0`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
+gammad12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gammad12`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
+gammad34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gammad34`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
 gaussd0 <- function(pars, X1, X2, yvec, dupid, dcate) {
     .Call(`_evgam_gaussd0`, pars, X1, X2, yvec, dupid, dcate)
 }

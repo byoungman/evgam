@@ -73,7 +73,8 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
     egpd_iG <- object$likfns$iG
   }
   
-  customs <- c("custom", "bgev", "gev2", "condex", "beta", "rlarge", "rlargec", "ltgamma", "ltgammab", "gevr", "weibull3")
+  customs <- c("custom", "bgev", "gev2", "condex", "beta", "rlarge", "rlargec", 
+               "ltgamma", "ltgammab", "gevr", "weibull3", "gamma", "gamma3")
   
   if (family %in% customs) {
     q_fn <- object$likfns$q
