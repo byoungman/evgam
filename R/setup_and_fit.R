@@ -90,6 +90,13 @@
       } 
     } 
     
+    if (family == "gpd2") {
+      lik.fns <- .gpd2fns
+      npar <- 2
+      nms <- c("lpsi", "txi")
+      nms2 <- c('logscale', 'transshape')
+    } 
+
     if (family == "modgpd") {
       stop("'family='modgpd'' will return; in the mean time use `family='gpd''")
       # gone, but not forgotten
@@ -1082,6 +1089,10 @@
             inits <- vbar / ybar
             inits <- c(inits, c(ybar / inits))
             inits <- log(inits)
+          }
+          if (family == 'gpd2') {
+            ybar <- mean(likdata0$y, na.rm = TRUE)
+            inits <- c(log(ybar), -log(.36))
           }
         }
       }

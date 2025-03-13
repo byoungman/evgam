@@ -307,6 +307,18 @@ gevrd34 <- function(pars, X1, X2, X3, ymat, dupid, dcate, nhere) {
     .Call(`_evgam_gevrd34`, pars, X1, X2, X3, ymat, dupid, dcate, nhere)
 }
 
+gpd2d0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gpd2d0`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
+gpd2d12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gpd2d12`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
+gpd2d34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_gpd2d34`, pars, X1, X2, ymat, dupid, dcate, nhere)
+}
+
 gpdd0 <- function(pars, X1, X2, yvec, dupid, dcate) {
     .Call(`_evgam_gpdd0`, pars, X1, X2, yvec, dupid, dcate)
 }

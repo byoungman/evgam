@@ -43,3 +43,10 @@ d1 <- .e4
 d2 <--(.e4 * log(.e1)/.e2)
 cbind(d1, d2)
 }
+
+.weib_unlink <- list(function(x) exp(x), function(x) exp(x))
+attr(.weib_unlink[[1]], "deriv") <- .weib_unlink[[1]]
+attr(.weib_unlink[[2]], "deriv") <- .weib_unlink[[2]]
+
+.weibfns$q <- .qweibull
+.weibfns$unlink <- .weib_unlink
