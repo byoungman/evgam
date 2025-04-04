@@ -41,6 +41,7 @@
   out
 }
 
+# .ltgammabfns <- list(d0 = .ltgammab.d0, d120 = .ltgammab.d12, d340 = NULL)
 .ltgammabfns <- list(d0 = .ltgammab.d0, d120 = .ltgammab.d12, d340 = .ltgammab.d34)
 
 .ltgammab_unlink <- list(function(x) exp(x))
