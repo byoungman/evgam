@@ -32,6 +32,7 @@
   out
 }
 
+# .ltgammafns <- list(d0 = .ltgamma.d0, d120 = .ltgamma.d12, d340 = NULL)
 .ltgammafns <- list(d0 = .ltgamma.d0, d120 = .ltgamma.d12, d340 = .ltgamma.d34)
 
 .ltgamma_unlink <- list(function(x) exp(x), function(x) exp(x))
