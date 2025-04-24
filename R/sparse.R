@@ -210,7 +210,8 @@
   out$H <- H2
   out$dH <- attr(H2, "d")
   out$cH <- attr(H2, "chol")
-  out$iH <- out$dH * t(chol2inv(out$cH) * out$dH)#crossprod(backsolve(out$cH, diag(out$dH), transpose=TRUE))
+  # out$iH <- MASS::ginv(out$H0)
+  out$iH <- .precond_solve(out$cH)
   out$kept <- !logical(nrow(H))
   out
 }
@@ -222,6 +223,12 @@
   out$H <- H2
   out$dH <- attr(H2, "d")
   out$cH <- attr(H2, "chol")
+  browser()
+  out$iH <- Matrix::solve(out$H0)
+  t1 <- Matrix::tcrossprod(Matrix::solve(out$cH, Matrix::Diagonal(nrow(H)))) * Matrix::tcrossprod(out$dH)
+  range(t1 - out$iH)
+  out$dH * Matrix::t(Matrix::chol2inv(out$cH) * out$dH)# out$iH <- Matrix::solve(out$cH, Matrix::Diagonal(out$dH), transpose=TRUE))
+  
   out$iH <- out$dH * Matrix::t(Matrix::chol2inv(out$cH) * out$dH)# out$iH <- Matrix::solve(out$cH, Matrix::Diagonal(out$dH), transpose=TRUE))
   out$kept <- !logical(nrow(H))
   out
@@ -238,7 +245,7 @@
 
 .perturb_dense <- function(A) {
   d <- attr(A, "d")
-  eps <- 1e-16
+  eps <- 1e-12
   cholA <- suppressWarnings(chol(A, pivot=TRUE))
   rk <- rk0 <- attr(cholA, "rank")
   while(rk < nrow(A)) {
@@ -309,21 +316,40 @@
   out
 }
 
+# .precond_solve_dense <- function(L, x) {
+#   d <- attr(L, "d")
+#   x <- d * as.matrix(x)
+#   piv <- ipiv <- attr(L, "pivot")
+#   ipiv[piv] <- seq_len(nrow(L))
+#   d * backsolve(L, backsolve(L, x[piv, , drop=FALSE], upper.tri=TRUE, transpose=TRUE))[ipiv, , drop=FALSE]
+# }
+
 .precond_solve_dense <- function(L, x) {
   d <- attr(L, "d")
-  x <- d * as.matrix(x)
   piv <- ipiv <- attr(L, "pivot")
   ipiv[piv] <- seq_len(nrow(L))
-  d * backsolve(L, backsolve(L, x[piv, , drop=FALSE], upper.tri=TRUE, transpose=TRUE))[ipiv, , drop=FALSE]
+  if (is.null(x)) {
+    x <- diag(length(d))
+    out <- tcrossprod(backsolve(L, x))[ipiv, ipiv] * tcrossprod(d)
+  } else {
+    x <- d * as.matrix(x)
+    out <- d * backsolve(L, backsolve(L, x[piv, , drop=FALSE], upper.tri=TRUE, transpose=TRUE))[ipiv, , drop=FALSE]
+  }
+  out
 }
 
 .precond_solve_sparse <- function(L, x) {
   d <- attr(L, 'd')
-  # d * Matrix::solve(L, x * d)
-  d * Matrix::solve(L, Matrix::solve(Matrix::t(L), x * d))
+  if (is.null(x)) {
+    out <- Matrix::tcrossprod(Matrix::solve(L, Matrix::Diagonal(nrow(L)))) * Matrix::tcrossprod(d)
+  } else {
+    out <- d * Matrix::solve(L, Matrix::solve(Matrix::t(L), x * d))
+    # d * Matrix::solve(L, x * d)
+  }
+  out
 }
 
-.precond_solve <- function(L, x) {
+.precond_solve <- function(L, x = NULL) {
   if (is.null(attr(L, 'd')))
     attr(L, 'd') <- rep(1, nrow(L))
   if (inherits(L, 'matrix')) {
