@@ -42,7 +42,7 @@ evgam(
 
 \item{family}{a character string giving the type of family to be fitted; defaults to \code{"gev"}}
 
-\item{correctV}{logicial: should the variance-covariance matrix include smoothing parameter uncertainty? Defaults to \code{TRUE}}
+\item{correctV}{logical: should the variance-covariance matrix include smoothing parameter uncertainty? Defaults to \code{TRUE}}
 
 \item{rho0}{a scalar or vector of initial log smoothing parameter values; a scalar will be repeated if there are multiple smoothing terms}
 

@@ -37,7 +37,7 @@
 # .outer
 # --- performs outer iterations, i.e. smoothing parameter estimation
 #
-# .VpVc
+# .VpVc (in sparse.R now)
 # --- computes variance-covariance matrices for basis coefficients
 #
 # .edf
@@ -54,7 +54,7 @@
 
 ############ .setup.family ##########################
 
-.setup.family <- function(family, gpd, pp, egpd, formula, likfns, aggregated = FALSE) {
+.setup.family <- function(family, gpd, pp, egpd, formula, likfns, aggregated = FALSE, args) {
   
   big_list <- list()
   
@@ -202,6 +202,13 @@
       nms2 <- c('location', 'logscale')
     }
     
+    if (family == "aggauss") {
+      lik.fns <- .aggaussfns
+      npar <- 4
+      nms <- c("nu", "lkappa1", "lkappa2", "ldelta")
+      nms2 <- c('location', 'logscale1', 'logscale2', 'shape')
+    }
+
     if (family == "logitgauss") {
       lik.fns <- .logitgaussfns
       npar <- 2
@@ -217,10 +224,25 @@
     }
     
     if (family == 'condex') {
-      lik.fns <- .condexfns
-      npar <- 4
-      nms <- c("talpha", "tbeta", "mu", "tsigma")
-      nms2 <- c('alpha', 'beta', 'location', 'scale')
+      
+      if (is.null(args$distribution))
+        args$distribution <- 'gaussian'
+      
+      if (args$distribution == 'aggauss') {
+
+        lik.fns <- .condexaggfns
+        npar <- 6
+        nms <- c("talpha", "tbeta", "nu", "tkappa1", "tkappa2", "tdelta")
+        nms2 <- c('alpha', 'beta', 'location', 'scale1', 'scale2', 'shape')
+        
+      } else {
+        
+        lik.fns <- .condexfns
+        npar <- 4
+        nms <- c("talpha", "tbeta", "mu", "tsigma")
+        nms2 <- c('alpha', 'beta', 'location', 'scale')
+        
+      }
     }
     
     if (family == 'beta') {
@@ -561,10 +583,10 @@
   lik.data$control$outer <- list(steptol=1e-12, itlim=1e2, fntol=1e-8, gradtol=1e-2, stepmax=3)
   lik.data$control$inner <- list(steptol=1e-12, itlim=1e2, fntol=1e-8, gradtol=1e-4, stepmax=1e2)
   lik.data$y <- as.matrix(data[,responsename, drop=FALSE])
-  if (family == 'condex') {
+  # if (family == 'condex') {
     if (is.null(lik.data$args$weights))
       lik.data$args$weights <- 0 * lik.data$y + 1
-  }
+  # }
   lik.data$Mp <- sum(unlist(sapply(gams, function(y) c(1, sapply(y$smooth, function(x) x$null.space.dim)))))
   lik.data$const <- .5 * lik.data$Mp * log(2 * pi)
   lik.data$nobs <- nrow(lik.data$y)
@@ -1025,7 +1047,7 @@
 
 ############ .setup.inner.inits ##########################
 
-.setup.inner.inits <- function(inits, likdata, likfns, npar, family) {
+.setup.inner.inits <- function(inits, likdata, likfns, npar, family, args) {
   
   likdata0 <- likdata
   likdata0$sparse <- FALSE
@@ -1111,6 +1133,8 @@
             inits <- c(inits, .1)
           if (family == 'condex')
             inits <- c(0, -1, mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)))
+          if (family == 'aggauss')
+            inits <- c(mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)), log(sd(likdata0$y, na.rm = TRUE)), log(2))
           if (family == 'weibull3') {
             yy <- likdata0$y
             inits <- min(yy) - .1
@@ -1131,9 +1155,18 @@
         }
       }
       if (npar == 6) {
-        inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
-        inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
-        inits <- c(inits, 0, 0, 1)
+        if (family == 'condex') {
+          inits <- c(0, -1, mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)))
+          mu0 <- median(likdata0$y, na.rm = TRUE)
+          sigma1 <- mad(mu0 - likdata0$y[likdata0$y <= mu0])
+          sigma2 <- mad(likdata0$y[likdata0$y > mu0] - mu0)
+          if (args$distribution == 'aggauss')
+            inits <- c(0, -2, mu0, log(1.5), log(sigma1), log(sigma2))
+        } else {
+          inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
+          inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
+          inits <- c(inits, 0, 0, 1)
+        }
       }
     }
     likdata0$CH <- diag(length(inits))

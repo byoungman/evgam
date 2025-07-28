@@ -2,6 +2,10 @@
 
 ### Changes:
 
+* Added `args(dist = 'aggauss')` for fitting `family = 'condex'` with asymmetric generalised Gaussian residuals. (Thanks again to Kristina Bratkova and Aiden Farrell).
+
+* Added `family = 'aggauss'` for fitting asymmetric generalised Gaussian distribution. (Thanks to Kristina Bratkova and Aiden Farrell).
+
 * GPD model with shape parameter constrained to [-0.5, 1.0] added with `family = "gpd2"`.
 
 * Added `ltgamma` and `ltgammab` families for the left truncated gamma distribution with unknown and know shape, respectively. Use `args = list(lower = )` to give the scalar, vector or matrix of left-truncation points, and `args = list(alpha = )` to give scalar, vector or matrix of gamma distribution shape parameters with family `ltgammab`.

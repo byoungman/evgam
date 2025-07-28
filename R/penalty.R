@@ -28,9 +28,13 @@ out
 ## gradients of negative log-likelihoods
 
 .grad.nopen <- function(pars, likdata, likfns, id=NULL, vals=NULL) {
-if (!is.null(id)) 
+if (!is.null(id)) { 
   pars <- add_in(pars, id, vals)
-.gH.nopen(pars, likdata, likfns, sandwich=FALSE, deriv=1)[[1]][-id]
+  out <- .gH.nopen(pars, likdata, likfns, sandwich=FALSE, deriv=1)[[1]][-id]
+} else {
+  out <- .gH.nopen(pars, likdata, likfns, sandwich=FALSE, deriv=1)[[1]]
+}
+  out
 }
 
 .grad.pen <- function(pars, likdata, likfns) {

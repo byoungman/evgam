@@ -8,7 +8,7 @@
 #' @param formula a list of formulae for location, scale and shape parameters, as in \link[mgcv]{gam}
 #' @param data a data frame
 #' @param family a character string giving the type of family to be fitted; defaults to \code{"gev"}
-#' @param correctV logicial: should the variance-covariance matrix include smoothing parameter uncertainty? Defaults to \code{TRUE}
+#' @param correctV logical: should the variance-covariance matrix include smoothing parameter uncertainty? Defaults to \code{TRUE}
 #' @param rho0 a scalar or vector of initial log smoothing parameter values; a scalar will be repeated if there are multiple smoothing terms
 #' @param inits a vector or list giving initial values for constant basis coefficients; if a list, a grid is formed using \link[base]{expand.grid}, and the `best' used; defaults to \code{NULL}, so initial values are automatically found
 #' @param outer a character string specifying the outer optimiser is full \code{"Newton"}, \code{"BFGS"} or uses finite differences, \code{"FD"}; defaults to \code{"BFGS"}
@@ -115,7 +115,7 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
                   aggregated.args = list(), sp = NULL, gamma = 1, sparse = FALSE, args = list()) {
 
   ## setup family
-  family.info <- .setup.family(family, gpd.args, pp.args, egpd.args, formula, custom.fns, length(aggregated.args))
+  family.info <- .setup.family(family, gpd.args, pp.args, egpd.args, formula, custom.fns, length(aggregated.args), args)
   family <- family.info$family
   
   ## setup formulae
@@ -142,7 +142,7 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
   }
   
   ## initialise inner iteration
-  beta <- .setup.inner.inits(inits, temp.data$lik.data, family.info$lik.fns, family.info$npar, family)
+  beta <- .setup.inner.inits(inits, temp.data$lik.data, family.info$lik.fns, family.info$npar, family, args)
   lik.data <- .sandwich(temp.data$lik.data, beta)
   if (trace > 0 & lik.data$adjust > 0) cat(paste("\n Sandwich correct lambda =", signif(lik.data$k, 3), "\n"))
   
@@ -276,6 +276,7 @@ simulate.evgam <- function(object, nsim=1e3, seed=NULL, newdata,
   if (family %in% customs) {
     q_fn <- object$likfns$q
     unlink_fns <- object$likfns$unlink
+    rnms <- names(unlink_fns)
   }
                
   if (!is.null(probs)) 
@@ -299,7 +300,7 @@ simulate.evgam <- function(object, nsim=1e3, seed=NULL, newdata,
     }
     B <- .pivchol_rmvn(nsim, object$coefficients, object[[V.type]])
     idpars <- object$idpars
-    X <- predict.evgam(object, newdata, type="lpmatrix")
+    X <- predict.evgam(object, newdata, type = "lpmatrix")
     nms <- names(X)
     B <- lapply(seq_along(X), function(i) B[idpars == i, , drop=FALSE])
     X <- lapply(seq_along(X), function(i) X[[i]] %*% B[[i]])
