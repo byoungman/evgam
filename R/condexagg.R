@@ -7,13 +7,35 @@
     likdata$args$epsilon <- .01
   likdata$y <- as.matrix(likdata$y)
   likdata$args$x <- as.matrix(likdata$args$x)
-  nhere <- rowSums(is.finite(likdata$y))  
-  out <- condexaggd0(split(pars, likdata$idpars), 
-                      likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], 
-                      likdata$X[[4]], likdata$X[[5]], likdata$X[[6]], 
-                      likdata$y, likdata$args$x, likdata$args$weights, 
+  # nhere <- rowSums(is.finite(likdata$y))  
+  # out <- condexaggd0(split(pars, likdata$idpars), 
+  #                     likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], 
+  #                     likdata$X[[4]], likdata$X[[5]], likdata$X[[6]], 
+  #                     likdata$y, likdata$args$x, likdata$args$weights, 
+  #                     likdata$dupid, likdata$duplicate, nhere,
+  #                    likdata$args$C, likdata$args$epsilon)
+  if (is.null(likdata$args$check)) {
+    likdata$args$check <- rep(FALSE, nrow(likdata$X[[1]]))
+    constrained <- FALSE
+  } else {
+    constrained <- TRUE
+  }
+  X_data <- lapply(likdata$X, function(x) x[!likdata$args$check, , drop = FALSE])
+  y_data <- likdata$y[!likdata$args$check, , drop = FALSE]
+  likdata$args$weights <- as.matrix(likdata$args$weights[!likdata$args$check, , drop = FALSE])
+  nhere <- rowSums(is.finite(y_data))
+  likdata$args$x <- as.matrix(likdata$args$x[!likdata$args$check, , drop = FALSE])
+  out <- condexaggd0(split(pars, likdata$idpars),
+                      X_data[[1]], X_data[[2]], X_data[[3]],
+                      X_data[[4]], X_data[[5]], X_data[[6]],
+                      y_data, likdata$args$x, likdata$args$weights,
                       likdata$dupid, likdata$duplicate, nhere,
                      likdata$args$C, likdata$args$epsilon)
+  if (constrained) {
+    X_constr <- lapply(likdata$X, function(x) x[likdata$args$check, , drop = FALSE])
+    current <- mapply('%*%', X_constr, split(pars, likdata$idpars))
+    out <- out + .parpen.d0(current, likdata)
+  }
   out
 }
 
@@ -25,12 +47,34 @@
   likdata$y <- as.matrix(likdata$y)
   likdata$args$x <- as.matrix(likdata$args$x)
   nhere <- rowSums(is.finite(likdata$y))  
+  # out <- condexaggd12(split(pars, likdata$idpars), 
+  #                     likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], 
+  #                     likdata$X[[4]], likdata$X[[5]], likdata$X[[6]], 
+  #                     likdata$y, likdata$args$x, likdata$args$weights, 
+  #                     likdata$dupid, likdata$duplicate, nhere,
+  #                     likdata$args$C, likdata$args$epsilon)
+  if (is.null(likdata$args$check)) {
+    likdata$args$check <- rep(FALSE, nrow(likdata$X[[1]]))
+    constrained <- FALSE
+  } else {
+    constrained <- TRUE
+  }
+  X_data <- lapply(likdata$X, function(x) x[!likdata$args$check, , drop = FALSE])
+  y_data <- likdata$y[!likdata$args$check, , drop = FALSE]
+  likdata$args$weights <- as.matrix(likdata$args$weights[!likdata$args$check, , drop = FALSE])
+  nhere <- rowSums(is.finite(y_data))
+  likdata$args$x <- as.matrix(likdata$args$x[!likdata$args$check, , drop = FALSE])
   out <- condexaggd12(split(pars, likdata$idpars), 
-                      likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], 
-                      likdata$X[[4]], likdata$X[[5]], likdata$X[[6]], 
-                      likdata$y, likdata$args$x, likdata$args$weights, 
+                      X_data[[1]], X_data[[2]], X_data[[3]], 
+                      X_data[[4]], X_data[[5]], X_data[[6]], 
+                      y_data, likdata$args$x, likdata$args$weights, 
                       likdata$dupid, likdata$duplicate, nhere,
                       likdata$args$C, likdata$args$epsilon)
+  if (constrained) {
+    X_constr <- lapply(likdata$X, function(x) x[likdata$args$check, , drop = FALSE])
+    current <- mapply('%*%', X_constr, split(pars, likdata$idpars))
+    out <- rbind(out, .parpen.d12(current, likdata))
+  }
   out
 }
 
@@ -41,13 +85,33 @@
     likdata$args$epsilon <- .01
   likdata$y <- as.matrix(likdata$y)
   likdata$args$x <- as.matrix(likdata$args$x)
-  nhere <- rowSums(is.finite(likdata$y))  
+  # nhere <- rowSums(is.finite(likdata$y))  
+  # out <- condexaggd34(split(pars, likdata$idpars), 
+  #                  likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], 
+  #                  likdata$X[[4]], likdata$X[[5]], likdata$X[[6]], 
+  #                  likdata$y, likdata$args$x, likdata$args$weights, 
+  #                  likdata$dupid, likdata$duplicate, nhere,
+  #                  likdata$args$C, likdata$args$epsilon)
+  if (is.null(likdata$args$check)) {
+    likdata$args$check <- rep(FALSE, nrow(likdata$X[[1]]))
+    constrained <- FALSE
+  } else {
+    constrained <- TRUE
+  }
+  X_data <- lapply(likdata$X, function(x) x[!likdata$args$check, , drop = FALSE])
+  y_data <- likdata$y[!likdata$args$check, , drop = FALSE]
+  likdata$args$weights <- as.matrix(likdata$args$weights[!likdata$args$check, , drop = FALSE])
+  nhere <- rowSums(is.finite(y_data))
+  likdata$args$x <- as.matrix(likdata$args$x[!likdata$args$check, , drop = FALSE])
   out <- condexaggd34(split(pars, likdata$idpars), 
-                   likdata$X[[1]], likdata$X[[2]], likdata$X[[3]], 
-                   likdata$X[[4]], likdata$X[[5]], likdata$X[[6]], 
-                   likdata$y, likdata$args$x, likdata$args$weights, 
-                   likdata$dupid, likdata$duplicate, nhere,
-                   likdata$args$C, likdata$args$epsilon)
+                      X_data[[1]], X_data[[2]], X_data[[3]], 
+                      X_data[[4]], X_data[[5]], X_data[[6]], 
+                      y_data, likdata$args$x, likdata$args$weights, 
+                      likdata$dupid, likdata$duplicate, nhere,
+                      likdata$args$C, likdata$args$epsilon)
+  if (constrained) {
+    out <- rbind(out, 0)
+  }
   out
 }
 
