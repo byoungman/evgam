@@ -583,7 +583,7 @@ dfbind <- function(x) {
 #' @param ... other arguments passed to \link[graphics]{plot}
 #' @param legend should a legend be added? Defaults to code{FALSE}
 #' @param n.legend an integer giving the approximate number of legend entries; defaults to 6
-#' @param legend.pretty logical: should the legend values produced by \[base]{pretty}? Othewrwise they are exact. Defaults to \code{TRUE}
+#' @param legend.pretty logical: should the legend values produced by \[base]{pretty}? Otherwise they are exact. Defaults to \code{TRUE}
 #' @param legend.x passed to \link[graphics]{legend}'s \code{x} argument
 #' @param legend.y passed to \link[graphics]{legend}'s \code{y} argument
 #' @param legend.horiz passed to \link[graphics]{legend}'s \code{horiz} argument
@@ -761,10 +761,6 @@ seq_between <- function(x, length=NULL) {
 #' 
 #' @return A \code{data.frame}
 #' 
-#' @references
-#'
-#' http://arma.sourceforge.net/docs.html#pinv
-#'
 #' @seealso \link{match}, \link{unique}, \link{duplicated}
 #'
 #' @export
