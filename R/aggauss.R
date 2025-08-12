@@ -50,7 +50,7 @@ out
 .aggauss_unlink <- list(function(x) x, function(x) exp(x), function(x) exp(x), function(x) exp(x))
 attr(.aggauss_unlink[[1]], "deriv") <- function(x) 1 * x
 attr(.aggauss_unlink[[2]], "deriv") <- function(x) exp(x)
-attr(.aggauss_unlink[[2]], "deriv") <- function(x) exp(x)
+attr(.aggauss_unlink[[3]], "deriv") <- function(x) exp(x)
 attr(.aggauss_unlink[[4]], "deriv") <- function(x) exp(x)
 
 .aggaussfns$q <- NULL

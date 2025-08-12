@@ -27,9 +27,6 @@ of replicates for an explanatory variable combination; rows of the \code{matrix}
 are padded with \code{NA}s at the end where there are fewer than \eqn{m}
 replicates.
 }
-\references{
-http://arma.sourceforge.net/docs.html#pinv
-}
 \seealso{
 \link{match}, \link{unique}, \link{duplicated}
 }
