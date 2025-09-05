@@ -48,22 +48,33 @@
 
 .index_arrays <- function(derivs, i) {
   
-  out <- list()
+  if (i == 1) {
+    
+    ind <- lapply(seq_along(derivs), function(i) array(i, rep(1, derivs[i])))
   
-  for (j in derivs) {
-    t1 <- apply(expand.grid(lapply(1:j, function(x) 1:i)), 1, sort, simplify = FALSE)
-    t2 <- do.call(rbind, lapply(t1, sort))
-    t3 <- t2[!duplicated(t2), , drop = FALSE]
-    out[[j]] <- list(t2, t3)
+  } else {
+  
+    out <- list()
+    
+    for (j in derivs) {
+      t1 <- apply(expand.grid(lapply(1:j, function(x) 1:i)), 1, sort, simplify = FALSE)
+      t2 <- do.call(rbind, lapply(t1, sort))
+      t3 <- t2[!duplicated(t2), , drop = FALSE]
+      out[[j]] <- list(t2, t3)
+    }
+    
+    give_index <- function(x) apply(x, 1, paste0, collapse = '')
+    i1 <- lapply(lapply(out[derivs], '[[', 1), give_index)
+    i0 <- unique(unlist(i1))
+    i2 <- lapply(i1, match, i0)
+    # reps <- log(sapply(i2, length)) / log(i)
+    reps <- logb(sapply(i2, length), base = i)
+    ind <- mapply(array, i2, dim = lapply(reps, function(z) rep(i, z)))
+  
   }
   
-  give_index <- function(x) apply(x, 1, paste0, collapse = '')
-  i1 <- lapply(lapply(out[derivs], '[[', 1), give_index)
-  i0 <- unique(unlist(i1))
-  i2 <- lapply(i1, match, i0)
-  reps <- log(sapply(i2, length)) / log(i)
-  mapply(array, i2, dim = lapply(reps, function(z) rep(i, z)))
-  
+  return(ind)
+    
 }
 
 .indices <- function(i) {

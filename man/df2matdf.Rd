@@ -27,6 +27,14 @@ of replicates for an explanatory variable combination; rows of the \code{matrix}
 are padded with \code{NA}s at the end where there are fewer than \eqn{m}
 replicates.
 }
+\examples{
+
+df0 <- expand.grid(x = 1:2, y = 3:4)
+df1 <- rbind(df0, df0)
+df1$z <- runif(nrow(df1))
+df2matdf(df1, z ~ x + y)
+
+}
 \seealso{
 \link{match}, \link{unique}, \link{duplicated}
 }

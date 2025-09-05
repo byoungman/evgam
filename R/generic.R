@@ -337,7 +337,7 @@ simulate.evgam <- function(object, nsim=1e3, seed=NULL, newdata,
       if (substr(family, 1, 3) == "gpd") {
         out[[i]] <- threshold + .qgpd(probs[i], 0, X[[1]], X[[2]])
       } else {
-        if (substr(family, 1, 3) == "gev") {
+        if (substr(family, 1, 3) == "gev" | family == 'pp') {
           out[[i]] <- .qgev(probs[i], X[[1]], X[[2]], X[[3]])
         } else {
           stop(paste("type = 'quantile' currently not available for family", family))
@@ -762,6 +762,13 @@ seq_between <- function(x, length=NULL) {
 #' @return A \code{data.frame}
 #' 
 #' @seealso \link{match}, \link{unique}, \link{duplicated}
+#' 
+#' @examples
+#'
+#' df0 <- expand.grid(x = 1:2, y = 3:4)
+#' df1 <- rbind(df0, df0)
+#' df1$z <- runif(nrow(df1))
+#' df2matdf(df1, z ~ x + y)
 #'
 #' @export
 #' 
