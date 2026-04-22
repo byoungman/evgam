@@ -2,6 +2,8 @@
 
 ### Changes:
 
+* Added `family = 'poisson'` for fitting Poisson distribution.
+
 * Added `args(dist = 'aggauss')` for fitting `family = 'condex'` with asymmetric generalised Gaussian residuals. (Thanks again to Kristina Bratkova and Aiden Farrell).
 
 * Added `family = 'aggauss'` for fitting asymmetric generalised Gaussian distribution. (Thanks to Kristina Bratkova and Aiden Farrell).

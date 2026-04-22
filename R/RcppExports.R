@@ -406,7 +406,7 @@ gpdcd34 <- function(pars, X1, X2, ymat, dupid, dcate) {
     .Call(`_evgam_gH6`, gh, X1, X2, X3, X4, X5, X6, dupid, dcate, sand, deriv)
 }
 
-.gH1sp <- function(gh, X1, dupid, dcate, sand, deriv) {
+.gHsp1 <- function(gh, X1, dupid, dcate, sand, deriv) {
     .Call(`_evgam_gHsp1`, gh, X1, dupid, dcate, sand, deriv)
 }
 
@@ -480,6 +480,54 @@ ltgammabd12 <- function(pars, X1, ymat, dupid, dcate, nhere, leftmat, alphamat) 
 
 ltgammabd34 <- function(pars, X1, ymat, dupid, dcate, nhere, leftmat, alphamat) {
     .Call(`_evgam_ltgammabd34`, pars, X1, ymat, dupid, dcate, nhere, leftmat, alphamat)
+}
+
+negbind0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
+    .Call(`_evgam_negbind0`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+}
+
+negbind12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
+    .Call(`_evgam_negbind12`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+}
+
+negbind34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
+    .Call(`_evgam_negbind34`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+}
+
+negbinspd0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
+    .Call(`_evgam_negbinspd0`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+}
+
+negbinspd12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
+    .Call(`_evgam_negbinspd12`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+}
+
+negbinspd34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
+    .Call(`_evgam_negbinspd34`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+}
+
+poisd0 <- function(pars, X1, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_poisd0`, pars, X1, ymat, dupid, dcate, nhere)
+}
+
+poisd12 <- function(pars, X1, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_poisd12`, pars, X1, ymat, dupid, dcate, nhere)
+}
+
+poisd34 <- function(pars, X1, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_poisd34`, pars, X1, ymat, dupid, dcate, nhere)
+}
+
+poisspd0 <- function(pars, X1, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_poisspd0`, pars, X1, ymat, dupid, dcate, nhere)
+}
+
+poisspd12 <- function(pars, X1, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_poisspd12`, pars, X1, ymat, dupid, dcate, nhere)
+}
+
+poisspd34 <- function(pars, X1, ymat, dupid, dcate, nhere) {
+    .Call(`_evgam_poisspd34`, pars, X1, ymat, dupid, dcate, nhere)
 }
 
 pp1d0 <- function(pars, X1, X2, X3, yvec, wvec) {

@@ -127,6 +127,13 @@
       nms2 <- c('logscale', 'logshape')
     }
 
+    if (family == "negbin") {
+      lik.fns <- .negbinfns
+      npar <- 2
+      nms <- c("lmu", "lalpha")
+      nms2 <- c('logmean', 'logoverdisp')
+    }
+
     if (family == "weibull") {
       lik.fns <- .weibfns
       npar <- 2
@@ -193,6 +200,13 @@
       npar <- 1
       nms <- c("llambda")
       nms2 <- c('lograte')
+    }
+    
+    if (family == "poisson") {
+      lik.fns <- .poisfns
+      npar <- 1
+      nms <- c("lmu")
+      nms2 <- c('location')
     }
     
     if (family == "gauss") {
@@ -1065,8 +1079,13 @@
       if (attr(family, "type") == 2)
         inits <- c(inits[1:2], -1, 1, .25)
     } else {
-      if (npar == 1) 
-        inits <- 2
+      if (npar == 1) {
+        if (family == 'poisson') {
+          inits <- log(mean(likdata0$y[, 1]))
+        } else {
+          inits <- 2
+        }
+      }
       if (npar == 2) {
         if (family == "ald") {
           inits <- c(quantile(likdata0$y[,1], likdata0$tau), log(sd(likdata0$y[,1])))
@@ -1115,6 +1134,10 @@
           if (family == 'gpd2') {
             ybar <- mean(likdata0$y, na.rm = TRUE)
             inits <- c(log(ybar), -log(.36))
+          }
+          if (family == 'negbin') {
+            ybar <- mean(likdata0$y, na.rm = TRUE)
+            inits <- c(log(ybar), 0)
           }
         }
       }

@@ -382,7 +382,7 @@ arma::sp_mat schur_spmat(arma::sp_mat x, arma::vec y) {
   return x;
 }
 
-// [[Rcpp::export(.gH1sp)]]
+// [[Rcpp::export(.gHsp1)]]
 Rcpp::List gHsp1(arma::mat gh, arma::sp_mat X1, const arma::uvec dupid, int dcate, int sand, int deriv)
 {
 

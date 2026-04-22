@@ -2026,6 +2026,210 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// negbind0
+double negbind0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere, arma::mat wmat);
+RcppExport SEXP _evgam_negbind0(SEXP parsSEXP, SEXP X1SEXP, SEXP X2SEXP, SEXP ymatSEXP, SEXP dupidSEXP, SEXP dcateSEXP, SEXP nhereSEXP, SEXP wmatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X1(X1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X2(X2SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ymat(ymatSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type dupid(dupidSEXP);
+    Rcpp::traits::input_parameter< int >::type dcate(dcateSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type nhere(nhereSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type wmat(wmatSEXP);
+    rcpp_result_gen = Rcpp::wrap(negbind0(pars, X1, X2, ymat, dupid, dcate, nhere, wmat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// negbind12
+arma::mat negbind12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere, arma::mat wmat);
+RcppExport SEXP _evgam_negbind12(SEXP parsSEXP, SEXP X1SEXP, SEXP X2SEXP, SEXP ymatSEXP, SEXP dupidSEXP, SEXP dcateSEXP, SEXP nhereSEXP, SEXP wmatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X1(X1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X2(X2SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ymat(ymatSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type dupid(dupidSEXP);
+    Rcpp::traits::input_parameter< int >::type dcate(dcateSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type nhere(nhereSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type wmat(wmatSEXP);
+    rcpp_result_gen = Rcpp::wrap(negbind12(pars, X1, X2, ymat, dupid, dcate, nhere, wmat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// negbind34
+arma::mat negbind34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere, arma::mat wmat);
+RcppExport SEXP _evgam_negbind34(SEXP parsSEXP, SEXP X1SEXP, SEXP X2SEXP, SEXP ymatSEXP, SEXP dupidSEXP, SEXP dcateSEXP, SEXP nhereSEXP, SEXP wmatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X1(X1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X2(X2SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ymat(ymatSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type dupid(dupidSEXP);
+    Rcpp::traits::input_parameter< int >::type dcate(dcateSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type nhere(nhereSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type wmat(wmatSEXP);
+    rcpp_result_gen = Rcpp::wrap(negbind34(pars, X1, X2, ymat, dupid, dcate, nhere, wmat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// negbinspd0
+double negbinspd0(Rcpp::List pars, arma::sp_mat X1, arma::sp_mat X2, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere, arma::mat wmat);
+RcppExport SEXP _evgam_negbinspd0(SEXP parsSEXP, SEXP X1SEXP, SEXP X2SEXP, SEXP ymatSEXP, SEXP dupidSEXP, SEXP dcateSEXP, SEXP nhereSEXP, SEXP wmatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< arma::sp_mat >::type X1(X1SEXP);
+    Rcpp::traits::input_parameter< arma::sp_mat >::type X2(X2SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ymat(ymatSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type dupid(dupidSEXP);
+    Rcpp::traits::input_parameter< int >::type dcate(dcateSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type nhere(nhereSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type wmat(wmatSEXP);
+    rcpp_result_gen = Rcpp::wrap(negbinspd0(pars, X1, X2, ymat, dupid, dcate, nhere, wmat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// negbinspd12
+arma::mat negbinspd12(Rcpp::List pars, arma::sp_mat X1, arma::sp_mat X2, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere, arma::mat wmat);
+RcppExport SEXP _evgam_negbinspd12(SEXP parsSEXP, SEXP X1SEXP, SEXP X2SEXP, SEXP ymatSEXP, SEXP dupidSEXP, SEXP dcateSEXP, SEXP nhereSEXP, SEXP wmatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< arma::sp_mat >::type X1(X1SEXP);
+    Rcpp::traits::input_parameter< arma::sp_mat >::type X2(X2SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ymat(ymatSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type dupid(dupidSEXP);
+    Rcpp::traits::input_parameter< int >::type dcate(dcateSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type nhere(nhereSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type wmat(wmatSEXP);
+    rcpp_result_gen = Rcpp::wrap(negbinspd12(pars, X1, X2, ymat, dupid, dcate, nhere, wmat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// negbinspd34
+arma::mat negbinspd34(Rcpp::List pars, arma::sp_mat X1, arma::sp_mat X2, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere, arma::mat wmat);
+RcppExport SEXP _evgam_negbinspd34(SEXP parsSEXP, SEXP X1SEXP, SEXP X2SEXP, SEXP ymatSEXP, SEXP dupidSEXP, SEXP dcateSEXP, SEXP nhereSEXP, SEXP wmatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< arma::sp_mat >::type X1(X1SEXP);
+    Rcpp::traits::input_parameter< arma::sp_mat >::type X2(X2SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ymat(ymatSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type dupid(dupidSEXP);
+    Rcpp::traits::input_parameter< int >::type dcate(dcateSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type nhere(nhereSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type wmat(wmatSEXP);
+    rcpp_result_gen = Rcpp::wrap(negbinspd34(pars, X1, X2, ymat, dupid, dcate, nhere, wmat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// poisd0
+double poisd0(Rcpp::List pars, arma::mat X1, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere);
+RcppExport SEXP _evgam_poisd0(SEXP parsSEXP, SEXP X1SEXP, SEXP ymatSEXP, SEXP dupidSEXP, SEXP dcateSEXP, SEXP nhereSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X1(X1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ymat(ymatSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type dupid(dupidSEXP);
+    Rcpp::traits::input_parameter< int >::type dcate(dcateSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type nhere(nhereSEXP);
+    rcpp_result_gen = Rcpp::wrap(poisd0(pars, X1, ymat, dupid, dcate, nhere));
+    return rcpp_result_gen;
+END_RCPP
+}
+// poisd12
+arma::mat poisd12(Rcpp::List pars, arma::mat X1, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere);
+RcppExport SEXP _evgam_poisd12(SEXP parsSEXP, SEXP X1SEXP, SEXP ymatSEXP, SEXP dupidSEXP, SEXP dcateSEXP, SEXP nhereSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X1(X1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ymat(ymatSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type dupid(dupidSEXP);
+    Rcpp::traits::input_parameter< int >::type dcate(dcateSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type nhere(nhereSEXP);
+    rcpp_result_gen = Rcpp::wrap(poisd12(pars, X1, ymat, dupid, dcate, nhere));
+    return rcpp_result_gen;
+END_RCPP
+}
+// poisd34
+arma::mat poisd34(Rcpp::List pars, arma::mat X1, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere);
+RcppExport SEXP _evgam_poisd34(SEXP parsSEXP, SEXP X1SEXP, SEXP ymatSEXP, SEXP dupidSEXP, SEXP dcateSEXP, SEXP nhereSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X1(X1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ymat(ymatSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type dupid(dupidSEXP);
+    Rcpp::traits::input_parameter< int >::type dcate(dcateSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type nhere(nhereSEXP);
+    rcpp_result_gen = Rcpp::wrap(poisd34(pars, X1, ymat, dupid, dcate, nhere));
+    return rcpp_result_gen;
+END_RCPP
+}
+// poisspd0
+double poisspd0(Rcpp::List pars, arma::sp_mat X1, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere);
+RcppExport SEXP _evgam_poisspd0(SEXP parsSEXP, SEXP X1SEXP, SEXP ymatSEXP, SEXP dupidSEXP, SEXP dcateSEXP, SEXP nhereSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< arma::sp_mat >::type X1(X1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ymat(ymatSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type dupid(dupidSEXP);
+    Rcpp::traits::input_parameter< int >::type dcate(dcateSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type nhere(nhereSEXP);
+    rcpp_result_gen = Rcpp::wrap(poisspd0(pars, X1, ymat, dupid, dcate, nhere));
+    return rcpp_result_gen;
+END_RCPP
+}
+// poisspd12
+arma::mat poisspd12(Rcpp::List pars, arma::sp_mat X1, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere);
+RcppExport SEXP _evgam_poisspd12(SEXP parsSEXP, SEXP X1SEXP, SEXP ymatSEXP, SEXP dupidSEXP, SEXP dcateSEXP, SEXP nhereSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< arma::sp_mat >::type X1(X1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ymat(ymatSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type dupid(dupidSEXP);
+    Rcpp::traits::input_parameter< int >::type dcate(dcateSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type nhere(nhereSEXP);
+    rcpp_result_gen = Rcpp::wrap(poisspd12(pars, X1, ymat, dupid, dcate, nhere));
+    return rcpp_result_gen;
+END_RCPP
+}
+// poisspd34
+arma::mat poisspd34(Rcpp::List pars, arma::sp_mat X1, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere);
+RcppExport SEXP _evgam_poisspd34(SEXP parsSEXP, SEXP X1SEXP, SEXP ymatSEXP, SEXP dupidSEXP, SEXP dcateSEXP, SEXP nhereSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< arma::sp_mat >::type X1(X1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ymat(ymatSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type dupid(dupidSEXP);
+    Rcpp::traits::input_parameter< int >::type dcate(dcateSEXP);
+    Rcpp::traits::input_parameter< arma::ivec >::type nhere(nhereSEXP);
+    rcpp_result_gen = Rcpp::wrap(poisspd34(pars, X1, ymat, dupid, dcate, nhere));
+    return rcpp_result_gen;
+END_RCPP
+}
 // pp1d0
 double pp1d0(const Rcpp::List& pars, const arma::mat& X1, const arma::mat& X2, const arma::mat& X3, arma::vec yvec, arma::vec wvec);
 RcppExport SEXP _evgam_pp1d0(SEXP parsSEXP, SEXP X1SEXP, SEXP X2SEXP, SEXP X3SEXP, SEXP yvecSEXP, SEXP wvecSEXP) {
@@ -2595,6 +2799,18 @@ static const R_CallMethodDef CallEntries[] = {
     {"_evgam_ltgammabd0", (DL_FUNC) &_evgam_ltgammabd0, 8},
     {"_evgam_ltgammabd12", (DL_FUNC) &_evgam_ltgammabd12, 8},
     {"_evgam_ltgammabd34", (DL_FUNC) &_evgam_ltgammabd34, 8},
+    {"_evgam_negbind0", (DL_FUNC) &_evgam_negbind0, 8},
+    {"_evgam_negbind12", (DL_FUNC) &_evgam_negbind12, 8},
+    {"_evgam_negbind34", (DL_FUNC) &_evgam_negbind34, 8},
+    {"_evgam_negbinspd0", (DL_FUNC) &_evgam_negbinspd0, 8},
+    {"_evgam_negbinspd12", (DL_FUNC) &_evgam_negbinspd12, 8},
+    {"_evgam_negbinspd34", (DL_FUNC) &_evgam_negbinspd34, 8},
+    {"_evgam_poisd0", (DL_FUNC) &_evgam_poisd0, 6},
+    {"_evgam_poisd12", (DL_FUNC) &_evgam_poisd12, 6},
+    {"_evgam_poisd34", (DL_FUNC) &_evgam_poisd34, 6},
+    {"_evgam_poisspd0", (DL_FUNC) &_evgam_poisspd0, 6},
+    {"_evgam_poisspd12", (DL_FUNC) &_evgam_poisspd12, 6},
+    {"_evgam_poisspd34", (DL_FUNC) &_evgam_poisspd34, 6},
     {"_evgam_pp1d0", (DL_FUNC) &_evgam_pp1d0, 6},
     {"_evgam_pp1d12", (DL_FUNC) &_evgam_pp1d12, 6},
     {"_evgam_pp1d34", (DL_FUNC) &_evgam_pp1d34, 6},

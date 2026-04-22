@@ -223,7 +223,6 @@
   out$H <- H2
   out$dH <- attr(H2, "d")
   out$cH <- attr(H2, "chol")
-  browser()
   out$iH <- Matrix::solve(out$H0)
   t1 <- Matrix::tcrossprod(Matrix::solve(out$cH, Matrix::Diagonal(nrow(H)))) * Matrix::tcrossprod(out$dH)
   range(t1 - out$iH)
