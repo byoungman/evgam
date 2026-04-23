@@ -430,6 +430,18 @@ gpdcd34 <- function(pars, X1, X2, ymat, dupid, dcate) {
     .Call(`_evgam_gHsp6`, gh, X1, X2, X3, X4, X5, X6, dupid, dcate, sand, deriv)
 }
 
+gwd0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, pmat) {
+    .Call(`_evgam_gwd0`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, pmat)
+}
+
+gwd12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, pmat) {
+    .Call(`_evgam_gwd12`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, pmat)
+}
+
+gwd34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, pmat) {
+    .Call(`_evgam_gwd34`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, pmat)
+}
+
 logitgaussd0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere) {
     .Call(`_evgam_logitgaussd0`, pars, X1, X2, ymat, dupid, dcate, nhere)
 }

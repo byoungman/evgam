@@ -216,6 +216,13 @@
       nms2 <- c('location', 'logscale')
     }
     
+    if (family == "gw") {
+      lik.fns <- .gwfns
+      npar <- 2
+      nms <- c("logg", "theta")
+      nms2 <- c('logscale', 'shape')
+    }
+
     if (family == "aggauss") {
       lik.fns <- .aggaussfns
       npar <- 4
@@ -1134,6 +1141,10 @@
           if (family == 'gpd2') {
             ybar <- mean(likdata0$y, na.rm = TRUE)
             inits <- c(log(ybar), -log(.36))
+          }
+          if (family == 'gw') {
+            ybar <- -log(mean(likdata$args$p, na.rm = TRUE)) * mean(likdata0$y, na.rm = TRUE)
+            inits <- c(log(ybar), .1)
           }
           if (family == 'negbin') {
             ybar <- mean(likdata0$y, na.rm = TRUE)
