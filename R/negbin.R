@@ -4,11 +4,21 @@
   likdata$y <- as.matrix(likdata$y)
   likdata$w <- 0 * as.matrix(likdata$y) + 1
   nhere <- rowSums(is.finite(likdata$y))
-  if (!likdata$sparse) {
-    out <- negbind0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+  if (is.null(likdata$args$model))
+    likdata$args$model <- 'overdispersion'
+  if (likdata$args$model == 'variance') {
+    if (!likdata$sparse) {
+      out <- negbind0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+    } else {
+      out <- negbinspd0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+    }
   } else {
-    out <- negbinspd0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
-  }
+    if (!likdata$sparse) {
+      out <- negbinodd0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+    } else {
+      out <- negbinodspd0(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+    }
+  }  
   if (!is.finite(out))
     out <- 1e20
   out
@@ -18,11 +28,21 @@
   likdata$y <- as.matrix(likdata$y)
   likdata$w <- 0 * as.matrix(likdata$y) + 1
   nhere <- rowSums(is.finite(likdata$y))  
-  if (!likdata$sparse) {
-    out <- negbind12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+  if (is.null(likdata$args$model))
+    likdata$args$model <- 'overdispersion'
+  if (likdata$args$model == 'variance') {
+    if (!likdata$sparse) {
+      out <- negbind12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+    } else {
+      out <- negbinspd12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+    }
   } else {
-    out <- negbinspd12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
-  }
+    if (!likdata$sparse) {
+      out <- negbinodd12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+    } else {
+      out <- negbinodspd12(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+    }
+  }  
   out
 }
 
@@ -30,11 +50,21 @@
   likdata$y <- as.matrix(likdata$y)
   likdata$w <- 0 * as.matrix(likdata$y) + 1
   nhere <- rowSums(is.finite(likdata$y))  
-  if (!likdata$sparse) {
-    out <- negbind34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+  if (is.null(likdata$args$model))
+    likdata$args$model <- 'overdispersion'
+  if (likdata$args$model == 'variance') {
+    if (!likdata$sparse) {
+      out <- negbind34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+    } else {
+      out <- negbinspd34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+    }
   } else {
-    out <- negbinspd34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
-  }
+    if (!likdata$sparse) {
+      out <- negbinodd34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+    } else {
+      out <- negbinodspd34(split(pars, likdata$idpars), likdata$X[[1]], likdata$X[[2]], likdata$y, likdata$dupid, likdata$duplicate, nhere, likdata$w)
+    }
+  }  
   out
 }
 

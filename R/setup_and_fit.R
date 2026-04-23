@@ -1148,7 +1148,7 @@
           }
           if (family == 'negbin') {
             ybar <- mean(likdata0$y, na.rm = TRUE)
-            inits <- c(log(ybar), 0)
+            inits <- c(log(ybar), -5)
           }
         }
       }

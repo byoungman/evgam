@@ -494,6 +494,30 @@ ltgammabd34 <- function(pars, X1, ymat, dupid, dcate, nhere, leftmat, alphamat) 
     .Call(`_evgam_ltgammabd34`, pars, X1, ymat, dupid, dcate, nhere, leftmat, alphamat)
 }
 
+negbinodd0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
+    .Call(`_evgam_negbinodd0`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+}
+
+negbinodd12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
+    .Call(`_evgam_negbinodd12`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+}
+
+negbinodd34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
+    .Call(`_evgam_negbinodd34`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+}
+
+negbinodspd0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
+    .Call(`_evgam_negbinodspd0`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+}
+
+negbinodspd12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
+    .Call(`_evgam_negbinodspd12`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+}
+
+negbinodspd34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
+    .Call(`_evgam_negbinodspd34`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+}
+
 negbind0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
     .Call(`_evgam_negbind0`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
 }
