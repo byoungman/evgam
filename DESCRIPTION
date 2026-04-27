@@ -2,7 +2,7 @@ Package: evgam
 Type: Package
 Title: Generalised Additive Extreme Value Models
 Version: 1.0.2
-Date: 2026-04-23
+Date: 2026-04-27
 Authors@R: 
       c(person("Ben", "Youngman", role = c("aut", "cre"), email = "b.youngman@exeter.ac.uk",
                     comment = c(ORCID = "0000-0003-0215-8189")))

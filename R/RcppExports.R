@@ -494,76 +494,76 @@ ltgammabd34 <- function(pars, X1, ymat, dupid, dcate, nhere, leftmat, alphamat) 
     .Call(`_evgam_ltgammabd34`, pars, X1, ymat, dupid, dcate, nhere, leftmat, alphamat)
 }
 
-negbinodd0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
-    .Call(`_evgam_negbinodd0`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+negbinodd0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_negbinodd0`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-negbinodd12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
-    .Call(`_evgam_negbinodd12`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+negbinodd12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_negbinodd12`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-negbinodd34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
-    .Call(`_evgam_negbinodd34`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+negbinodd34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_negbinodd34`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-negbinodspd0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
-    .Call(`_evgam_negbinodspd0`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+negbinodspd0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_negbinodspd0`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-negbinodspd12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
-    .Call(`_evgam_negbinodspd12`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+negbinodspd12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_negbinodspd12`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-negbinodspd34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
-    .Call(`_evgam_negbinodspd34`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+negbinodspd34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_negbinodspd34`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-negbind0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
-    .Call(`_evgam_negbind0`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+negbind0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_negbind0`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-negbind12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
-    .Call(`_evgam_negbind12`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+negbind12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_negbind12`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-negbind34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
-    .Call(`_evgam_negbind34`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+negbind34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_negbind34`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-negbinspd0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
-    .Call(`_evgam_negbinspd0`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+negbinspd0 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_negbinspd0`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-negbinspd12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
-    .Call(`_evgam_negbinspd12`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+negbinspd12 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_negbinspd12`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-negbinspd34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat) {
-    .Call(`_evgam_negbinspd34`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat)
+negbinspd34 <- function(pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_negbinspd34`, pars, X1, X2, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-poisd0 <- function(pars, X1, ymat, dupid, dcate, nhere) {
-    .Call(`_evgam_poisd0`, pars, X1, ymat, dupid, dcate, nhere)
+poisd0 <- function(pars, X1, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_poisd0`, pars, X1, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-poisd12 <- function(pars, X1, ymat, dupid, dcate, nhere) {
-    .Call(`_evgam_poisd12`, pars, X1, ymat, dupid, dcate, nhere)
+poisd12 <- function(pars, X1, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_poisd12`, pars, X1, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-poisd34 <- function(pars, X1, ymat, dupid, dcate, nhere) {
-    .Call(`_evgam_poisd34`, pars, X1, ymat, dupid, dcate, nhere)
+poisd34 <- function(pars, X1, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_poisd34`, pars, X1, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-poisspd0 <- function(pars, X1, ymat, dupid, dcate, nhere) {
-    .Call(`_evgam_poisspd0`, pars, X1, ymat, dupid, dcate, nhere)
+poisspd0 <- function(pars, X1, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_poisspd0`, pars, X1, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-poisspd12 <- function(pars, X1, ymat, dupid, dcate, nhere) {
-    .Call(`_evgam_poisspd12`, pars, X1, ymat, dupid, dcate, nhere)
+poisspd12 <- function(pars, X1, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_poisspd12`, pars, X1, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
-poisspd34 <- function(pars, X1, ymat, dupid, dcate, nhere) {
-    .Call(`_evgam_poisspd34`, pars, X1, ymat, dupid, dcate, nhere)
+poisspd34 <- function(pars, X1, ymat, dupid, dcate, nhere, wmat, offmat) {
+    .Call(`_evgam_poisspd34`, pars, X1, ymat, dupid, dcate, nhere, wmat, offmat)
 }
 
 pp1d0 <- function(pars, X1, X2, X3, yvec, wvec) {
