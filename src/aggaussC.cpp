@@ -51,7 +51,7 @@ double ltind2(double x, double u) {
    }
    
    double y, res, w, p1, p2, p3, p4;
-   double nu, kappa1, kappa2, delta, kappa, S, I1;
+   double nu, kappa1, kappa2, delta, kappa, S;
    double nllh = 0.0;
 
    for (int j=0; j < nobs; j++) {
@@ -65,7 +65,7 @@ double ltind2(double x, double u) {
        
        y = ymat(j, l);
 
-       if (arma::is_finite(y)) {
+       if (std::isfinite(y)) {
          
          w = wmat(j, l);
          nu = p1;
@@ -130,7 +130,7 @@ double ltind2(double x, double u) {
      p4vec = p4vec.elem(dupid);
    }
    
-   double y, w, p1, p2, p3, p4, nu, I1;
+   double y, w, p1, p2, p3, p4;
 
    for (int j=0; j < nobs; j++) {
      
@@ -143,7 +143,7 @@ double ltind2(double x, double u) {
        
        y = ymat(j, l);
 
-       if (arma::is_finite(y)) {
+       if (std::isfinite(y)) {
          
          w = wmat(j, l);
          
@@ -208,7 +208,7 @@ double ltind2(double x, double u) {
          //       ee5);
          //   
          //   double temp0 = w * (ee30 * ee9 * ee21 - (1 + ee35/ee9));
-         //   if (arma::is_finite(temp0)) {
+         //   if (std::isfinite(temp0)) {
          //   out(j, 3) += temp0;
          //   out(j, 7) += w * (ee28 * ee24 * ee9/ee8);
          //   out(j, 10) += w * (-(ee27 * ee24 * ee4 * ee9 * ee10/ee14));
@@ -278,7 +278,7 @@ double ltind2(double x, double u) {
          //       ee6);
          //   
          //   double temp = w * (ee30 * ee10 * ee21 - (1 + ee35/ee10));
-         //   if (arma::is_finite(temp)) {
+         //   if (std::isfinite(temp)) {
          //     out(j, 3) += temp;
          //     out(j, 7) += w * (-(ee28 * ee24 * ee10/ee9));
          //     out(j, 10) += w * (-(ee27 * ee24 * ee5 * ee10 * ee1/ee14));
@@ -441,7 +441,7 @@ double ltind2(double x, double u) {
      p4vec = p4vec.elem(dupid);
    }
    
-   double y, w, p1, p2, p3, p4, I1;
+   double y, w, p1, p2, p3, p4;
    
    for (int j=0; j < nobs; j++) {
      
@@ -453,10 +453,10 @@ double ltind2(double x, double u) {
      for (int l=0; l < ncol; l++) {
        
        y = ymat(j, l);
+       w = wmat(j, l);
        
-       if (arma::is_finite(y)) {
+       if (std::isfinite(y)) {
          
-         w = wmat(j, l);
          
          // if (y <= p1) {
          //   
@@ -872,7 +872,7 @@ double ltind2(double x, double u) {
          ee124 = 8 * ee92;
          ee125 = ee93/4;
          
-         out(j, 0) += -((((((((ee115 - 6) * ee3/ee4 + 3) * ee3 * ee19 *
+         out(j, 0) += w * (-((((((((ee115 - 6) * ee3/ee4 + 3) * ee3 * ee19 *
            ee12/ee26 + ee11 * (1 - ((2 * (1 + 2 * ee3) + 2 * ee4 - 8 *
            ee3)/ee4 + 2) * ee3/ee4)) * ee20 * ee24/C - ee83 * ee5 *
            ee1)/C - ee99 * ee5)/ee29 - (ee99/ee29 + ((2 * ((ee39 * ee33 +
@@ -880,75 +880,75 @@ double ltind2(double x, double u) {
            ee53))/ee38 + ee117 - (2 * (ee25 * ee1/ee31) + 8 * (ee24 *
            ee3 * ee19/(C * ee34 * ee26))) * ee5) * ee3 * ee19/ee56 -
            ee105) * ee5) * ee3 * ee19/ee56 + ee55 * (4 * (ee52 * ee13/
-             ee14) + 6) * ee22 * ee1/ee33) * ee5);
-         out(j, 1) += -(((((ee47 * ee32 + (ee76 * ee16/ee11 + 2) * ee20 *
+             ee14) + 6) * ee22 * ee1/ee33) * ee5));
+         out(j, 1) += w * (-(((((ee47 * ee32 + (ee76 * ee16/ee11 + 2) * ee20 *
            ee3 * ee19 * ee12/ee26) * ee24/C - ee47 * ee25 * ee5 *
            ee1)/ee29 - (((2 * ((ee47 * ee33 + ee86 * ee19 * ee5) * ee17) +
            2 * ee100)/ee38 - ee123) * ee24 * ee3/ee56 + 2 * (ee68 *
            ee8/ee45)) * ee19 * ee5) * ee3/ee56 - ((ee47/ee29 - 2 * (ee87/
              ee31)) * ee25 * ee3 * ee1/ee56 - ee61 * ee8/ee46) * ee5) *
-               ee7 * ee5);
-         out(j, 2) += -(((((ee51 * ee32 + ee20 * (ee115 - 2) * ee3 *
+               ee7 * ee5));
+         out(j, 2) += w * (-(((((ee51 * ee32 + ee20 * (ee115 - 2) * ee3 *
            ee19 * ee12/ee26) * ee24/C - ee51 * ee25 * ee5 * ee1)/ee29 -
            (((2 * ((ee51 * ee33 + ee37 * ee19 * ee5/ee4) * ee17) + ee120)/
              ee38 - ee91) * ee24 * ee3/ee65 + ee117) * ee19 * ee5/ee4) *
                ee3/ee65 - ((ee51/ee29 - 2 * (ee77/ee72)) * ee25 * ee3 *
-               ee1/ee65 - ee105) * ee5) * ee6 * ee5/ee4);
-         out(j, 3) += -(((((ee39 * ee5 * ee23/2 + ee69 * ee3 * ee19/
+               ee1/ee65 - ee105) * ee5) * ee6 * ee5/ee4));
+         out(j, 3) += w * (-(((((ee39 * ee5 * ee23/2 + ee69 * ee3 * ee19/
            ee26 + ee35 * ee62) * ee24/C - (ee60 * (2 + ee36) * ee1 + 2 *
              (ee68 * ee18)) * ee5)/ee29 - (ee110 * ee1/ee46 + ee24 * ee71 *
              ee3 * ee19/(C * ee31 * ee26)) * ee5) * ee3 * ee19/ee56 -
              (((ee22 * ee23 + 1) * ee5 + 2 * ee22) * ee55 * ee13 + ee25 *
-             (1 + ee93/2) - ee61 * ee5 * ee18)/ee33) * ee5);
-         out(j, 4) += -(((((ee107 * ee19 + 2 * (ee20 * ee7)) * ee8 *
+             (1 + ee93/2) - ee61 * ee5 * ee18)/ee33) * ee5));
+         out(j, 4) += w * (-(((((ee107 * ee19 + 2 * (ee20 * ee7)) * ee8 *
            ee12 + ee17)/ee29 - ((2 * (ee95 * ee19) + 2 * (ee100 * ee7))/
              ee38 + (2 * (ee47/ee45) - ee123) * ee7) * ee8 * ee5) * ee24 *
                ee3/ee56 - (ee57/ee29 - 2 * (ee113/ee31)) * ee25 * ee8 *
-               ee5 * ee1) * ee7 * ee5);
-         out(j, 5) += -(((((ee70 * ee19 * ee16/ee4 - ee20) * ee8 + ee20/
+               ee5 * ee1) * ee7 * ee5));
+         out(j, 5) += w * (-(((((ee70 * ee19 * ee16/ee4 - ee20) * ee8 + ee20/
            ee4) * ee12/ee29 - (((2 * (ee96 * ee19/ee4) + ee120)/ee38 -
              ee91) * ee8 + 2 * (ee47/(ee45 * ee4))) * ee5) * ee24 * ee3/
-               ee65 + ee109 * ee41 * ee5 * ee1/ee31) * ee7 * ee6 * ee5/ee4);
-         out(j, 6) += -((((ee47 * ee5 * ee80 + ee104 * ee19 + ee73)/
+               ee65 + ee109 * ee41 * ee5 * ee1/ee31) * ee7 * ee6 * ee5/ee4));
+         out(j, 6) += w * (-((((ee47 * ee5 * ee80 + ee104 * ee19 + ee73)/
            ee29 - ee111 * ee19 * ee5/ee31) * ee24 * ee3/ee56 - ee109 * ee90 *
-             ee5 * ee1/ee46) * ee7 * ee5);
-         out(j, 7) += -(((((ee108 * ee19 - 2 * ee54) * ee12/ee4 - ee17)/
+             ee5 * ee1/ee46) * ee7 * ee5));
+         out(j, 7) += w * (-(((((ee108 * ee19 - 2 * ee54) * ee12/ee4 - ee17)/
            ee29 - ((2 * (ee82 * ee19) + 2 * (ee84 * ee6))/ee38 + (2 *
              (ee51/ee45) - ee91) * ee6) * ee5/ee4) * ee24 * ee3/ee65 -
              (ee58/ee29 - 2 * (ee79/ee72)) * ee25 * ee5 * ee1) * ee6 * ee5/
-               ee4);
-         out(j, 8) += -((((ee51 * ee5 * ee80 + ee69 * ee19/ee4 - ee73)/
+               ee4));
+         out(j, 8) += w * (-((((ee51 * ee5 * ee80 + ee69 * ee19/ee4 - ee73)/
            ee29 - ee71 * ee19 * ee5/ee72) * ee24 * ee3/ee65 - ee110 *
-             ee5 * ee1/ee46) * ee6 * ee5/ee4);
-         out(j, 9) += -((ee75 * ee24 * ee3 * ee19/(C * ee46 * ee26) +
+             ee5 * ee1/ee46) * ee6 * ee5/ee4));
+         out(j, 9) += w * (-((ee75 * ee24 * ee3 * ee19/(C * ee46 * ee26) +
            (((1.5 + ee125) * ee23 - (3 + ee5 * (ee23 - ee18)) * ee18) *
-           ee5 + 1) * ee25 * ee1/ee33) * ee5);
-         out(j, 10) += ((1 - (3 - ee121) * ee7/ee44)/ee44 - ((((ee9 *
+           ee5 + 1) * ee25 * ee1/ee33) * ee5));
+         out(j, 10) += w * (((1 - (3 - ee121) * ee7/ee44)/ee44 - ((((ee9 *
            ee16/ee11 + 3) * ee12 + 1) * ee8 * ee7 + ee10)/ee31 - ((2 *
            ee95 + 2 * (ee57 * ee53))/ee38 + ee119 - 8 * (ee113/ee34)) *
-           ee8 * ee7 * ee5) * ee24 * ee8 * ee5) * ee7;
-         out(j, 11) += -(((ee107 * ee12/ee29 - (((2 * ee96 + 2 * (ee106 *
+           ee8 * ee7 * ee5) * ee24 * ee8 * ee5) * ee7);
+         out(j, 11) += w * (-(((ee107 * ee12/ee29 - (((2 * ee96 + 2 * (ee106 *
            ee12))/ee38 - 8 * (ee5/ee34)) * ee8 * ee7 + ee119) * ee5) *
-           ee24 * ee8 * ee5/ee4 + (1 - ee121)/ee116) * ee7 * ee6);
-         out(j, 12) += -(((ee57 * ee5 * ee80 + ee104 * ee7 + ee73)/ee29 -
-           ee111 * ee7 * ee5/ee31) * ee24 * ee8 * ee7 * ee5);
-         out(j, 13) += -((((ee108/ee29 - 2 * ee92) * ee12 - ((ee118 +
+           ee24 * ee8 * ee5/ee4 + (1 - ee121)/ee116) * ee7 * ee6));
+         out(j, 12) += w * (-(((ee57 * ee5 * ee80 + ee104 * ee7 + ee73)/ee29 -
+           ee111 * ee7 * ee5/ee31) * ee24 * ee8 * ee7 * ee5));
+         out(j, 13) += w * (-((((ee108/ee29 - 2 * ee92) * ee12 - ((ee118 +
            2 * (ee106 * ee6 * ee12/ee4))/ee38 - ee124) * ee5) * ee24 *
-           ee8 * ee5/ee4 + (1 - ee122)/ee116) * ee7 * ee6);
-         out(j, 14) += -(((ee12 * ee81 + 2 + ee64 - ee63) * ee5 - 1)/
-           ee31 * ee24 * ee8 * ee7 * ee6 * ee5/ee4);
-         out(j, 15) += -(ee103 * ee8 * ee7 * ee5);
-         out(j, 16) += ((1 - (3 - ee122) * ee6/ee44)/ee44 - ((((2 + ee6 *
+           ee8 * ee5/ee4 + (1 - ee122)/ee116) * ee7 * ee6));
+         out(j, 14) += w * (-(((ee12 * ee81 + 2 + ee64 - ee63) * ee5 - 1)/
+           ee31 * ee24 * ee8 * ee7 * ee6 * ee5/ee4));
+         out(j, 15) += w * (-(ee103 * ee8 * ee7 * ee5));
+         out(j, 16) += w * (((1 - (3 - ee122) * ee6/ee44)/ee44 - ((((2 + ee6 *
            ee16/ee85) * ee12 + ee5) * ee6/ee4 + ee9)/ee31 - ((ee118 +
            2 * (ee58 * ee53))/ee38 + 2 * (ee58/ee45) - ee124) * ee6 *
-           ee5/ee4) * ee24 * ee5/ee4) * ee6;
-         out(j, 17) += -(((ee58 * ee5 * ee80 + ee69 * ee6/ee4 + ee73)/
-           ee29 - ee71 * ee6 * ee5/ee72) * ee24 * ee6 * ee5/ee4);
-         out(j, 18) += -(ee103 * ee6 * ee5/ee4);
-         out(j, 19) += (((((0.5 + ee125)/2 + 0.5) * ee23 - ((0.5 * ee23 -
+           ee5/ee4) * ee24 * ee5/ee4) * ee6);
+         out(j, 17) += w * (-(((ee58 * ee5 * ee80 + ee69 * ee6/ee4 + ee73)/
+           ee29 - ee71 * ee6 * ee5/ee72) * ee24 * ee6 * ee5/ee4));
+         out(j, 18) += w * (-(ee103 * ee6 * ee5/ee4));
+         out(j, 19) += w * ((((((0.5 + ee125)/2 + 0.5) * ee23 - ((0.5 * ee23 -
            ee18) * ee5 + ee62/2 + 1) * ee18) * ee5 + 0.5) * ee23 -
            ee75 * ee18) * ee24 * ee5/ee33 - ((3 * R::trigamma(ee89) + R::psigamma(ee89, 2)/
-             ee5)/ee5 + R::digamma(ee89))/ee5;
+             ee5)/ee5 + R::digamma(ee89))/ee5);
          
          }}}    
    

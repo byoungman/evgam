@@ -70,14 +70,13 @@ arma::mat logitgaussd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat y
   
   arma::mat out = arma::mat(nobs, 5, arma::fill::zeros);
   
-  double y, mu, lsigma, sigma;
+  double y, mu, lsigma;
   double ee2, ee6, ee7, ee9;
   
   for (int j=0; j < nobs; j++) {
     
     mu = muvec[j];
     lsigma = lsigmavec[j];
-    sigma = exp(lsigma);
 
     ee2 = R_pow(exp(lsigma), 2);
     
@@ -117,7 +116,7 @@ arma::mat logitgaussd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat y
     lsigmavec = lsigmavec.elem(dupid);
   }
   
-  double y, mu, lsigma, sigma;
+  double y, mu, lsigma;
   double ee2, ee6, ee7, ee9;
 
   arma::mat out = arma::mat(nobs, 9, arma::fill::zeros);
@@ -126,8 +125,7 @@ arma::mat logitgaussd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat y
     
     mu = muvec[j];
     lsigma = lsigmavec[j];
-    sigma = exp(lsigma);
-    
+
     ee2 = R_pow(exp(lsigma), 2);
 
     for (int l=0; l < nhere[j]; l++) {
@@ -222,15 +220,14 @@ arma::mat logitgaussspd12(Rcpp::List pars, arma::sp_mat X1, arma::sp_mat X2, arm
   
   arma::mat out = arma::mat(nobs, 5, arma::fill::zeros);
   
-  double y, mu, lsigma, sigma;
+  double y, mu, lsigma;
   double ee2, ee6, ee7, ee9;
   
   for (int j=0; j < nobs; j++) {
     
     mu = muvec[j];
     lsigma = lsigmavec[j];
-    sigma = exp(lsigma);
-    
+
     ee2 = R_pow(exp(lsigma), 2);
     
     for (int l=0; l < nhere[j]; l++) {
@@ -269,7 +266,7 @@ arma::mat logitgaussspd34(Rcpp::List pars, arma::sp_mat X1, arma::sp_mat X2, arm
     lsigmavec = lsigmavec.elem(dupid);
   }
   
-  double y, mu, lsigma, sigma;
+  double y, mu, lsigma;
   double ee2, ee6, ee7, ee9;
   
   arma::mat out = arma::mat(nobs, 9, arma::fill::zeros);
@@ -278,8 +275,7 @@ arma::mat logitgaussspd34(Rcpp::List pars, arma::sp_mat X1, arma::sp_mat X2, arm
     
     mu = muvec[j];
     lsigma = lsigmavec[j];
-    sigma = exp(lsigma);
-    
+
     ee2 = R_pow(exp(lsigma), 2);
     
     for (int l=0; l < nhere[j]; l++) {

@@ -76,6 +76,7 @@ double z1d, z1, t1, z2d, z2, t2;
 double y2, dx, px, lH, fiF, giG;
 double nllh=0.0;
 
+int ncol = ymat.n_cols;
 
 for (int j=0; j < nobs; j++) {
 
@@ -86,9 +87,11 @@ txi = txi_from_zero(txi, txieps);
 sbeta = exp(lsbeta);
 xi = 1.5 / (1.0 + exp(-txi)) - 0.5;
 
-for (int l=0; l < nhere[j]; l++) {
-
+for (int l=0; l < ncol; l++) {
+  
 y = ymat(j, l);
+  
+  if (std::isfinite(y)) {
 
 iFa = iF(psuba, qalpha, sbeta, xi, alpha, beta);
 iFb = iF(psubb, qalpha, sbeta, xi, alpha, beta);
@@ -170,7 +173,7 @@ if (y < iFa) { // Gumbel
 
   }
 }
-
+  }
 }
 
 }
@@ -306,8 +309,10 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
     lsbvec = lsbvec.elem(dupid);
     txivec = txivec.elem(dupid);
   }
-
-  double y, qalpha, tqalpha, lsbeta, txi, xi, sbeta, tsbeta, iFa, iFb;
+  
+  int ncol = ymat.n_cols;
+  
+  double y, qalpha, lsbeta, txi, xi, sbeta, iFa, iFb;
 
   // double ee16, ee27, ee29, ee51, ee52, ee53, ee65, ee66;
   // double ee94;
@@ -482,7 +487,7 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
   //
   // double ee20, ee33, ee51, ee56, ee60;
 
-  double ee4;
+  // double ee4;
 
   for (int j=0; j < nobs; j++) {
 
@@ -496,13 +501,15 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
     iFa = iF(psuba, qalpha, sbeta, xi, alpha, beta);
     iFb = iF(psubb, qalpha, sbeta, xi, alpha, beta);
 
-    tqalpha = iFa - (iFb - iFa) * (ell2(alpha) - ell2(psuba)) / (ell2(psuba) - ell2(psubb));
-    tsbeta = (iFb - iFa) * (ell2(hbeta) - ell2(1.0 - hbeta)) / (ell2(psuba) - ell2(psubb));
+    // tqalpha = iFa - (iFb - iFa) * (ell2(alpha) - ell2(psuba)) / (ell2(psuba) - ell2(psubb));
+    // tsbeta = (iFb - iFa) * (ell2(hbeta) - ell2(1.0 - hbeta)) / (ell2(psuba) - ell2(psubb));
 
-    for (int l=0; l < nhere[j]; l++) {
-
+    for (int l=0; l < ncol; l++) {
+      
       y = ymat(j, l);
-
+      
+      if (std::isfinite(y)) {
+        
       if (y < iFa) { // Gumbel
 
       ee2 = exp(-txi);
@@ -1025,7 +1032,7 @@ arma::mat bgevd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           out(j, 8) += ee1269/ee58 + ee1271/ee137 + ((ee1271 + ee52 * ee1297)/ee137 + ee1115 * ee666/ee216) - ee1347 - (ee1215/ee37 + ee533 * ee533/R_pow(ee37, 2)) - (((((ee1259 * ee15 - ee1356 - (ee1356 + ee50 * ee1181)) * ee29 + ee1362 + (ee1362 + ee85 * ee1191))/ee90 - ee1368/ee162 - ((ee1368 - ee86 * ((ee88 * ee1131 + ee1372 + ((ee156 * (ee87 * ee1276 - ee1278) - ee732 * ee712 - (ee88 * ee1293 + ee714 * ee639)) * ee8 + ee1372)) * ee25))/ee162 - ee751 * ee742/ee260) - (ee93 * (630 * ee1341 + (630 * ee1297/ee137 + ee686 * ee666/ee216)) - ee1402 + (4 * (ee1223 * ee141 - ee537 * ee691) * ee96 - ee1402))) * ee99 + ee1413 + (ee1413 + ee98 * (4 * (ee1223 * ee167 + ee537 * ee760))) - ee1347 * ee63)/ee102 - ee778 * ee778/ee279 - (ee1181/ee15 + ee518 * ee518/ee520));
 
         }
-    }}}
+    }}}}
 
   return out;
 
@@ -1053,8 +1060,10 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
     lsbvec = lsbvec.elem(dupid);
     txivec = txivec.elem(dupid);
   }
-
-  double y, qalpha, tqalpha, lsbeta, txi, xi, sbeta, tsbeta, iFa, iFb;
+  
+  int ncol = ymat.n_cols;
+  
+  double y, qalpha, lsbeta, txi, xi, sbeta, iFa, iFb;
 
   double ee10, ee100, ee1000, ee1001, ee1002, ee1003, ee1004, ee1006, ee1007;
   double ee101, ee1010, ee1011, ee1012, ee1014, ee1015, ee1017, ee102, ee1021, ee1023;
@@ -1190,13 +1199,15 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
     iFa = iF(psuba, qalpha, sbeta, xi, alpha, beta);
     iFb = iF(psubb, qalpha, sbeta, xi, alpha, beta);
 
-    tqalpha = iFa - (iFb - iFa) * (ell2(alpha) - ell2(psuba)) / (ell2(psuba) - ell2(psubb));
-    tsbeta = (iFb - iFa) * (ell2(hbeta) - ell2(1.0 - hbeta)) / (ell2(psuba) - ell2(psubb));
+    // tqalpha = iFa - (iFb - iFa) * (ell2(alpha) - ell2(psuba)) / (ell2(psuba) - ell2(psubb));
+    // tsbeta = (iFb - iFa) * (ell2(hbeta) - ell2(1.0 - hbeta)) / (ell2(psuba) - ell2(psubb));
 
-    for (int l=0; l < nhere[j]; l++) {
-
+    for (int l=0; l < ncol; l++) {
+      
       y = ymat(j, l);
-
+      
+      if (std::isfinite(y)) {
+        
       if (y < iFa) { // Gumbel
 
       ee2 = exp(-txi);
@@ -3244,7 +3255,7 @@ arma::mat bgevd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arm
           ee463 * ee782/ee784)) + ee1011) + (ee827 * ee473 + ee1010 +
           ee1012)))/ee484 - ee1034/ee502 - ((ee1034 + ee500 * ee477)/ee502 -
           ee501 * (2 * (ee500 * ee484))/R_pow(ee502, 2)));
-      }}}}
+      }}}}}
 
 return out;
 

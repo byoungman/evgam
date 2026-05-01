@@ -249,34 +249,34 @@ arma::mat gwd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat,
       ee108 = y * (ee8 * ee80 - ee12 * (2 * (ee84/ee6) - (2 +  ee17)/pars2)/ee10)/ee1;
       ee112 = y * (ee50 - ((ee14 * (ee11 - 3 * ee13) + ee37)/pars2 +  ee14 * (ee43 - (2 + ee13)/pars2) + ee28)/pars2)/ee1 -  ((2 * (ee52 * ee18) + ee7 * ee83)/pars2 - ee48 * ee25)/pars2;
       
-      out(j, 0) += y * (ee90 * ee35 + pars2 * ee96 * ee8/ee4)/ee1;
-      out(j, 1) += y * ((ee8 * (ee105 - 1) - ee106/pars2)/ee4 - ee35 *
-        (y * (ee12 * ee9 + ee103 * ee32)/ee1 - ee22))/ee1;
-      out(j, 2) += y * (ee35 * ee77 - 2 * ((ee8 * ee74 - ee20)/R_pow(ee4, 2)))/ee1;
-      out(j, 3) += -((ee48/pars2 + ee35 * ee112)/pars2 + y * (ee42/
-        ee10 + y * (1/ee10 + 2 * ee43)/ee6)/ee6);
-      out(j, 4) += y * (ee103 * (ee2 * (7 + ee2 * ((ee101 - ee98)/
+      out(j, 0) += w * (y * (ee90 * ee35 + pars2 * ee96 * ee8/ee4)/ee1);
+      out(j, 1) += w * (y * ((ee8 * (ee105 - 1) - ee106/pars2)/ee4 - ee35 *
+        (y * (ee12 * ee9 + ee103 * ee32)/ee1 - ee22))/ee1);
+      out(j, 2) += w * (y * (ee35 * ee77 - 2 * ((ee8 * ee74 - ee20)/R_pow(ee4, 2)))/ee1);
+      out(j, 3) += w * (-((ee48/pars2 + ee35 * ee112)/pars2 + y * (ee42/
+        ee10 + y * (1/ee10 + 2 * ee43)/ee6)/ee6));
+      out(j, 4) += w * (y * (ee103 * (ee2 * (7 + ee2 * ((ee101 - ee98)/
         ee4 - 6)/ee6)/ee6 - 1)/ee4 - (ee90 + ee2 * (ee12 * ee75 + ee16 *
           (2 + ee2 * (ee9 * (2 + ee2 * ee15/ee6) + ee20 - 2)/ee1)) *
-          ee8/ee1) * ee35)/ee1;
-      out(j, 5) += y * (((1 + ee2 * (ee2 * ((ee98 - ee101)/ee4 + 6)/
+          ee8/ee1) * ee35)/ee1);
+      out(j, 5) += w * (y * (((1 + ee2 * (ee2 * ((ee98 - ee101)/ee4 + 6)/
         ee6 - 7)/ee6) * ee8 - ee96/pars2)/ee4 + ee35 * (y * (ee12 *
           ee55 + pars2 * (3 * ee40 + y * (ee8 *   (pars2 * ee9 * ee65 -
-          2 * ee16) - ee16 * ee9)/ee1))/ee1 - ee22))/ee1;
-      out(j, 6) += y * ((ee38 * (4 - ee2 * ((ee76 - ee100)/ee4 + 6)/
+          2 * ee16) - ee16 * ee9)/ee1))/ee1 - ee22))/ee1);
+      out(j, 6) += w * (y * ((ee38 * (4 - ee2 * ((ee76 - ee100)/ee4 + 6)/
         ee6)/ee6 - (2 * ee105 - (2 + 2 * ee106))/ee10)/ee4 - ee35 *
           (y * (ee16 * (2 * (ee4 * ee7/ee10) - 2 * (ee84/ee1)) + ee8 *
-          (pars2 * ee80 + ee31 - ee24) - ee39)/ee1 - ee57))/ee1;
-      out(j, 7) += y * ((((6 * (1 - ee33) - 6)/pars2 + 2 * (y * ee74/
+          (pars2 * ee80 + ee31 - ee24) - ee39)/ee1 - ee57))/ee1);
+      out(j, 7) += w * (y * ((((6 * (1 - ee33) - 6)/pars2 + 2 * (y * ee74/
         ee6))/ee10 + y * (ee74/ee10 + y * ((2 * ee4 - ee100)/ee4 +
           4) * ee8/ee6)/ee6)/ee4 + ee35 * (ee108 - (2 * (ee34 * ee18) +
-          ee102 - ee87)/ee10))/ee1;
-      out(j, 8) += -((ee89/pars2 + ee35 * (y * (ee108 - (((2 * ee18 -
+          ee102 - ee87)/ee10))/ee1);
+      out(j, 8) += w * (-((ee89/pars2 + ee35 * (y * (ee108 - (((2 * ee18 -
         6) * ee34 + ee102 - ((ee14 * (ee11 - (ee17 + 6)) + 2 * ee54 +
         ee37)/pars2 +   ee87))/pars2 + 3 * ee50)/pars2)/ee1 -
         ((3 * (ee83 * ee18) + ee7 * ee112 - 3 * (ee48 * ee52))/pars2 -
         ee89 * ee25)/pars2))/pars2 - y * (ee73/ee10 + y * (ee61/
-          ee10 + y * (2/ee10 + 6 * ee43)/ee6)/ee6)/ee6);  
+          ee10 + y * (2/ee10 + 6 * ee43)/ee6)/ee6)/ee6));  
     }
     
   }

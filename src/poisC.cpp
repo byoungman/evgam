@@ -101,7 +101,7 @@ arma::mat poisd34(Rcpp::List pars, arma::mat X1, arma::mat ymat, arma::uvec dupi
     lmuvec = lmuvec.elem(dupid);
   }
   
-  double y, lmu, mu, w, offset;
+  double lmu, mu, w, offset;
   arma::mat out = arma::mat(nobs, 2, arma::fill::zeros);
   
   for (int j=0; j < nobs; j++) {
@@ -110,7 +110,6 @@ arma::mat poisd34(Rcpp::List pars, arma::mat X1, arma::mat ymat, arma::uvec dupi
 
     for (int l=0; l < nhere[j]; l++) {
       
-      y = ymat(j, l);
       w = wmat(j, l);
       offset = offmat(j, l);
       mu = exp(log(offset) + lmu);
@@ -223,7 +222,7 @@ arma::mat poisspd34(Rcpp::List pars, arma::sp_mat X1, arma::mat ymat, arma::uvec
     lmuvec = lmuvec.elem(dupid);
   }
   
-  double y, lmu, mu, w, offset;
+  double lmu, mu, w, offset;
   arma::mat out = arma::mat(nobs, 2, arma::fill::zeros);
   
   for (int j=0; j < nobs; j++) {
@@ -232,7 +231,6 @@ arma::mat poisspd34(Rcpp::List pars, arma::sp_mat X1, arma::mat ymat, arma::uvec
     
     for (int l=0; l < nhere[j]; l++) {
       
-      y = ymat(j, l);
       w = wmat(j, l);
       offset = offmat(j, l);
       mu = exp(log(offset) + lmu);

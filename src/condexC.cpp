@@ -58,7 +58,7 @@ const double logtwopi = log(2.0 * M_PI);
        y = ymat(j, l);
        yi = xmat(j, l);
        
-       if (arma::is_finite(y) & arma::is_finite(yi)) {
+       if (std::isfinite(y) & std::isfinite(yi)) {
          
          w = wmat(j, l);
          
@@ -129,7 +129,7 @@ const double logtwopi = log(2.0 * M_PI);
        y = ymat(j, l);
        yi = xmat(j, l);
        
-       if (arma::is_finite(y) & arma::is_finite(yi)) {
+       if (std::isfinite(y) & std::isfinite(yi)) {
          
          w = wmat(j, l);
          
@@ -300,7 +300,7 @@ const double logtwopi = log(2.0 * M_PI);
        y = ymat(j, l);
        yi = xmat(j, l);
        
-       if (arma::is_finite(y) & arma::is_finite(yi)) {
+       if (std::isfinite(y) & std::isfinite(yi)) {
          
          w = wmat(j, l);
          
@@ -577,7 +577,7 @@ const double logtwopi = log(2.0 * M_PI);
        y = ymat(j, l);
        yi = xmat(j, l);
        
-       if (arma::is_finite(y) & arma::is_finite(yi)) {
+       if (std::isfinite(y) & std::isfinite(yi)) {
          
          w = wmat(j, l);
          
@@ -641,7 +641,7 @@ const double logtwopi = log(2.0 * M_PI);
        y = ymat(j, l);
        yi = xmat(j, l);
        
-       if (arma::is_finite(y) & arma::is_finite(yi)) {
+       if (std::isfinite(y) & std::isfinite(yi)) {
          
          w = wmat(j, l);
          
@@ -749,7 +749,7 @@ const double logtwopi = log(2.0 * M_PI);
        y = ymat(j, l);
        yi = xmat(j, l);
        
-       if (arma::is_finite(y) & arma::is_finite(yi)) {
+       if (std::isfinite(y) & std::isfinite(yi)) {
          
          w = wmat(j, l);
          
