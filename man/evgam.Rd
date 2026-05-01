@@ -12,7 +12,7 @@ evgam(
   correctV = TRUE,
   rho0 = 0,
   inits = NULL,
-  outer = "bfgs",
+  outer = NULL,
   control = NULL,
   removeData = FALSE,
   trace = 0,

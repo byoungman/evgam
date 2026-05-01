@@ -14,7 +14,7 @@ if (!fitbeta$gradconv) {
 if (inherits(fitbeta, "try-error")) 
   return(1e20)
 logdetSdata <- .logdetS(Sdata, pars)
-logdetHdata <- .d0logdetH(fitbeta)
+logdetHdata <- .d0logdetH(fitbeta, likdata$sparse)
 out <- fitbeta$objective + as.numeric(fitbeta$convergence != 0) * 1e20
 out <- out + .5 * logdetHdata$d0 - .5 * logdetSdata$d0
 out <- as.vector(out + likdata$const)

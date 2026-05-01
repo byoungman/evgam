@@ -22,9 +22,12 @@
     temp <- list()
     ind <- lst[[i]]$first.para:lst[[i]]$last.para
     for (j in seq_along(lst[[i]]$S)) {
-      temp2 <- matrix(0, nb, nb)
+      if (!sparse) {
+        temp2 <- matrix(0, nb, nb)
+      } else {
+        temp2 <- Matrix::Matrix(0, nb, nb, sparse = TRUE)
+      }
       temp2[ind, ind] <- lst[[i]]$S[[j]]
-      #     }
       temp[[j]] <- temp2
     }
     lst2[[i]] <- temp
@@ -35,7 +38,7 @@
       out[[i]]$null.space.dim <- 0
   }
   if (sparse)
-    lst2 <- lapply(lst2, as, 'dgCMatrix')
+    lst2 <- lapply(lst2, as, 'CsparseMatrix')
   attr(out, "Sl") <- lst2
   attr(out, "nb") <- nb
   out
@@ -110,6 +113,54 @@
   out
 }
 
+.gH.nopen.dense <- function(pars, likdata, likfns, sandwich=FALSE, deriv=2) {
+  pars <- as.vector(likdata$compmode + likdata$CH %*% (as.vector(pars) - likdata$compmode))
+  if ('sandwich' %in% names(formals(likfns$d120))) {
+    temp <- likfns$d120(pars, likdata, sandwich)
+  } else {
+    temp <- likfns$d120(pars, likdata)
+  }
+  if (is.null(likdata$agg))
+    temp <- .gH(temp, likdata, sandwich, deriv)
+  temp[[1]] <- likdata$k * temp[[1]]
+  temp[[1]] <- t(temp[[1]] %*% likdata$CH)
+  if (deriv > 1) {
+    temp[[2]] <- likdata$k * temp[[2]]
+    temp[[2]] <- crossprod(likdata$CH, temp[[2]]) %*% likdata$CH
+    attr(temp, "PP") <- temp[[2]] / norm(temp[[2]], "F")
+  }
+  temp
+}
+
+.gH.nopen.sparse <- function(pars, likdata, likfns, sandwich=FALSE, deriv=2) {
+  pars <- as.vector(likdata$compmode + likdata$CH %*% (as.vector(pars) - likdata$compmode))
+  if ('sandwich' %in% names(formals(likfns$d120))) {
+    temp <- likfns$d120(pars, likdata, sandwich)
+  } else {
+    temp <- likfns$d120(pars, likdata)
+  }
+  if (is.null(likdata$agg))
+    temp <- .gH(temp, likdata, sandwich, deriv)
+  temp[[1]] <- likdata$k * temp[[1]]
+  temp[[1]] <- as.matrix(temp[[1]] %*% likdata$CH)
+  temp[[1]] <- t(temp[[1]])
+  if (deriv > 1) {
+    temp[[2]] <- likdata$k * temp[[2]]
+    temp[[2]] <- Matrix::crossprod(likdata$CH, temp[[2]]) %*% likdata$CH
+    # attr(temp, "PP") <- temp[[2]] / Matrix::norm(temp[[2]], "F")
+  }
+  temp
+}
+
+.gH.nopen <- function(pars, likdata, likfns, sandwich=FALSE, deriv=2) {
+  if (!likdata$sparse) {
+    out <- .gH.nopen.dense(pars, likdata, likfns, sandwich, deriv)
+  } else {
+    out <- .gH.nopen.sparse(pars, likdata, likfns, sandwich, deriv)
+  }
+out
+}
+
 .gH.pen.dense <- function(pars, likdata, likfns, deriv=2) {
   temp <- .gH.nopen(pars, likdata, likfns, deriv=deriv)
   temp[[1]] <- temp[[1]] + crossprod(pars, likdata$S)[1, ]
@@ -122,13 +173,13 @@
 
 .gH.pen.sparse <- function(pars, likdata, likfns, deriv=2) {
   temp <- .gH.nopen(pars, likdata, likfns, deriv=deriv)
-  if (!likdata$sparse) {
-    temp[[1]] <- temp[[1]] + base::crossprod(pars, likdata$S)[1, ]
-  } else {
+  # if (!likdata$sparse) {
+  #   temp[[1]] <- temp[[1]] + base::crossprod(pars, likdata$S)[1, ]
+  # } else {
     temp[[1]] <- temp[[1]] + Matrix::crossprod(pars, likdata$S)[1, ]
-  }
+  # }
   if (deriv > 1) {
-    attr(temp, "PP") <- attr(temp, "PP") + likdata$S / Matrix::norm(likdata$S, "F")
+    # attr(temp, "PP") <- attr(temp, "PP") + likdata$S / Matrix::norm(likdata$S, "F")
     temp[[2]] <- temp[[2]] + likdata$S
   }
   temp
@@ -179,8 +230,8 @@
   H <- H[kept, kept, drop=FALSE]
   if (any(!is.finite(g)))
     stop("Some gradient non-finite")
-  if (any(!is.finite(H)))
-    stop("Some Hessian non-finite")
+  # if (any(!is.finite(H)))
+  #   stop("Some Hessian non-finite")
   out <- numeric(length(kept))
   H2 <- .precondition(H)
   H2 <- .perturb(H2)
@@ -223,12 +274,14 @@
   out$H <- H2
   out$dH <- attr(H2, "d")
   out$cH <- attr(H2, "chol")
-  out$iH <- Matrix::solve(out$H0)
-  t1 <- Matrix::tcrossprod(Matrix::solve(out$cH, Matrix::Diagonal(nrow(H)))) * Matrix::tcrossprod(out$dH)
-  range(t1 - out$iH)
-  out$dH * Matrix::t(Matrix::chol2inv(out$cH) * out$dH)# out$iH <- Matrix::solve(out$cH, Matrix::Diagonal(out$dH), transpose=TRUE))
-  
-  out$iH <- out$dH * Matrix::t(Matrix::chol2inv(out$cH) * out$dH)# out$iH <- Matrix::solve(out$cH, Matrix::Diagonal(out$dH), transpose=TRUE))
+  # out$iH <- Matrix::solve(out$H0)
+  # t1 <- Matrix::tcrossprod(Matrix::solve(out$cH, Matrix::Diagonal(nrow(H)))) * Matrix::tcrossprod(out$dH)
+  # range(t1 - out$iH)
+  # t2 <- Matrix::tcrossprod(Matrix::solve(out$cH, Matrix::Diagonal(nrow(H))))
+  # range(t2 - out$iH)
+  # out$dH * Matrix::t(Matrix::chol2inv(out$cH) * out$dH)# out$iH <- Matrix::solve(out$cH, Matrix::Diagonal(out$dH), transpose=TRUE))
+  # out$iH <- out$dH * Matrix::t(Matrix::chol2inv(out$cH) * out$dH)# out$iH <- Matrix::solve(out$cH, Matrix::Diagonal(out$dH), transpose=TRUE))
+  out$iH <- NULL#out$dH * Matrix::t(Matrix::chol2inv(out$cH) * out$dH)# out$iH <- Matrix::solve(out$cH, Matrix::Diagonal(out$dH), transpose=TRUE))
   out$kept <- !logical(nrow(H))
   out
 }
@@ -263,14 +316,16 @@
 .perturb_sparse <- function(A) {
   d <- attr(A, 'd')
   eps <- 1e-12
-  rk0 <- Matrix::rankMatrix(A, method = 'qr')
-  # cholA <- Matrix::Cholesky(A)
-  cholA <- suppressWarnings(try(Matrix::chol(A), silent = TRUE))
-  # while(any(Matrix::diag(cholA) <= 0)) {
-  while(inherits(cholA, 'try-error')) {
+  cholA <- suppressWarnings(Matrix::Cholesky(A, LDL = TRUE))
+  rk0 <- sum(Matrix::diag(cholA) > 1e-8)#length(d)#Matrix::rankMatrix(A, method = 'qr')
+  # cholA <- suppressWarnings(try(Matrix::Cholesky(A, LDL = FALSE)))
+  # cholA <- suppressWarnings(try(Matrix::chol(A), silent = TRUE))
+  while(any(Matrix::diag(cholA) <= 1e-8)) {
+  # while(inherits(cholA, 'try-error')) {
     Matrix::diag(A) <- Matrix::diag(A) + eps
-    # cholA <- Matrix::Cholesky(A)
-    cholA <- suppressWarnings(try(Matrix::chol(A), silent = TRUE))
+    cholA <- suppressWarnings(Matrix::Cholesky(A, LDL = TRUE))
+    # cholA <- suppressWarnings(try(Matrix::Cholesky(A, LDL = FALSE)))
+    # cholA <- suppressWarnings(try(Matrix::chol(A), silent = TRUE))
     #rk <- Matrix::rankMatrix(A, method = 'qr')
     eps <- 1e2 * eps
   }
@@ -278,7 +333,7 @@
   attr(cholA, 'd') <- d
   attr(A, "chol") <- cholA
   # attr(A, "chol2") <- Matrix::Cholesky(A)
-  attr(A, "rank") <- Matrix::rankMatrix(A, method = 'qr')
+  attr(A, "rank") <- length(d)#Matrix::rankMatrix(A, method = 'qr')
   attr(A, "rank0") <- rk0
   return(A)
 }
@@ -342,8 +397,8 @@
   if (is.null(x)) {
     out <- Matrix::tcrossprod(Matrix::solve(L, Matrix::Diagonal(nrow(L)))) * Matrix::tcrossprod(d)
   } else {
-    out <- d * Matrix::solve(L, Matrix::solve(Matrix::t(L), x * d))
-    # d * Matrix::solve(L, x * d)
+    # out <- d * Matrix::solve(L, Matrix::solve(Matrix::t(L), x * d))
+    out <- d * Matrix::solve(L, x * d)
   }
   out
 }
@@ -359,26 +414,35 @@
   out
 }
 
-.d0logdetH <- function(x) {
+.d0logdetH_dense <- function(x) {
   if (is.null(x$cholHessian)) {
     out <- as.vector(determinant(x$Hessian)[[1]])
   } else {
     cH <- x$cholHessian
-    if (inherits(cH, 'Cholesky')) {
-      out <- 2 * as.vector(Matrix::determinant(cH)$modulus)
-    } else {
-      if (inherits(cH, c('dtCMatrix', 'dCHMsimpl', 'dtrMatrix'))) {
-        out <- 2 * sum(log(Matrix::diag(cH)))
-        if (inherits(cH, c('dtCMatrix', 'dCHMsimpl', 'dtrMatrix'))) {
-          out <- out - 2 * sum(log(attr(cH, "d")))
-        }
-      } else {
-        out <- 2 * sum(log(diag(cH)))
-        out <- out - 2 * sum(log(attr(cH, "d")))
-      }
-    }
+    out <- 2 * sum(log(diag(cH)))
+    out <- out - 2 * sum(log(attr(cH, "d")))
   }
   list(d0 = out)
+}
+
+.d0logdetH_sparse <- function(x) {
+  if (is.null(x$cholHessian)) {
+    out <- as.vector(Matrix::determinant(x$Hessian)[[1]])
+  } else {
+    cH <- x$cholHessian
+    out <- sum(log(Matrix::diag(cH)))
+    out <- out - 2 * sum(log(attr(cH, "d")))
+  }
+  list(d0 = out)
+}
+
+.d0logdetH <- function(x, sparse) {
+  if (!sparse) {
+    out <- .d0logdetH_dense(x)
+  } else {
+    out <- .d0logdetH_sparse(x)
+  }
+  out
 }
 
 .d1beta <- function(lsp, beta, spSl, H) {
@@ -400,6 +464,7 @@
   } else {
     H <- H0
   }
+  if (!likdata$sparse) {
   Hd <- .Hdata(H)
   if (!likdata$sparse) {
     cholH <- try(chol(H), silent = TRUE)
@@ -432,7 +497,12 @@
   } else {
     Vrho <- 0
   }
-  list(Vp=Vp, Vc=Vc, Vlsp=Vrho, H0=H0, H=H)
+  out <- list(Vp=Vp, Vc=Vc, Vlsp=Vrho, H0=H0, H=H)
+} else {
+  out <- list(Vp = Matrix::Diagonal(nrow(H), x = 0), Vc = Matrix::Diagonal(nrow(H), x = 0), 
+              Vlsp=NULL, H0 = H0, H = H)
+}
+out
 }
 
 .choltr <- function(x, b) {

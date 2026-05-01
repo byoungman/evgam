@@ -395,9 +395,10 @@ arma::mat g;
 
 if (deriv > 1) {
 
-arma::mat H;
+// int e1 = X1.n_cols - 1;
+// arma::sp_mat H(e1, e1);
 // H = X1.t() * (X1.each_col() % gh.col(1));
-H = X1.t() * schur_spmat(X1, gh.col(1));
+arma::sp_mat H = X1.t() * schur_spmat(X1, gh.col(1));
 out(1) = H;
 }
 
@@ -419,48 +420,207 @@ return(out);
 // [[Rcpp::export(.gHsp2)]]
 Rcpp::List gHsp2(arma::mat gh, arma::sp_mat X1, arma::sp_mat X2, const arma::uvec dupid, int dcate, int sand, int deriv)
 {
+  
+  Rcpp::List out(2);
+  
+  arma::mat g;
+  
+  // if (dcate == 1) {
+  //   X1 = X1.rows(dupid);
+  //   X2 = X2.rows(dupid);
+  // }
+  
+  if (deriv > 1) {
+    int s1 = 0;
+    int e1 = X1.n_cols - 1;
+    int s2 = e1 + 1;
+    int e2 = e1 + X2.n_cols;
+    arma::sp_mat H =  arma::sp_mat(e2 + 1, e2 + 1);
+    arma::sp_mat H11 = X1.t() * schur_spmat(X1, gh.col(2));
+    H.submat(s1, s1, e1, e1) = H11;
+    arma::sp_mat H12 = X2.t() * schur_spmat(X1, gh.col(3));
+    H.submat(s2, s1, e2, e1) = H12;
+    H.submat(s1, s2, e1, e2) = H12.t();
+    arma::sp_mat H22 = X2.t() * schur_spmat(X2, gh.col(4));
+    H.submat(s2, s2, e2, e2) = H22;
+    out(1) = H;
+  }
+  
+  X1 = schur_spmat(X1, gh.col(0));
+  X2 = schur_spmat(X2, gh.col(1));
+  
+  if (sand == 0) {
+    g = join_rows(sum(X1, 0), sum(X2, 0));
+  } else {
+    g = join_rows(X1, X2);
+  }
+  
+  out(0) = g;
+  
+  return(out);
+  
+}
 
-Rcpp::List out(2);
-
-arma::mat g;
-
-// if (dcate == 1) {
-//     X1 = X1.rows(dupid);
-//     X2 = X2.rows(dupid);
+// // [[Rcpp::export(.gHsp2)]]
+// Rcpp::List gHsp2(arma::mat gh, arma::sp_mat X1, arma::sp_mat X2, const arma::uvec dupid, int dcate, int sand, int deriv)
+// {
+//   Rcpp::List out(2);
+//   arma::mat g;
+//   
+//   // if (dcate == 1) {
+//   //   X1 = X1.rows(dupid);
+//   //   X2 = X2.rows(dupid);
+//   // }
+//   
+//   if (deriv > 1) {
+//     // int n1 = X1.n_cols;
+//     // int n2 = X2.n_cols;
+//     // int total_dim = n1 + n2;
+//     // 
+//     // // Initialize H as sparse
+//     // arma::sp_mat H(total_dim, total_dim);
+//     
+//     int s1 = 0;
+//     int e1 = X1.n_cols - 1;
+//     int s2 = e1 + 1;
+//     int e2 = e1 + X2.n_cols;
+//     arma::sp_mat H = arma::sp_mat(e2 + 1, e2 + 1);
+//     arma::sp_mat H11 = X1.t() * schur_spmat(X1, gh.col(2));
+//     H.submat(s1, s1, e1, e1) = H11;
+//     arma::sp_mat H12 = X2.t() * schur_spmat(X1, gh.col(3));
+//     H.submat(s2, s1, e2, e1) = H12;
+//     H.submat(s1, s2, e1, e2) = H12.t();
+//     arma::sp_mat H22 = X2.t() * schur_spmat(X2, gh.col(4));
+//     H.submat(s2, s2, e2, e2) = H22;
+// 
+//     // Scaling rows of sparse matrices via diagmat is efficient:
+//     // (diagmat(v) * X) scales each row i of X by v[i]
+//     // arma::sp_mat H11 = X1.t() * (arma::diagmat(gh.col(2)) * X1);
+//     // arma::sp_mat H21 = X2.t() * (arma::diagmat(gh.col(3)) * X1);
+//     // arma::sp_mat H22 = X2.t() * (arma::diagmat(gh.col(4)) * X2);
+//     // arma::sp_mat H11 = X1.t() * schur_spmat(X1, gh.col(2));
+//     // arma::sp_mat H12 = X2.t() * schur_spmat(X1, gh.col(3));
+//     // arma::sp_mat H22 = X2.t() * schur_spmat(X2, gh.col(4));
+//     //   
+//     // // Assign blocks
+//     // H.submat(0, 0, n1 - 1, n1 - 1) = H11;
+//     // H.submat(n1, 0, total_dim - 1, n1 - 1) = H21;
+//     // H.submat(0, n1, n1 - 1, total_dim - 1) = H21.t();
+//     // H.submat(n1, n1, total_dim - 1, total_dim - 1) = H22;
+//     
+//     out(1) = H;
+//   }
+//   
+//   // Row-scaling for the gradient part
+//   // X1 = arma::diagmat(gh.col(0)) * X1;
+//   // X2 = arma::diagmat(gh.col(1)) * X2;
+//   X1 = schur_spmat(X1, gh.col(0));
+//   X2 = schur_spmat(X2, gh.col(1));
+//   
+//   if (sand == 0) {
+//     // Convert sparse sums to dense row vectors for join_rows
+//     g = arma::join_rows(arma::mat(arma::sum(X1, 0)), arma::mat(arma::sum(X2, 0)));
+//   } else {
+//     // join_rows for sparse matrices returns a sparse matrix
+//     // converting to dense if 'g' must be arma::mat
+//     g = arma::mat(arma::join_rows(X1, X2));
+//   }
+//   
+//   out(0) = g;
+//   return(out);
 // }
 
-if (deriv > 1) {
-int s1 = 0;
-int e1 = X1.n_cols - 1;
-int s2 = e1 + 1;
-int e2 = e1 + X2.n_cols;
-arma::mat H =  arma::mat(e2 + 1, e2 + 1);
-// H.submat(s1, s1, e1, e1) = X1.t() * (X1.each_col() % gh.col(2));
-H.submat(s1, s1, e1, e1) = X1.t() * schur_spmat(X1, gh.col(2));
-// H.submat(s2, s1, e2, e1) = X2.t() * (X1.each_col() % gh.col(3));
-H.submat(s2, s1, e2, e1) = X2.t() * schur_spmat(X1, gh.col(3));
-H.submat(s1, s2, e1, e2) = H.submat(s2, s1, e2, e1).t();
-// H.submat(s2, s2, e2, e2) = X2.t() * (X2.each_col() % gh.col(4));
-H.submat(s2, s2, e2, e2) = X2.t() * schur_spmat(X2, gh.col(4));
-out(1) = H;
-}
+// // [[Rcpp::export(.gHsp2)]]
+// Rcpp::List gHsp2(arma::mat gh, arma::sp_mat X1, arma::sp_mat X2, const arma::uvec dupid, int dcate, int sand, int deriv)
+// {
+// 
+// Rcpp::List out(2);
+// 
+// arma::mat g;
+// 
+// // if (dcate == 1) {
+// //     X1 = X1.rows(dupid);
+// //     X2 = X2.rows(dupid);
+// // }
+// 
+// if (deriv > 1) {
+// int s1 = 0;
+// int e1 = X1.n_cols - 1;
+// int s2 = e1 + 1;
+// int e2 = e1 + X2.n_cols;
+// arma::mat H =  arma::mat(e2 + 1, e2 + 1);
+// // H.submat(s1, s1, e1, e1) = X1.t() * (X1.each_col() % gh.col(2));
+// H.submat(s1, s1, e1, e1) = X1.t() * schur_spmat(X1, gh.col(2));
+// // H.submat(s2, s1, e2, e1) = X2.t() * (X1.each_col() % gh.col(3));
+// H.submat(s2, s1, e2, e1) = X2.t() * schur_spmat(X1, gh.col(3));
+// H.submat(s1, s2, e1, e2) = H.submat(s2, s1, e2, e1).t();
+// // H.submat(s2, s2, e2, e2) = X2.t() * (X2.each_col() % gh.col(4));
+// H.submat(s2, s2, e2, e2) = X2.t() * schur_spmat(X2, gh.col(4));
+// out(1) = H;
+// }
+// 
+// // X1.each_col() %= gh.col(0);
+// // X2.each_col() %= gh.col(1);
+// X1 = schur_spmat(X1, gh.col(0));
+// X2 = schur_spmat(X2, gh.col(1));
+// 
+// if (sand == 0) {
+//     g = join_rows(sum(X1, 0), sum(X2, 0));
+// } else {
+//     g = join_rows(X1, X2);
+// }
+// 
+// out(0) = g;
+// 
+// return(out);
+// 
+// }
 
-// X1.each_col() %= gh.col(0);
-// X2.each_col() %= gh.col(1);
-X1 = schur_spmat(X1, gh.col(0));
-X2 = schur_spmat(X2, gh.col(1));
-
-if (sand == 0) {
-    g = join_rows(sum(X1, 0), sum(X2, 0));
-} else {
-    g = join_rows(X1, X2);
-}
-
-out(0) = g;
-
-return(out);
-
-}
+// // [[Rcpp::export(.gHsp2)]]
+// Rcpp::List gHsp2(arma::mat gh, arma::sp_mat X1, arma::sp_mat X2, const arma::uvec dupid, int dcate, int sand, int deriv)
+// {
+//   Rcpp::List out(2);
+//   arma::mat g;
+//   
+//   if (deriv > 1) {
+//     int n1 = X1.n_cols;
+//     int n2 = X2.n_cols;
+//     int total_cols = n1 + n2;
+//     
+//     // 1. Declare H as a sparse matrix
+//     arma::sp_mat H(total_cols, total_cols);
+//     
+//     // 2. Compute blocks as sparse matrices
+//     // Note: Using sparse * sparse multiplication yields a sparse result
+//     arma::sp_mat H11 = X1.t() * schur_spmat(X1, gh.col(2));
+//     arma::sp_mat H21 = X2.t() * schur_spmat(X1, gh.col(3));
+//     arma::sp_mat H22 = X2.t() * schur_spmat(X2, gh.col(4));
+//     
+//     // 3. Assign blocks to the sparse matrix
+//     // In Armadillo, submatrix assignment for sparse matrices is supported 
+//     // but can be slow if done frequently. For block construction, this is standard:
+//     H.submat(0, 0, n1 - 1, n1 - 1) = H11;
+//     H.submat(n1, 0, total_cols - 1, n1 - 1) = H21;
+//     H.submat(0, n1, n1 - 1, total_cols - 1) = H21.t();
+//     H.submat(n1, n1, total_cols - 1, total_cols - 1) = H22;
+//     
+//     out(1) = H;
+//   }
+//   
+//   X1 = schur_spmat(X1, gh.col(0));
+//   X2 = schur_spmat(X2, gh.col(1));
+//   
+//   if (sand == 0) {
+//     // sum(X1, 0) returns a row vector; we cast to dense for 'g'
+//     g = arma::join_rows(arma::mat(arma::sum(X1, 0)), arma::mat(arma::sum(X2, 0)));
+//   } else {
+//     // If sand != 0, g becomes a dense version of the joined sparse features
+//     g = arma::join_rows(arma::mat(X1), arma::mat(X2));
+//   }
+//   
+//   out(0) = g;
+//   return(out);
+// }
 
 // [[Rcpp::export(.gHsp3)]]
 Rcpp::List gHsp3(arma::mat gh, arma::sp_mat X1, arma::sp_mat X2, arma::sp_mat X3, const arma::uvec dupid, int dcate, int sand, int deriv)

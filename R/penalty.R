@@ -62,25 +62,6 @@ temp
 .hess.nopen(pars, likdata, likfns) + likdata$S
 }
 
-.gH.nopen <- function(pars, likdata, likfns, sandwich=FALSE, deriv=2) {
-pars <- as.vector(likdata$compmode + likdata$CH %*% (as.vector(pars) - likdata$compmode))
-if ('sandwich' %in% names(formals(likfns$d120))) {
-  temp <- likfns$d120(pars, likdata, sandwich)
-} else {
-  temp <- likfns$d120(pars, likdata)
-}
-if (is.null(likdata$agg))
-  temp <- .gH(temp, likdata, sandwich, deriv)
-temp[[1]] <- likdata$k * temp[[1]]
-temp[[1]] <- t(temp[[1]] %*% likdata$CH)
-if (deriv > 1) {
-  temp[[2]] <- likdata$k * temp[[2]]
-  temp[[2]] <- crossprod(likdata$CH, temp[[2]]) %*% likdata$CH
-  attr(temp, "PP") <- temp[[2]] / norm(temp[[2]], "F")
-}
-temp
-}
-
 .search.nopen <- function(pars, likfns, likdata, kept, newton=TRUE, id=NULL, vals=NULL) {
 if (!is.null(id)) 
   pars <- add_in(pars, id, vals)

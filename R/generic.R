@@ -108,7 +108,7 @@
 #' @export
 #' 
 evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0, 
-                  inits=NULL, outer="bfgs", control=NULL, removeData=FALSE, trace=0, 
+                  inits=NULL, outer = NULL, control=NULL, removeData=FALSE, trace=0, 
                   knots=NULL, maxdata=1e20, maxspline=1e20, compact=FALSE, gpd.args = list(),
                   ald.args=list(), exi.args=list(), pp.args=list(), bgev.args = list(),
                   sandwich.args=list(), egpd.args=list(), custom.fns=list(), 
@@ -125,7 +125,7 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
   ## setup mgcv objects and data
   temp.data <- .setup.data(data, response.name, formula, family, family.info$nms, 
                            removeData, gpd.args, exi.args, ald.args, pp.args, knots, maxdata, 
-                           maxspline, compact, sandwich.args, tolower(outer), trace, gamma, bgev.args, sparse, args)
+                           maxspline, compact, sandwich.args, outer, trace, gamma, bgev.args, sparse, args)
   data <- temp.data$data
   
   ## aggregation

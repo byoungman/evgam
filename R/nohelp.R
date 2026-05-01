@@ -475,6 +475,7 @@ it <- 1
 okay <- TRUE
 f0 <- fn(pars, ...)
 step1 <- NULL
+evals <- 1
 
 while (okay) {
   if (it > 1) 
@@ -506,6 +507,7 @@ while (okay) {
     } else {
       theta1 <- pars - step
       f1 <- fn(theta1, ...)
+      evals <- evals + 1
       d <- f1 - f0
       if (!is.finite(d)) 
         d <- 10
@@ -561,6 +563,7 @@ out$iterations <- it
 out$gradconv <- substr(report, 1, 4) == "grad"
 if (!is.null(attr(pars, "beta"))) 
   out$beta <- attr(pars, "beta")
+out$fevaluations <- evals
 out
 }
 

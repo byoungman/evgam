@@ -600,7 +600,14 @@
   ## likelihood
   lik.data <- list(args = args)
   lik.data$control <- list()
-  lik.data$outer <- outer
+  if (is.null(outer)) {
+    if (sparse) {
+      outer <- 'fd'
+    } else {
+      outer <- 'bfgs'
+    }
+  }
+  lik.data$outer <- tolower(outer)
   lik.data$control$outer <- list(steptol=1e-12, itlim=1e2, fntol=1e-8, gradtol=1e-2, stepmax=3)
   lik.data$control$inner <- list(steptol=1e-12, itlim=1e2, fntol=1e-8, gradtol=1e-4, stepmax=1e2)
   lik.data$y <- as.matrix(data[,responsename, drop=FALSE])
@@ -1222,10 +1229,19 @@
   }
   beta0 <- unlist(lapply(seq_len(npar), function(i) c(beta0[i], rep(0, ncol(likdata$X[[i]]) - 1))))
   compmode <- 0 * beta0
-  CH <- diag(compmode + 1)
   k <- likdata$k
+  if (!likdata$sparse) {
+    CH <- diag(compmode + 1)
+  } else {
+    CH <- Matrix::Diagonal(length(beta0), compmode + 1)
+  }
   likdata[c("k", "CH", "compmode")] <- list(k, CH, compmode)
-  diagH <- diag(.gH.nopen(beta0, likdata=likdata, likfns=likfns)[[2]])
+  if (!likdata$sparse) {
+    diagH <- diag(.gH.nopen(beta0, likdata=likdata, likfns=likfns)[[2]])
+  } else {
+    # diagH <- Matrix::Diagonal(length(beta0), .gH.nopen(beta0, likdata=likdata, likfns=likfns)[[2]])
+    diagH <- Matrix::Diagonal(length(beta0))
+  }
   if (likdata$sandwich) {
     beta0 <- .newton_step(beta0, .nllh.nopen, .search.nopen, likdata=likdata, likfns=likfns, control=likdata$control$inner)$par
     H <- .gH.nopen(beta0, likdata=likdata, likfns=likfns, sandwich=TRUE)
@@ -1319,6 +1335,9 @@
 
 .outer <- function(rho0, beta, likfns, likdata, Sdata, control, correctV, outer, trace) {
   
+  if (likdata$sparse)
+    correctV <- FALSE
+  
   attr(rho0, "beta") <- beta
   
   if (outer == "fixed") {
@@ -1332,6 +1351,9 @@
     
     if (is.null(likfns$d340) & outer != "fd")
       outer <- "fd"
+    
+    # if (likdata$sparse)
+    #   outer <- "fd"
     
     if (outer == "newton") {
       fit.reml <- .newton_step_inner(rho0, .reml0, .search.reml, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
@@ -1388,7 +1410,8 @@
   if (!likdata$sparse) {
     out <- base::diag(base::crossprod(VpVc$Vp, VpVc$H0))
   } else {
-    out <- Matrix::diag(Matrix::crossprod(VpVc$Vp, VpVc$H0))
+    # out <- Matrix::diag(Matrix::crossprod(VpVc$Vp, VpVc$H0))
+    out <- NULL
   }
   out
 }
