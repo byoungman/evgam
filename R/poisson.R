@@ -71,3 +71,7 @@ attr(.pois_unlink[[1]], "deriv") <- .pois_unlink[[1]]
 .poisfns$q <- qpois
 .poisfns$unlink <- .pois_unlink
 
+.poisfns$initfn <- function(lst) {
+  log(mean(lst$y, na.rm = TRUE))
+}
+  

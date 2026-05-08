@@ -42,3 +42,11 @@ attr(.beta_unlink[[2]], "deriv") <- .beta_unlink[[2]]
 
 .betafns$q <- qbeta
 .betafns$unlink <- .beta_unlink
+
+.betafns$initfn <- function(lst) {
+  ybar <- mean(lst$y, na.rm = TRUE)
+  vbar <- var(as.vector(lst$y), na.rm = TRUE)
+  t1 <- (ybar * (1 - ybar) / vbar - 1)
+  inits <- log(c(ybar * t1, (1 - ybar) * t1))
+  inits
+}

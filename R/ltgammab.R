@@ -110,6 +110,33 @@
 .ltgammab_unlink <- list(function(x) exp(x))
 attr(.ltgammab_unlink[[1]], "deriv") <- .ltgammab_unlink[[1]]
 
-.ltgammafns$q <- NULL
 .ltgammabfns$unlink <- .ltgammab_unlink
+
+.q_ltgammab <- function(p, pars1, alpha, left) {
+  beta <- exp(pars1)
+  F_L <- pgamma(left, shape = alpha, rate = beta)
+  p_adj <- F_L + p * (1 - F_L)
+  out <- qgamma(p_adj, shape = alpha, rate = beta)
+  out
+}
+
+.ltgammabfns$q <- .q_ltgammab
+
+.ltgammabfns$initfn <- function(lst) {
+  yy <- as.vector(lst$y - lst$args$left)
+  log(mean(lst$args$alpha, na.rm = TRUE)) - log(mean(yy, na.rm = TRUE))
+}
+
+.p_ltgammab <- function(x, pars1, alpha, left, log = FALSE) {
+  beta <- exp(pars1)
+  F_y <- pgamma(x, shape = alpha, rate = beta)
+  F_L <- pgamma(left, shape = alpha, rate = beta)
+  out <- (F_y - F_L) / (1 - F_L)
+  out[x < left] <- 0
+  if (log) 
+    out <- log(out)
+  out
+}
+
+.ltgammabfns$p <- .p_ltgammab
 

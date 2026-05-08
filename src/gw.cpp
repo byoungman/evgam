@@ -8,8 +8,9 @@
 // //' @param X1 a design matrix for the log scale parameter
 // //' @param X2 a design matrix for the shape parameter
 // //' @param ymat a matrix
-// //' @param leftmat a matrix
 // //' @param dupid a scalar or vector, identifying duplicates in Xs; -1 corresponds to no duplicates
+// //' @param dcate an integer: 0 if dupid not used; 1 if it is
+// //' @param wmat a matrix
 // //' @return lgw0 a scalar, the negative log-likelihood
 // //' @return lgw12 a matrix, first then second derivatives w.r.t. parameters
 // //' @return lgw34 a matrix, third then fourth derivatives w.r.t. parameters
@@ -63,7 +64,7 @@ return(nllh);
 
 }
 
-// //' @rdname gwd0
+// // //' @rdname gwd0
 // [[Rcpp::export]]
 arma::mat gwd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, 
                arma::uvec dupid, int dcate, arma::ivec nhere, arma::mat wmat, arma::mat pmat)
@@ -137,7 +138,7 @@ arma::mat gwd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat,
   
 }
 
-// //' @rdname gwd0
+// // //' @rdname gwd0
 // [[Rcpp::export]]
 arma::mat gwd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, 
                 arma::uvec dupid, int dcate, arma::ivec nhere, arma::mat wmat, arma::mat pmat)

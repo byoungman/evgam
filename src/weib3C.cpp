@@ -10,6 +10,8 @@
 // //' @param X3 a design matrix for the Weibull log shape parameter
 // //' @param yvec a vector
 // //' @param dupid a scalar or vector, identifying duplicates in Xs; -1 corresponds to no duplicates
+// //' @param dcate an integer
+// //' @param nhere an integer vector
 // //' @return weib3d0 a scalar, the negative log-likelihood
 // //' @return weib3d12 a matrix, first then second derivatives w.r.t. Weibull parameters
 // //' @return weib3d34 a matrix, third then fourth derivatives w.r.t. Weibull parameters
@@ -17,7 +19,8 @@
 // //' ## to follow
 // //' @export
 // [[Rcpp::export]]
-double weib3d0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere)
+double weib3d0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, 
+               arma::uvec dupid, int dcate, arma::ivec nhere)
 {
     
 arma::vec p1vec = X1 * Rcpp::as<arma::vec>(pars[0]);

@@ -43,3 +43,8 @@ attr(.logitgauss_unlink[[2]], "deriv") <- .logitgauss_unlink[[2]]
 .logitgaussfns$q <- qnorm
 .logitgaussfns$unlink <- .logitgauss_unlink
 
+.logitgaussfns$initfn <- function(lst) {
+  lst$y <- 1 / (1 + exp(-lst$y))
+  inits <- c(mean(lst$y, na.rm = TRUE), log(sd(as.vector(lst$y), na.rm = TRUE)))
+  inits
+}

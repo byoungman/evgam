@@ -54,7 +54,7 @@
 
 ############ .setup.family ##########################
 
-.setup.family <- function(family, gpd, pp, egpd, formula, likfns, aggregated = FALSE, args) {
+.setup.family <- function(family, gpd, pp, egpd, formula, likfns, args) {
   
   big_list <- list()
   
@@ -63,16 +63,20 @@
     lik.fns = .gevfns, 
     npar = 3, 
     nms = c("mu", "lpsi", "xi"), 
-    nms2 = nms2 <- c('location', 'logscale', 'shape')
+    nms2 = c('location', 'logscale', 'shape'),
+    respnms = c('location', 'scale', 'shape')
   )
   
-  if (!aggregated) {
+  respnms <- character(0)
+  
+  if (is.null(args$aggregated)) {
     
     if (family == "gev") {
       lik.fns <- .gevfns
       npar <- 3
       nms <- c("mu", "lpsi", "xi")
       nms2 <- c('location', 'logscale', 'shape')
+      respnms <- c('location', 'scale', 'shape')
     } 
       
     if (family == "gpd") {
@@ -81,12 +85,14 @@
         npar <- 2
         nms <- c("lpsi", "xi")
         nms2 <- c('logscale', 'shape')
+        respnms <- c('scale', 'shape')
       } else {
         family <- 'gpdab'
         lik.fns <- .gpdabfns
         npar <- 2
         nms <- c("psi0", "xi0")
         nms2 <- c('logitscale', 'logitshape')
+        respnms <- c('scale', 'shape')
       } 
     } 
     
@@ -95,6 +101,7 @@
       npar <- 2
       nms <- c("lpsi", "txi")
       nms2 <- c('logscale', 'transshape')
+      respnms <- c('scale', 'shape')
     } 
 
     if (family == "modgpd") {
@@ -104,6 +111,7 @@
       npar <- 2
       nms <- c("lmodpsi", "xi")
       nms2 <- c('logscale', 'shape')
+      respnms <- c('scale', 'shape')
     }
     
     if (family == "pp") {
@@ -111,6 +119,7 @@
       npar <- 3
       nms <- c("mu", "lpsi", "xi")
       nms2 <- c('location', 'logscale', 'shape')
+      respnms <- c('location', 'scale', 'shape')
     }
     
     if (family == "gamma3") {
@@ -118,6 +127,7 @@
       npar <- 3
       nms <- c("mu", "ltheta", "lalpha")
       nms2 <- c('location', 'logscale', 'logshape')
+      respnms <- c('location', 'scale', 'shape')
     }
 
     if (family == "gamma") {
@@ -125,6 +135,7 @@
       npar <- 2
       nms <- c("ltheta", "lalpha")
       nms2 <- c('logscale', 'logshape')
+      respnms <- c('scale', 'shape')
     }
 
     if (family == "negbin") {
@@ -132,6 +143,7 @@
       npar <- 2
       nms <- c("lmu", "lalpha")
       nms2 <- c('logmean', 'logoverdisp')
+      respnms <- c('mean', 'overdisp')
     }
 
     if (family == "weibull") {
@@ -139,13 +151,25 @@
       npar <- 2
       nms <- c("llambda", "lk")
       nms2 <- c('logscale', 'logshape')
+      respnms <- c('scale', 'shape')
     }
     
     if (family == "exi") {
-      lik.fns <- .exifns
-      npar <- 1
-      nms <- c("location")
-      nms2 <- c('translocation')
+      if (is.null(args$type))
+        args$type <- 'logistic'
+      if (args$type == 'logistic') {
+        lik.fns <- .exilfns
+      } else {
+        if (args$type == 'probit') {
+          lik.fns <- .exipfns
+        } else {
+          lik.fns <- .exicfns
+        }
+      }
+    npar <- 1
+    nms <- c("location")
+    nms2 <- c('translocation')
+    respnms <- c('location')
     }
     
     if (family == "ald") {
@@ -153,6 +177,7 @@
       npar <- 2
       nms <- c("mu", "lsigma")
       nms2 <- c('location', 'logscale')
+      respnms <- c('location', 'scale')
     }
     
     if (family == "ltgamma") {
@@ -160,6 +185,7 @@
       npar <- 2
       nms <- c("lalpha", "lbeta")
       nms2 <- c('logshape', 'lograte')
+      respnms <- c('shape', 'rate')
     }
     
     if (family == "ltgammab") {
@@ -167,15 +193,17 @@
       npar <- 1
       nms <- c("lbeta")
       nms2 <- c('lograte')
+      respnms <- c('rate')
     }
     
     if (family == "orthoggpd") {
-      stop("'family='orthoggpd'' may not return return")
+      stop("'family='orthoggpd'' may not return")
       # gone, and possibly forgotten
       lik.fns <- NULL#ogpdfns
       npar <- 2
       nms <- c("lnu", "xi")
       nms2 <- c('logscale', 'shape')
+      respnms <- c('scale', 'shape')
     }
     
     if (family == "transxigpd") {
@@ -184,6 +212,8 @@
       lik.fns <- NULL#txigpdfns
       npar <- 2
       nms <- c("lpsi", "xi")
+      nms2 <- c("logscale", "shape")
+      respnms <- c("scale", "shape")
     }
     
     if (family == "transgev") {
@@ -193,6 +223,7 @@
       npar <- 6
       nms <- c("mu", "lpsi", "xi", "A", "lB", "C")
       nms2 <- c('location', 'logscale', 'shape', 'A', 'logB', 'C')
+      respnms <- c('location', 'scale', 'shape', 'A', 'B', 'C')
     }
     
     if (family == "exponential") {
@@ -200,6 +231,7 @@
       npar <- 1
       nms <- c("llambda")
       nms2 <- c('lograte')
+      respnms <- c('rate')
     }
     
     if (family == "poisson") {
@@ -207,6 +239,7 @@
       npar <- 1
       nms <- c("lmu")
       nms2 <- c('location')
+      respnms <- c('location')
     }
     
     if (family == "gauss") {
@@ -214,13 +247,15 @@
       npar <- 2
       nms <- c("mu", "logsigma")
       nms2 <- c('location', 'logscale')
+      respnms <- c('location', 'scale')
     }
     
     if (family == "gw") {
       lik.fns <- .gwfns
       npar <- 2
-      nms <- c("logg", "theta")
+      nms <- c("scale", "shape")
       nms2 <- c('logscale', 'shape')
+      respnms <- c("scale", "shape")
     }
 
     if (family == "aggauss") {
@@ -228,6 +263,7 @@
       npar <- 4
       nms <- c("nu", "lkappa1", "lkappa2", "ldelta")
       nms2 <- c('location', 'logscale1', 'logscale2', 'shape')
+      respnms <- c('location', 'scale1', 'scale2', 'shape')
     }
 
     if (family == "logitgauss") {
@@ -235,6 +271,7 @@
       npar <- 2
       nms <- c("mu", "logsigma")
       nms2 <- c('location', 'logscale')
+      respnms <- c('location', 'scale')
     }
     
     if (family == 'bgev') {
@@ -242,6 +279,7 @@
       npar <- 3
       nms <- c("qalpha", "lsbeta", "transxi")
       nms2 <- c('location', 'logscale', 'transshape')
+      respnms <- c('location', 'scale', 'shape')
     }
     
     if (family == 'condex') {
@@ -255,6 +293,7 @@
         npar <- 6
         nms <- c("talpha", "tbeta", "nu", "tkappa1", "tkappa2", "tdelta")
         nms2 <- c('alpha', 'beta', 'location', 'scale1', 'scale2', 'shape')
+        respnms <- c('alpha', 'beta', 'location', 'scale1', 'scale2', 'shape')
         
       } else {
         
@@ -262,6 +301,7 @@
         npar <- 4
         nms <- c("talpha", "tbeta", "mu", "tsigma")
         nms2 <- c('alpha', 'beta', 'location', 'scale')
+        respnms <- c('alpha', 'beta', 'location', 'scale')
         
       }
     }
@@ -271,6 +311,7 @@
       npar <- 2
       nms <- c("lshape1", "lshape2")
       nms2 <- c('shape1', 'shape2')
+      respnms <- c('shape1', 'shape2')
     }
     
     if (family == 'gev2') {
@@ -278,6 +319,7 @@
       npar <- 3
       nms <- c("mu", "lpsi", "txi")
       nms2 <- c('location', 'logscale', 'transshape')
+      respnms <- c('location', 'scale', 'shape')
     }
 
     if (family == 'gevr') {
@@ -285,6 +327,7 @@
       npar <- 3
       nms <- c("mu", "lpsi", "txi")
       nms2 <- c('location', 'logscale', 'transshape')
+      respnms <- c('location', 'scale', 'shape')
     }
 
     if (family == 'rlarge') {
@@ -292,6 +335,7 @@
       npar <- 3
       nms <- c("mu", "lpsi", "txi")
       nms2 <- c('location', 'logscale', 'transshape')
+      respnms <- c('location', 'scale', 'shape')
     }
     
     if (family == 'rlargec') {
@@ -299,6 +343,7 @@
       npar <- 3
       nms <- c("mu", "lpsi", "txi")
       nms2 <- c('location', 'logscale', 'transshape')
+      respnms <- c('location', 'scale', 'shape')
     }
     
     if (family == 'weibull3') {
@@ -306,36 +351,43 @@
       npar <- 3
       nms <- c("mu", "llambda", "lkappa")
       nms2 <- c('location', 'logscale', 'logshape')
+      respnms <- c('location', 'scale', 'shape')
     }
     
     if (family == "egpd") {
-      if (is.null(egpd$model))
-        egpd$model <- 1
-      if (egpd$model == 1) {
+      if (length(egpd) > 0)
+        args[names(egpd)] <- egpd
+      if (is.null(args$model))
+        args$model <- 1
+      if (args$model == 1) {
         lik.fns <- .egpd1fns
         npar <- 3
         nms <- c("lpsi", "xi", "lkappa")
         nms2 <- c('logscale', 'shape', 'logkappa')
+        respnms <- c('scale', 'shape', 'kappa')
         attr(family, "type") <- 1
       } else {
-        if (egpd$model == 2) {
+        if (args$model == 2) {
           lik.fns <- .egpd2fns
           npar <- 5
           nms <- c("lpsi", "xi", "lkappa1", "lkappa2", "logitp")
           nms2 <- c('logscale', 'shape', 'logkappa1', 'logkappa2', 'logitp')
+          respnms <- c('scale', 'shape', 'kappa1', 'kappa2', 'p')
           attr(family, "type") <- 2
         } else {
-          if (egpd$model == 3) {
+          if (args$model == 3) {
             lik.fns <- .egpd3fns
             npar <- 3
             nms <- c("lpsi", "xi", "ldelta")
             nms2 <- c('logscale', 'shape', 'logdelta')
+            respnms <- c('scale', 'shape', 'delta')
             attr(family, "type") <- 3
           } else {
             lik.fns <- .egpd4fns
             npar <- 4
             nms <- c("lpsi", "xi", "ldelta", "lkappa")
             nms2 <- c('logscale', 'shape', 'logdelta', 'logkappa')
+            respnms <- c('scale', 'shape', 'delta', 'kappa')
             attr(family, "type") <- 4
           }
         }
@@ -358,10 +410,14 @@
     npar <- npar2 <- 4
     nms <- c("mu", "lpsi", "xi", "ltheta")
     nms2 <- c("location", "logscale", "shape", "logitdep")
+    respnms <- c("location", "scale", "shape", "dep")
   }
   if (!exists("lik.fns"))
     stop(paste('family', family, 'unrecognised'))
-  out <- list(npar=npar, npar2=npar, lik.fns=lik.fns, nms=nms, family=family, nms2 = nms2)
+  if (length(respnms) == 0)
+    respnms <- nms2
+  out <- list(npar=npar, npar2=npar, lik.fns=lik.fns, nms=nms, family=family, 
+              nms2 = nms2, respnms = respnms)
 }
 
 ############ .smooth.info ##########################
@@ -551,6 +607,11 @@
   
   # data
   
+  deprecated_args <- c(gpdargs, exiargs, aldargs, sargs, bgevargs, pp)
+  if (length(deprecated_args) > 0)
+    warning('Use of ***.args = ... is deprecated. Use evgam(..., args = ...) instead.')
+  args <- c(args, deprecated_args)
+  
   for (i in seq_along(responsename)) {
     dm <- as.matrix(data[,responsename[i]])
     if (family != 'condex')
@@ -642,41 +703,74 @@
       stop(expression("GPD has support (0, \U221E) in evgam."))
   }
   if (family == "gpdab") {
-    lik.data$gpdlohi <- c(gpdargs$lower, gpdargs$upper)
-    lik.data$gpdab <- c(lik.data$gpdlohi[1:2], lik.data$gpdlohi[3:4] - lik.data$gpdlohi[1:2])
+    lower <- lik.data$args$lower
+    if (is.null(lower))
+      stop('args$lower and args$upper must be supplied if family = "gpdab"')
+    upper <- lik.data$args$upper
+    if (is.null(upper))
+      stop('args$lower and args$upper must be supplied if family = "gpdab"')
+    lik.data$args$lohi <- c(lower, upper)
+    lik.data$gpdab <- c(lik.data$args$lohi[1:2], lik.data$args$lohi[3:4] - lik.data$args$lohi[1:2])
   }
   if (family == "exi") {
-    if (is.null(exiargs$id)) stop("no `id' in `exi.args'.")
-    if (is.null(exiargs$nexi)) {
-      if (trace >= 0)
-        message("`exiargs$nexi' assumed to be 2.")
-      exiargs$nexi <- 2
+    if (!is.null(lik.data$args$thresh)) {
+      lik.data$args$excid <- as.integer(lik.data$y > lik.data$args$thresh)
+    } else {
+      if (is.null(lik.data$args$excid)) {
+        lik.data$args$excid <- exiargs$id
+        if (is.null(lik.data$args$excid))
+          stop('args$excid or exiargs$id is missing')
+      }   
+      if (is.character(lik.data$args$excid))
+        lik.data$args$excid <- data[, lik.data$args$excid]
     }
-    if (is.null(exiargs$link)) {
-      if (trace >= 0)
-        message("`exiargs$link' assumed to be `logistic'.")
-      exiargs$link <- "logistic"
+    # if (is.null(exiargs$id)) {
+    #   if (is.null(lik.data$args$type)) {
+    #     stop("`args$type' is missing.")
+    #   } else {
+    #     stop("no `id' in `exi.args'.")
+    #   }
+    # }
+    if (is.null(lik.data$args$nexi)) {
+      lik.data$args$nexi <- exiargs$nexi
+      if (is.null(lik.data$args$nexi)) {
+        if (trace >= 0)
+          message("nexi assumed to be 2.")
+        lik.data$args$nexi <- 2
+      }
     }
-    lik.data$exiname <- exiargs$id
-    lik.data$y <- list(lik.data$y, data[,exiargs$id])
-    lik.data$nexi <- exiargs$nexi
-    if (exiargs$link == "cloglog") {
-      lik.data$exilink <- 2
-      lik.data$linkfn <- function(x) 1 - exp(-exp(x))
-      attr(lik.data$linkfn, "deriv") <- function(x) exp(-exp(x)) * exp(x)
+    if (is.null(lik.data$args$type)) {
+      lik.data$args$type <- exiargs$link
+      if (is.null(lik.data$args$type)) {
+        lik.data$args$type <- 'logistic'
+        if (trace >= 0)
+          message("link assumed to be `logistic'.")
+      }
     }
-    if (exiargs$link == "logistic") {
-      lik.data$exilink <- 1
-      lik.data$linkfn <- function(x) 1 / (1 + exp(-x))
-      attr(lik.data$linkfn, "deriv") <- function(x) exp(-x)/(1 + exp(-x))^2
+    links <- c('probit', 'logistic', 'cloglog')
+    lik.data$args$link <- match(lik.data$args$type, links) - 1
+    lik.data$y <- as.matrix(lik.data$y)
+    # lik.data$args$exiid <- data[, lik.data$args$id]
+    # lik.data$exiname <- exiargs$id
+    # lik.data$y <- list(lik.data$y, data[,exiargs$id])
+    # lik.data$nexi <- exiargs$nexi
+    # if (exiargs$link == "cloglog") {
+    #   lik.data$exilink <- 2
+    #   lik.data$linkfn <- function(x) 1 - exp(-exp(x))
+    #   attr(lik.data$linkfn, "deriv") <- function(x) exp(-exp(x)) * exp(x)
+    # }
+    # if (exiargs$link == "logistic") {
+    #   lik.data$exilink <- 1
+    #   lik.data$linkfn <- function(x) 1 / (1 + exp(-x))
+    #   attr(lik.data$linkfn, "deriv") <- function(x) exp(-x)/(1 + exp(-x))^2
+    # }
+    # if (exiargs$link == "probit") {
+    #   lik.data$exilink <- 0
+    #   lik.data$linkfn <- function(x) pnorm(x)
+    #   attr(lik.data$linkfn, "deriv") <- function(x) dnorm(x)
+    # }
+    # attr(lik.data$linkfn, "name") <- exiargs$link
     }
-    if (exiargs$link == "probit") {
-      lik.data$exilink <- 0
-      lik.data$linkfn <- function(x) pnorm(x)
-      attr(lik.data$linkfn, "deriv") <- function(x) dnorm(x)
-    }
-    attr(lik.data$linkfn, "name") <- exiargs$link
-  }
   if (family %in% c("pp", "ppexi")) {
     lik.data$ppw <- attr(data, "weights") # point process quadrature weights
     if (ncol(lik.data$y) > 1)
@@ -689,28 +783,26 @@
     lik.data$exi <- attr(data, "exi")
   }
   if (family == "ald") {
-    if (is.null(aldargs$tau)) 
-      aldargs$tau <- .5
-    if (is.null(aldargs$C)) 
-      aldargs$C <- .5
-    lik.data$tau <- aldargs$tau
-    lik.data$C <- aldargs$C
+    if (is.null(args$tau)) 
+      lik.data$args$tau <- .5
+    if (is.null(args$C)) 
+      lik.data$args$C <- .5
   }
   if (family == "bgev") {
     # defaults
-    if (is.null(bgevargs$pa)) 
-      bgevargs$pa <- .05
-    if (is.null(bgevargs$pb)) 
-      bgevargs$pb <- .2
-    if (is.null(bgevargs$alpha)) 
-      bgevargs$alpha <- .5
-    if (is.null(bgevargs$beta)) 
-      bgevargs$beta <- .5
-    lik.data$other <- unlist(bgevargs[c('pa', 'pb', 'alpha', 'beta')])
+    if (is.null(args$pa)) 
+      args$pa <- .05
+    if (is.null(args$pb)) 
+      args$pb <- .2
+    if (is.null(args$alpha)) 
+      args$alpha <- .5
+    if (is.null(args$beta)) 
+      args$beta <- .5
+    lik.data$other <- unlist(args[c('pa', 'pb', 'alpha', 'beta')])
   }
-  lik.data$sandwich <- !is.null(sargs$id)
+  lik.data$sandwich <- !is.null(args$id)
   if (lik.data$sandwich) 
-    lik.data$sandwich.split <- data[,sargs$id]
+    lik.data$sandwich.split <- data[, args$id]
   
   if (!compact) {
     if (nrow(data) > maxspline) {
@@ -748,7 +840,7 @@
   lik.data$subsampling <- subsampling
   gotsmooth <- which(sapply(gams, function(x) length(x$sp)) > 0)
   lik.data$k <- 1 / gamma
-  if (is.null(sargs$id)) {
+  if (is.null(args$id)) {
     lik.data$adjust <- 0
   } else {
     if (gamma != 1)
@@ -765,6 +857,18 @@
       lik.data$adjust <- 1
     }
   }
+  ## aggregation
+  if (!is.null(args$aggregated)) {
+  if (args$aggregated) {
+    agg <- list(agg = data[, args$id])
+    if (sum(agg$agg) != length(args$data))
+      stop("sum(data[,aggregated.args]) != length(aggregated.args$data)")
+    agg$nxy <- sapply(args$data, nrow)
+    agg$index <- rep(seq_along(agg$nxy), agg$nxy)
+    agg$weights <- rep(1 / agg$nxy, agg$nxy)
+    agg$X <- .X.evgam(lik.data$gams, dfbind(args$data))
+    lik.data$agg <- agg
+  }}
   if (is.null(sargs$force)) 
     sargs$force <- FALSE
   lik.data$force <- sargs$force
@@ -1081,135 +1185,139 @@
   likdata0$sparse <- FALSE
   likdata0$X <- lapply(seq_along(likdata$X), function(i) matrix(1, nrow=nrow(likdata$X[[i]]), ncol=1))
   # likdata0$pp$X <- lapply(seq_along(likdata$pp$X), function(x) matrix(1, nrow=nrow(likdata$pp$X[[x]]), ncol=1))
-  if (!is.null(likdata$agg)) 
+  if (!is.null(likdata$args$aggregated))
     likdata0$agg$X <- lapply(seq_along(likdata$agg$X), function(i) matrix(1, nrow=nrow(likdata$agg$X[[i]]), ncol=1))
   likdata0$S <- diag(0, npar)
   likdata0$idpars <- seq_len(npar)
   
   if (is.null(inits)) {
-    if (family == "egpd") {
-      inits <- numeric(npar)
-      inits[1:2] <- c(log(mean(likdata$y[,1])), .05)
-      if (attr(family, "type") == 2)
-        inits <- c(inits[1:2], -1, 1, .25)
-    } else {
-      if (npar == 1) {
-        if (family == 'poisson') {
-          inits <- log(mean(likdata0$y[, 1]))
-        } else {
-          inits <- 2
-        }
-      }
-      if (npar == 2) {
-        if (family == "ald") {
-          inits <- c(quantile(likdata0$y[,1], likdata0$tau), log(sd(likdata0$y[,1])))
-        } else {
-          inits <- c(log(mean(likdata$y[,1])), .05)
-          if (family == "transxigpd") 
-            inits[2] <- .9
-          if (family == "gpdab") {
-            if (inits[1] < likdata$gpdlohi[1] | inits[1] > likdata$gpdlohi[3])
-              inits[1] <- mean(likdata$gpdlohi[c(1, 3)])
-            if (inits[2] < likdata$gpdlohi[2] | inits[2] > likdata$gpdlohi[4])
-              inits[2] <- mean(likdata$gpdlohi[c(2, 4)])
-            inits[1] <- exp(inits[1])
-            if (likdata$gpdlohi[4] < 0) {
-              inits[2] <- likdata$gpdlohi[2] + .95 * (likdata$gpdlohi[4] - likdata$gpdlohi[2])
-              inits[1] <- -1.1 * inits[2] * max(likdata$y[, 1])
-            }
-            likdata$ab <- c(likdata$gpdlohi[1:2], likdata$gpdlohi[3:4] - likdata$gpdlohi[1:2])
-            inits <- -log(likdata$ab[3:4] / (inits - likdata$ab[1:2]) - 1)
-          }
-          if (family == 'beta') {
-            ybar <- mean(likdata0$y, na.rm = TRUE)
-            vbar <- var(as.vector(likdata0$y), na.rm = TRUE)
-            t1 <- (ybar * (1 - ybar) / vbar - 1)
-            inits <- log(c(ybar * t1, (1 - ybar) * t1))
-          }
-          if (family %in% c('gauss', 'logitgauss')) {
-            if (family == 'logitgauss')
-              likdata0$y <- 1 / (1 + exp(-likdata0$y))
-            inits <- c(mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)))
-          }
-          if (family == 'ltgamma') {
-            ybar <- mean(likdata0$y - likdata0$args$left, na.rm = TRUE)
-            vbar <- var(as.vector(likdata0$y - likdata0$args$left), na.rm = TRUE)
-            inits <- ybar / vbar
-            inits <- c(log(ybar * inits), log(inits))
-            inits <- c(0, -log(ybar))
-          }
-          if (family == 'gamma') {
-            ybar <- mean(likdata0$y, na.rm = TRUE)
-            vbar <- var(as.vector(likdata0$y), na.rm = TRUE)
-            inits <- vbar / ybar
-            inits <- c(inits, c(ybar / inits))
-            inits <- log(inits)
-          }
-          if (family == 'gpd2') {
-            ybar <- mean(likdata0$y, na.rm = TRUE)
-            inits <- c(log(ybar), -log(.36))
-          }
-          if (family == 'gw') {
-            ybar <- -log(mean(likdata$args$p, na.rm = TRUE)) * mean(likdata0$y, na.rm = TRUE)
-            inits <- c(log(ybar), .1)
-          }
-          if (family == 'negbin') {
-            ybar <- mean(likdata0$y, na.rm = TRUE)
-            inits <- c(log(ybar), -5)
-          }
-        }
-      }
-      if (npar %in% 3:4) {
-        if (family == "bgev") {
-          inits <- quantile(likdata0$y, .5, na.rm = TRUE)
-          inits <- c(inits, log(diff(quantile(likdata0$y, c(.25, .75), na.rm = TRUE))))
-          inits <- c(inits, -.5)
-        } else {
-          col <- ifelse(family == 'rlargec', likdata0$args$drop + 1, 1)
-          inits <- c(sqrt(6) * sd(as.matrix(likdata0$y)[, col]) / pi, .05)
-          inits <- c(mean(as.matrix(likdata0$y)[, col]) - .5772 * inits[1], log(inits[1]), inits[2])
-          if (family %in% c("gev2", "rlarge", "rlargec", "gevr"))
-            inits[3] <- .85
-          if (npar == 4) 
-            inits <- c(inits, .1)
-          if (family == 'condex')
-            inits <- c(0, -1, mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)))
-          if (family == 'aggauss')
-            inits <- c(mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)), log(sd(likdata0$y, na.rm = TRUE)), log(2))
-          if (family == 'weibull3') {
-            yy <- likdata0$y
-            inits <- min(yy) - .1
-            yy <- yy - inits
-            inits <- c(inits, log(mean(yy)), .5)
-          }
-          if (family == 'gamma3') {
-            yy <- likdata0$y
-            loc <- min(yy) - .1
-            yy <- yy - loc
-            ybar <- mean(yy, na.rm = TRUE)
-            vbar <- var(as.vector(yy), na.rm = TRUE)
-            inits <- vbar / ybar
-            inits <- c(inits, c(ybar / inits))
-            inits <- log(inits)
-            inits <- c(loc, inits)
-          }
-        }
-      }
-      if (npar == 6) {
-        if (family == 'condex') {
-          inits <- c(0, -1, mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)))
-          mu0 <- median(likdata0$y, na.rm = TRUE)
-          sigma1 <- mad(mu0 - likdata0$y[likdata0$y <= mu0])
-          sigma2 <- mad(likdata0$y[likdata0$y > mu0] - mu0)
-          if (args$distribution == 'aggauss')
-            inits <- c(0, -2, mu0, log(1.5), log(sigma1), log(sigma2))
-        } else {
-          inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
-          inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
-          inits <- c(inits, 0, 0, 1)
-        }
-      }
-    }
+    # if (!is.null(likfns$initfn)) {
+      inits <- likfns$initfn(likdata0)
+    # } else {
+    # if (family == "egpd") {
+    #   # inits <- numeric(npar)
+    #   # inits[1:2] <- c(log(mean(likdata$y[,1])), .05)
+    #   # if (attr(family, "type") == 2)
+    #   #   inits <- c(inits[1:2], -1, 1, .25)
+    # } else {
+    #   if (npar == 1) {
+    #     if (family == 'poisson') {
+    #       # inits <- log(mean(likdata0$y[, 1]))
+    #     } else {
+    #       inits <- 2
+    #     }
+    #   }
+    #   if (npar == 2) {
+    #     if (family == "ald") {
+    #       # inits <- c(quantile(likdata0$y[,1], likdata0$tau), log(sd(likdata0$y[,1])))
+    #     } else {
+    #       inits <- c(log(mean(likdata$y[,1])), .05)
+    #       if (family == "transxigpd") 
+    #         inits[2] <- .9
+    #       # if (family == "gpdab") {
+    #       #   if (inits[1] < likdata$gpdlohi[1] | inits[1] > likdata$gpdlohi[3])
+    #       #     inits[1] <- mean(likdata$gpdlohi[c(1, 3)])
+    #       #   if (inits[2] < likdata$gpdlohi[2] | inits[2] > likdata$gpdlohi[4])
+    #       #     inits[2] <- mean(likdata$gpdlohi[c(2, 4)])
+    #       #   inits[1] <- exp(inits[1])
+    #       #   if (likdata$gpdlohi[4] < 0) {
+    #       #     inits[2] <- likdata$gpdlohi[2] + .95 * (likdata$gpdlohi[4] - likdata$gpdlohi[2])
+    #       #     inits[1] <- -1.1 * inits[2] * max(likdata$y[, 1])
+    #       #   }
+    #       #   likdata$ab <- c(likdata$gpdlohi[1:2], likdata$gpdlohi[3:4] - likdata$gpdlohi[1:2])
+    #       #   inits <- -log(likdata$ab[3:4] / (inits - likdata$ab[1:2]) - 1)
+    #       # }
+    #       if (family == 'beta') {
+    #         # ybar <- mean(likdata0$y, na.rm = TRUE)
+    #         # vbar <- var(as.vector(likdata0$y), na.rm = TRUE)
+    #         # t1 <- (ybar * (1 - ybar) / vbar - 1)
+    #         # inits <- log(c(ybar * t1, (1 - ybar) * t1))
+    #       }
+    #       if (family %in% c('gauss', 'logitgauss')) {
+    #         # if (family == 'logitgauss')
+    #         #   likdata0$y <- 1 / (1 + exp(-likdata0$y))
+    #         # inits <- c(mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)))
+    #       }
+    #       if (family == 'ltgamma') {
+    #         # ybar <- mean(likdata0$y - likdata0$args$left, na.rm = TRUE)
+    #         # vbar <- var(as.vector(likdata0$y - likdata0$args$left), na.rm = TRUE)
+    #         # inits <- ybar / vbar
+    #         # inits <- c(log(ybar * inits), log(inits))
+    #         # inits <- c(0, -log(ybar))
+    #       }
+    #       if (family == 'gamma') {
+    #         # ybar <- mean(likdata0$y, na.rm = TRUE)
+    #         # vbar <- var(as.vector(likdata0$y), na.rm = TRUE)
+    #         # inits <- vbar / ybar
+    #         # inits <- c(inits, c(ybar / inits))
+    #         # inits <- log(inits)
+    #       }
+    #       if (family == 'gpd2') {
+    #         # ybar <- mean(likdata0$y, na.rm = TRUE)
+    #         # inits <- c(log(ybar), -log(.36))
+    #       }
+    #       if (family == 'gw') {
+    #         # ybar <- -log(mean(likdata$args$p, na.rm = TRUE)) * mean(likdata0$y, na.rm = TRUE)
+    #         # inits <- c(log(ybar), .1)
+    #       }
+    #       if (family == 'negbin') {
+    #         # ybar <- mean(likdata0$y, na.rm = TRUE)
+    #         # inits <- c(log(ybar), -5)
+    #       }
+    #     }
+    #   }
+    #   if (npar %in% 3:4) {
+    #     if (family == "bgev") {
+    #       # inits <- quantile(likdata0$y, .5, na.rm = TRUE)
+    #       # inits <- c(inits, log(diff(quantile(likdata0$y, c(.25, .75), na.rm = TRUE))))
+    #       # inits <- c(inits, -.5)
+    #     } else {
+    #       col <- ifelse(family == 'rlargec', likdata0$args$drop + 1, 1)
+    #       inits <- c(sqrt(6) * sd(as.matrix(likdata0$y)[, col]) / pi, .05)
+    #       inits <- c(mean(as.matrix(likdata0$y)[, col]) - .5772 * inits[1], log(inits[1]), inits[2])
+    #       if (family %in% c("gev2", "rlarge", "rlargec", "gevr"))
+    #         inits[3] <- .85
+    #       if (npar == 4) 
+    #         inits <- c(inits, .1)
+    #       # if (family == 'condex')
+    #       #   inits <- c(0, -1, mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)))
+    #       # if (family == 'aggauss')
+    #       #   inits <- c(mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)), log(sd(likdata0$y, na.rm = TRUE)), log(2))
+    #       # if (family == 'weibull3') {
+    #       #   yy <- likdata0$y
+    #       #   inits <- min(yy) - .1
+    #       #   yy <- yy - inits
+    #       #   inits <- c(inits, log(mean(yy)), .5)
+    #       # }
+    #       # if (family == 'gamma3') {
+    #       #   yy <- likdata0$y
+    #       #   loc <- min(yy) - .1
+    #       #   yy <- yy - loc
+    #       #   ybar <- mean(yy, na.rm = TRUE)
+    #       #   vbar <- var(as.vector(yy), na.rm = TRUE)
+    #       #   inits <- vbar / ybar
+    #       #   inits <- c(inits, c(ybar / inits))
+    #       #   inits <- log(inits)
+    #       #   inits <- c(loc, inits)
+    #       # }
+    #     }
+    #   }
+    #   if (npar == 6) {
+    #     if (family == 'condex') {
+    #       # inits <- c(0, -1, mean(likdata0$y, na.rm = TRUE), log(sd(likdata0$y, na.rm = TRUE)))
+    #       # mu0 <- median(likdata0$y, na.rm = TRUE)
+    #       # sigma1 <- mad(mu0 - likdata0$y[likdata0$y <= mu0])
+    #       # sigma2 <- mad(likdata0$y[likdata0$y > mu0] - mu0)
+    #       # if (args$distribution == 'aggauss')
+    #       #   inits <- c(0, -2, mu0, log(1.5), log(sigma1), log(sigma2))
+    #     } else {
+    #       inits <- c(sqrt(6) * sd(likdata0$y[,1]) / pi, .05)
+    #       inits <- c(mean(likdata0$y[,1]) - .5772 * inits[1], log(inits[1]), inits[2])
+    #       inits <- c(inits, 0, 0, 1)
+    #     }
+    #   }
+    # }
+    # }
     likdata0$CH <- diag(length(inits))
     likdata0$compmode <- numeric(length(inits))
     beta0 <- .newton_step_inner(inits, .nllh.nopen, .search.nopen, likdata=likdata0, likfns=likfns, control=likdata$control$inner)$par
@@ -1303,6 +1411,8 @@
       k <- 1 / mean(diag(crossprod(iH, J)))
     }
   }
+  if (family == 'gpdab')
+    attr(beta0, 'ab') <- attr(inits, 'ab')
   attr(beta0, "k") <- k
   attr(beta0, "CH") <- CH
   attr(beta0, "compmode") <- compmode
@@ -1441,46 +1551,7 @@
 ############ .finalise ##########################
 
 .finalise <- function(gams, data, likfns, likdata, Sdata, fitreml, VpVc, family, gotsmooth,
-                      formula, responsenm, removeData, edf, linkNames) {
-  # nms <- c("location", "logscale", "shape")
-  # if (length(gams) == 2) {
-  #   if (family %in% c("ald", "gauss")) {
-  #     nms <- nms[1:2]
-  #   } else {
-  #     nms <- nms[-1]
-  # }}
-  # if (length(gams) == 4) {
-  #   if (is.null(likdata$agg)) {
-  #     nms <- c(nms, "logitdep")
-  #   } else {
-  #     nms <- c(nms, "logdep")
-  #   }
-  # }
-  # if (family == "exponential") 
-  #   nms <- "lograte"
-  # if (family == "weibull") 
-  #   nms[2] <- "logshape"
-  # if (family == "exi") 
-  #   nms <- paste(attr(likdata$linkfn, "name"), "exi", sep="")
-  # if (family == "egpd") {
-  #   nms <- c("logscale", "shape")
-  #   if (attr(family, "type") == 1) {
-  #     nms <- c(nms, "logkappa")
-  #   } else {
-  #     if (attr(family, "type") == 2) {
-  #       nms <- c(nms, "logkappa1", "logkappa2", "logitp")
-  #     } else {
-  #       if (attr(family, "type") == 3) {
-  #         nms <- c(nms, "logdelta")
-  #       } else {
-  #         nms <- c(nms, "logdelta", "logkappa")
-  #       }
-  #     }
-  #   }
-  # }
-  # if (family == "custom") {
-  #   nms <- attr(formula, "nms")
-  # }
+                      formula, responsenm, removeData, edf, linkNames, respNames) {
   smooth.specs <- attr(formula, 'smooth.specs')
   names(gams) <- linkNames
   smooths <- length(gotsmooth) > 0
@@ -1501,17 +1572,17 @@
   gams$idpars <- likdata$idpars
   nms <- names(gams)[seq_along(formula)]
   # tidy up print names a bit
-  if (family != "custom") {
-    logits <- substr(nms, 1, 5) == "logit"
-    if (any(logits))
-      nms[logits] <- gsub("logit", "", nms[logits])
-    logs <- substr(nms, 1, 3) == "log"
-    if (any(logs))
-      nms[logs] <- gsub("log", "", nms[logs])
-    probits <- substr(nms, 1, 6) == "probit"
-    if (any(probits))
-      nms[probits] <- gsub("probit", "", nms[probits])
-  } # end name tidying
+  # if (family != "custom") {
+  #   logits <- substr(nms, 1, 5) == "logit"
+  #   if (any(logits))
+  #     nms[logits] <- gsub("logit", "", nms[logits])
+  #   logs <- substr(nms, 1, 3) == "log"
+  #   if (any(logs))
+  #     nms[logs] <- gsub("log", "", nms[logs])
+  #   probits <- substr(nms, 1, 6) == "probit"
+  #   if (any(probits))
+  #     nms[probits] <- gsub("probit", "", nms[probits])
+  # } # end name tidying
   gams$predictor.names <- attr(formula, "predictor.names")
   formula <- attr(formula, "stripped")
   names(formula) <- nms
@@ -1543,6 +1614,19 @@
     gams[[i]]$fitted <- as.vector(likdata$X[[i]] %*% gams[[i]]$coefficients)
     names(gams[[i]]$coefficients) <- colnames(gams[[i]]$X)
   }
+  if (!is.null(likdata$gpdab)) {
+    likdata$other <- list(a1 = likdata$gpdab[1], 
+                          a2 = likdata$gpdab[2], 
+                          b1 = likdata$gpdab[1] + likdata$gpdab[3], 
+                          b2 = likdata$gpdab[2] + likdata$gpdab[4])
+  }
+  if (family %in% c('ltgamma', 'ltgammab', 'gw')) 
+    likdata$other <- likdata$args
+  if (family == 'bgev') 
+    likdata$other <- list(pa = likdata$other[1], 
+                          pb = likdata$other[2], 
+                          alpha = likdata$other[3], 
+                          beta = likdata$other[4])
   gams$likdata <- likdata
   gams$likfns <- likfns
   if (smooths) gams$Sdata <- Sdata
@@ -1552,27 +1636,6 @@
   smooth.terms <- unique(lapply(lapply(gams[gotsmooth], function(x) x$smooth), function(y) lapply(y, function(z) z$term)))
   smooth.terms <- unique(unlist(smooth.terms, recursive=FALSE))
   gams$plotdata <- lapply(smooth.terms, function(x) unique(data[,x, drop=FALSE]))
-  # if (family == "custom")
-  #   names(gams)[seq_along(formula)] <- names(formula)
-  # if (family == "weibull") 
-  #   names(gams)[2] <- "logshape"
-  # if (family == "exponential") 
-  #   names(gams)[1] <- "lograte"
-  # if (family == "egpd") {
-  #   if (attr(family, "type") == 1) {
-  #     names(gams)[1:3] <- c("logscale", "shape", "logkappa")
-  #   } else {
-  #     if (attr(family, "type") == 2) {
-  #       names(gams)[1:5] <- c("logscale", "shape", "logkappa1", "logkappa2", "logitp")
-  #     } else {
-  #       if (attr(family, "type") == 3) {
-  #         names(gams)[1:3] <- c("logscale", "shape", "logdelta")
-  #       } else {
-  #         names(gams)[1:4] <- c("logscale", "shape", "logdelta", "logkappa")
-  #       }
-  #     }
-  #   }
-  # }
   names(gams$coefficients) <- unlist(lapply(seq_along(likdata$X), function(i) paste(names(gams)[i], names(gams[[i]]$coefficients), sep = "_")))
   gams$ngam <- length(formula)
   gams$sparse <- likdata$sparse
@@ -1583,6 +1646,7 @@
   gams$sp.par.id <- smooth.specs$par.id
   gams$re.info <- .re_process(gams)
   gams$re.some <- ifelse(is.null(gams$re.info), FALSE, TRUE)
+  gams$rnms <- respNames
   class(gams) <- "evgam"
   return(gams)
 }

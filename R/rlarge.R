@@ -24,6 +24,7 @@ out
 attr(.rlarge_unlink[[2]], "deriv") <- .rlarge_unlink[[2]]
 attr(.rlarge_unlink[[3]], "deriv") <- function(x) 1.5 * exp(-x)/(1 + exp(-x))^2
 
-.rlargefns$q <- .qgev
+.rlargefns$q <- .q_gev2
+.rlargefns$dq <- .dq_gev2
 .rlargefns$unlink <- .rlarge_unlink
 

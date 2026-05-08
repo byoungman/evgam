@@ -37,3 +37,12 @@ attr(.gamma_unlink[[2]], "deriv") <- .gamma_unlink[[2]]
 
 .gammafns$q <- .qgamma
 .gammafns$unlink <- .gamma_unlink
+
+.gammafns$initfn <- function(lst) {
+  ybar <- mean(lst$y, na.rm = TRUE)
+  vbar <- var(as.vector(lst$y), na.rm = TRUE)
+  inits <- vbar / ybar
+  inits <- c(inits, c(ybar / inits))
+  inits <- log(inits)
+  inits
+}

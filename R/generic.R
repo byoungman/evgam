@@ -106,16 +106,15 @@
 #' @return An object of class \code{evgam}
 #' 
 #' @export
-#' 
 evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0, 
                   inits=NULL, outer = NULL, control=NULL, removeData=FALSE, trace=0, 
                   knots=NULL, maxdata=1e20, maxspline=1e20, compact=FALSE, gpd.args = list(),
                   ald.args=list(), exi.args=list(), pp.args=list(), bgev.args = list(),
                   sandwich.args=list(), egpd.args=list(), custom.fns=list(), 
-                  aggregated.args = list(), sp = NULL, gamma = 1, sparse = FALSE, args = list()) {
+                  sp = NULL, gamma = 1, sparse = FALSE, args = list()) {
 
   ## setup family
-  family.info <- .setup.family(family, gpd.args, pp.args, egpd.args, formula, custom.fns, length(aggregated.args), args)
+  family.info <- .setup.family(family, gpd.args, pp.args, egpd.args, formula, custom.fns, args)
   family <- family.info$family
   
   ## setup formulae
@@ -128,22 +127,11 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
                            maxspline, compact, sandwich.args, outer, trace, gamma, bgev.args, sparse, args)
   data <- temp.data$data
   
-  ## aggregation
-  # would prefer this within .setup.data
-  if (length(aggregated.args)) {
-    agg <- list(agg = data[, aggregated.args$id])
-    if (sum(agg$agg) != length(aggregated.args$data))
-      stop("sum(data[,aggregated.args]) != length(aggregated.args$data)")
-    agg$nxy <- sapply(aggregated.args$data, nrow)
-    agg$index <- rep(seq_along(agg$nxy), agg$nxy)
-    agg$weights <- rep(1 / agg$nxy, agg$nxy)
-    agg$X <- .X.evgam(temp.data$gams, dfbind(aggregated.args$data))
-    temp.data$lik.data$agg <- agg
-  }
-  
   ## initialise inner iteration
   beta <- .setup.inner.inits(inits, temp.data$lik.data, family.info$lik.fns, family.info$npar, family, args)
   lik.data <- .sandwich(temp.data$lik.data, beta)
+  if (family == 'gpdab')
+    lik.data$gpdab <- attr(beta, 'ab')
   if (trace > 0 & lik.data$adjust > 0) cat(paste("\n Sandwich correct lambda =", signif(lik.data$k, 3), "\n"))
   
   ## check whether any smoothing parameters need estimating
@@ -196,7 +184,9 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
   ## add extra things that make an evgam object
   ## differ from a list of mgcv objects
   
-  gams <- .finalise(gams, data, family.info$lik.fns, lik.data, S.data, fit.reml, VpVc, family, temp.data$gotsmooth, formula, response.name, removeData, edf, family.info$nms2)
+  gams <- .finalise(gams, data, family.info$lik.fns, lik.data, S.data, fit.reml, 
+                    VpVc, family, temp.data$gotsmooth, formula, response.name, 
+                    removeData, edf, family.info$nms2, family.info$respnms)
   
   return(gams)
 }
@@ -581,9 +571,9 @@ dfbind <- function(x) {
 #' @param add should this be added to an existing plot? Defaults to \code{FALSE}
 #' @param z.lim xxx
 #' @param ... other arguments passed to \link[graphics]{plot}
-#' @param legend should a legend be added? Defaults to code{FALSE}
+#' @param legend should a legend be added? Defaults to \code{FALSE}
 #' @param n.legend an integer giving the approximate number of legend entries; defaults to 6
-#' @param legend.pretty logical: should the legend values produced by \[base]{pretty}? Otherwise they are exact. Defaults to \code{TRUE}
+#' @param legend.pretty logical: should the legend values produced by \link[base]{pretty}? Otherwise they are exact. Defaults to \code{TRUE}
 #' @param legend.x passed to \link[graphics]{legend}'s \code{x} argument
 #' @param legend.y passed to \link[graphics]{legend}'s \code{y} argument
 #' @param legend.horiz passed to \link[graphics]{legend}'s \code{horiz} argument
@@ -683,32 +673,6 @@ pinv <- function(x, tol=-1) {
   armapinv(x, tol)
 }
 
-#' #' Solve a sparse system of linear equations
-#' #'
-#' #' @param a a sparse square matrix
-#' #' @param b a dense vector or matrix
-#' #' @param lower.tri has just the lower triangle of a square sparse matrix been provided? Defaults to \code{FALSE}
-#' #' 
-#' #' @details
-#' #' 
-#' #' This function is merely a wrapper for Armadillo's spsolve function with its default settings.
-#' #'
-#' #' @return A dense vector or matrix of the same form as b
-#' #' 
-#' #' @references
-#' #'
-#' #' http://arma.sourceforge.net/docs.html#spsolve
-#' #'
-#' #' @export
-#' #' 
-#' spsolve <- function(a, b, lower.tri = FALSE) {
-#'   if (!lower.tri) {
-#'     armaspsolve(a, as.matrix(b))
-#'   } else {
-#'     armaspLsolve(a, as.matrix(b))
-#'   }
-#' }
-
 #' @rdname pinv
 #'
 #' @export
@@ -794,3 +758,35 @@ df2matdf <- function(x, formula) {
   ux2
 }
 
+#' Generate Random Multivariate Normal Draws via Pivoted Cholesky
+#'
+#' @description
+#' An internal utility to simulate from a MVN distribution. By using a 
+#' pivoted Cholesky decomposition, the function can handle semi-definite 
+#' covariance matrices by effectively reducing the dimensionality to the 
+#' numerical rank of the matrix.
+#'
+#' @param n Integer; the number of samples to generate.
+#' @param mu Numeric vector; the mean vector of length \code{p}.
+#' @param Sig Numeric matrix; the \code{p x p} covariance matrix.
+#'
+#' @return A matrix of dimension \code{n x p} where each row is a 
+#'   random draw from the specified MVN distribution.
+#'
+#' @details 
+#' The function extracts the pivoting index and the numerical rank from 
+#' the result of \code{chol(Sig, pivot = TRUE)}. It then generates 
+#' independent standard normal draws of dimension \code{r} (the rank) 
+#' and transforms them using the Cholesky factor to match the target 
+#' covariance and mean.
+#'
+#' @export
+#' 
+rmvnorm <- function(n, mu, Sig) {
+  R <- suppressWarnings(chol(Sig, pivot = TRUE))
+  piv <- order(attr(R, "pivot"))  ## reverse pivoting index
+  r <- attr(R, "rank")  ## numerical rank
+  V <- R[1:r, piv]
+  Y <- crossprod(V, matrix(rnorm(n * r), r))
+  t(Y + as.vector(mu))
+}

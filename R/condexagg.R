@@ -133,3 +133,11 @@ attr(.condexagg_unlink[[6]], "deriv") <- function(x) exp(x)
 .condexaggfns$q <- NULL
 .condexaggfns$unlink <- .condexagg_unlink
 
+.condexaggfns$initfn <- function(lst) {
+  inits <- c(0, -1, mean(lst$y, na.rm = TRUE), log(sd(as.vector(lst$y), na.rm = TRUE)))
+  mu0 <- median(lst$y, na.rm = TRUE)
+  sigma1 <- mad(mu0 - lst$y[lst$y <= mu0])
+  sigma2 <- mad(lst$y[lst$y > mu0] - mu0)
+  inits <- c(0, -2, mu0, log(1.5), log(sigma1), log(sigma2))
+  inits
+}

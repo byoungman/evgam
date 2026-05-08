@@ -56,3 +56,10 @@ attr(.aggauss_unlink[[4]], "deriv") <- function(x) exp(x)
 .aggaussfns$q <- NULL
 .aggaussfns$unlink <- .aggauss_unlink
 
+.aggaussfns$initfn <- function(lst) {
+inits <- c(mean(lst$y, na.rm = TRUE), 
+           log(sd(as.vector(lst$y), na.rm = TRUE)), 
+           log(sd(as.vector(lst$y), na.rm = TRUE)), 
+           log(2))
+inits
+}

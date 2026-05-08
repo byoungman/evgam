@@ -36,7 +36,12 @@ if (!likdata$censored) {
 out
 }
 
-.gpdfns <- list(d0=.gpd.d0, d120=.gpd.d12, d340=.gpd.d34)
+.gpdfns <- list(d0 = .gpd.d0, d120 = .gpd.d12, d340 = .gpd.d34)
+
+.gpdfns$initfn <- function(lst) {
+  inits <- c(log(mean(lst$y, na.rm = TRUE)), .05)
+  inits
+}
 
 .qgpd <- function(p, loc, scale, shape, zeta=1, theta=1, m=1) {
 shape <- sign(shape) * pmax(abs(shape), 1e-6)
@@ -57,13 +62,54 @@ if (NAOK) out[below] <- NA
 out
 }
 
-.dqgpd <- function(p, lscale, shape) {
-shape <- sign(shape) * pmax(abs(shape), 1e-6)
-.e1 <- 1 - p
-.e2 <- .e1^shape
-.e4 <- 1/.e2 - 1
-.e5 <- exp(lscale)
-d1 <- .e4 * .e5/shape
-d2 <- -((.e4/shape + log(.e1)/.e2) * .e5/shape)
-cbind(d1, d2)
+# .dqgpd <- function(p, lscale, shape) {
+# shape <- sign(shape) * pmax(abs(shape), 1e-6)
+# .e1 <- 1 - p
+# .e2 <- .e1^shape
+# .e4 <- 1/.e2 - 1
+# .e5 <- exp(lscale)
+# d1 <- .e4 * .e5/shape
+# d2 <- -((.e4/shape + log(.e1)/.e2) * .e5/shape)
+# cbind(d1, d2)
+# }
+
+.q_gpd <- function(p, pars1, pars2) {
+  scale <- exp(pars1)
+  shape <- pars2
+  shape <- sign(shape) * pmax(abs(shape), 1e-6)
+  out <- 1 - p
+  scale * ((out)^(-shape) - 1) / shape
 }
+
+# Deriv::Deriv(.q_gpd, paste('pars', 1:2, sep = ''), combine = 'cbind')
+
+.dq_gpd <- function(p, pars1, pars2) {
+  .e1 <- 1 - p
+  .e2 <- .e1^pars2
+  .e4 <- 1/.e2 - 1
+  .e5 <- exp(pars1)
+  cbind(pars1 = .e4 * .e5/pars2, 
+        pars2 = -((.e4/pars2 + log(.e1)/.e2) * .e5/pars2)
+        )
+}
+
+.gpdfns$q <- .q_gpd
+.gpdfns$dq <- .dq_gpd
+
+.gpd_unlink <- list(function(x) exp(x), NULL)
+attr(.gpd_unlink[[1]], "deriv") <- .gpd_unlink[[1]]
+
+.gpdfns$unlink <- .gpd_unlink
+
+.p_gpd <- function(x, pars1, pars2, log = FALSE) {
+  scale <- exp(pars1)
+  shape <- pars2
+  temp <- 1 + shape * x / scale
+  out <- temp ^ (-1/shape)
+  out <- 1 - out
+  if (log) 
+    out <- log(out)
+  out
+}
+
+.gpdfns$p <- .p_gpd

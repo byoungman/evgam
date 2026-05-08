@@ -1,18 +1,36 @@
 ## Exponential negative log-likelihood functions
 
 .exi.d0 <- function(pars, likdata) {
-exid0(likdata$y[[1]], likdata$y[[2]], pars, likdata$nexi, likdata$X[[1]], likdata$dupid, likdata$duplicate, likdata$exilink)
+exid0(likdata$y, likdata$args$excid, pars, likdata$args$nexi, likdata$X[[1]], likdata$dupid, likdata$duplicate, likdata$args$link)
 }
 
 .exi.d12 <- function(pars, likdata, sandwich = FALSE) {
-exid12(likdata$y[[1]], likdata$y[[2]], pars, likdata$nexi, likdata$X[[1]], likdata$dupid, likdata$duplicate, likdata$exilink)
+exid12(likdata$y, likdata$args$excid, pars, likdata$args$nexi, likdata$X[[1]], likdata$dupid, likdata$duplicate, likdata$args$link)
 }
 
 .exi.d34 <- function(pars, likdata) {
-exid34(likdata$y[[1]], likdata$y[[2]], pars, likdata$nexi, likdata$X[[1]], likdata$dupid, likdata$duplicate, likdata$exilink)
+exid34(likdata$y, likdata$args$excid, pars, likdata$args$nexi, likdata$X[[1]], likdata$dupid, likdata$duplicate, likdata$args$link)
 }
 
 .exifns <- list(d0=.exi.d0, d120=.exi.d12, d340=.exi.d34)
+
+.exifns$initfn <- function(lst) {
+  0
+}
+
+.exilfns <- .exipfns <- .exicfns <- .exifns
+
+.exil_unlink <- list(function(x) 1 / (1 + exp(-x)))
+attr(.exil_unlink[[1]], "deriv") <- function(x) exp(-x)/(1 + exp(-x))^2
+.exilfns$unlink <- .exil_unlink
+
+.exip_unlink <- list(function(x) pnorm(x))
+attr(.exip_unlink[[1]], "deriv") <- function(x) dnorm(x)
+.exipfns$unlink <- .exip_unlink
+
+.exic_unlink <- list(function(x) 1 - exp(-exp(x)))
+attr(.exic_unlink[[1]], "deriv") <- function(x) exp(-exp(x)) * exp(x)
+.exicfns$unlink <- .exic_unlink
 
 .runmaxgrp <- function(df, ynm, n) {
 # function to replace observations in data frame

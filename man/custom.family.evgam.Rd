@@ -11,7 +11,7 @@ which demonstrates fitting of the Gumbel distribution.
 \details{
 Users should supply a list to \code{evgam} called \code{custom.fns}, which  
 which comprises the following functions: \code{d0}, 
-which evaluates the negative log-likelihood; code{d120}, which evaluates its 
+which evaluates the negative log-likelihood; \code{d120}, which evaluates its 
 first and second derivatives; and, optionally, \code{d340}, which evaluates its 
 third and fourth derivatives. The list may also contain \code{q}, which evaluates 
 the custom distribution's quantile function, for use with \code{predict, prob
@@ -85,7 +85,7 @@ gum_fns <- list(d0 = gumd0, d120 = gumd12, d340 = NULL)
 
 unlink <- list(NULL, function(x) exp(x))
 attr(unlink[[2]], "deriv") <- unlink[[2]]
-qgumbel <- function(p, location, scale) location - scale * log(-log(p))
+qgumbel <- function(p, pars1, pars2) pars1 - exp(pars2) * log(-log(p))
 
 gum_fns$q <- qgumbel
 gum_fns$unlink <- unlink

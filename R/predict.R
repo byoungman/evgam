@@ -8,8 +8,9 @@
 #' @param marginal a logical: should uncertainty estimates integrate out smoothing parameter uncertainty? Defaults to \code{TRUE}
 #' @param exi a logical: if a dependent GEV is fitted should the independent parameters be returned? Defaults to \code{FALSE}
 #' @param as.gev a logical: should blended GEV parameters be converted to GEV parameters? Defaults to \code{FALSE}
+#' @param margins a character string giving the QQ-plot margins. Defaults to original scale
 #' @param trace an integer where higher values give more output. -1 suppresses everything. Defaults to 0
-#' @param ... unused
+#' @param ... passed to \code{plot} if \code{type == 'qqplot'} or \code{type == 'qqplot2'}
 #'
 #' @details
 #'
@@ -47,17 +48,22 @@
 #' @export
 #'
 predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE, 
-                          marginal=TRUE, exi = FALSE, as.gev = FALSE, trace = 0, ...) {
+                          marginal=TRUE, exi = FALSE, as.gev = FALSE, margins = 'original',
+                          trace = 0, ...) {
   
   ## a few checks
   
   family <- object$family
   
-  if (!(type %in% c('response', 'link', 'quantile', 'qqplot', 'lpmatrix')))
-      stop(paste('type', type, 'not supported.'))
+  if (type == 'qqplot2') {
+    residual.qq <- TRUE
+    type <- 'qqplot'
+  } else {
+    residual.qq <- FALSE
+  }
   
-  if (type == "qqplot" & !(family %in% c("gev", "gpd", "weibull")))
-    stop(paste("`type = 'qqplot'' not yet available for family '", family, "'", sep=""))
+  if (!(type %in% c('response', 'link', 'quantile', 'qqplot', 'lpmatrix')))
+    stop(paste('type', type, 'not supported.'))
   
   if (family == "pp") {
     family <- "gev"
@@ -68,36 +74,33 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
     }
   }
   
-  if (family == "egpd") {
-    egpd_m <- object$likfns$m
-    egpd_iG <- object$likfns$iG
-  }
-  
-  customs <- c("custom", "bgev", "gev2", "condex", "beta", "rlarge", "rlargec", 
-               "ltgamma", "ltgammab", "gevr", "weibull3", "gamma", "gamma3", 
-               "gpd2", "aggauss", "poisson", "negbin", "gw")
-  
-  if (family %in% customs) {
-    q_fn <- object$likfns$q
-    unlink_fns <- object$likfns$unlink
-  }
-  
   if (!is.null(prob)) 
     type <- "quantile"
   if (type == "quantile" & is.null(prob)) 
     stop("non-NULL `prob' required if `type = quantile'")
-  if (type %in% "quantile" & family == "custom") {
-    if (is.null(q_fn))
-      stop("custom.fns$q needs supplying for type = 'quantile' and family = 'custom'.")
-    if (is.null(unlink_fns))
-      stop("custom.fns$unlink needs supplying for type = 'response' and family = 'custom'.")
-  }
-  
+
+  q_fn <- object$likfns$q
+  dq_fn <- object$likfns$dq
   if (type == 'quantile') {
-    if (family %in% c('ltgamma', 'ltgammab'))
-      stop ("Quantile predictions not yet implemented for lower truncated gamma.")
+    if (is.null(q_fn))
+      stop("custom.fns$q needs supplying for type = 'quantile' and family = 'custom'; see example.")
+    if (se.fit)
+      if (is.null(dq_fn))
+        stop("custom.fns$dq needs supplying for type = 'quantile' if se.fit = TRUE and family = 'custom'; see example.")
   }
-  
+  p_fn <- object$likfns$p
+  unlink_fns <- object$likfns$unlink
+  if (type == 'response' & is.null(unlink_fns))
+    stop("custom.fns$unlink needs supplying for type = 'response' and family = 'custom'.")
+
+  if (type == "qqplot") {
+    if (family != 'custom') {
+      if (is.null(p_fn) | is.null(p_fn))
+        stop(paste("`type = 'qqplot'' not yet available for family '", family, "'", sep=""))
+    } else {
+      stop("custom.fns$p and custom.fns$q needs supplying for type = 'qqplot' and family = 'custom'; see example.")
+    }
+  }
   ## end checks
   
   ## a few things to set aside
@@ -161,6 +164,7 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
     out <- lapply(seq_len(nX), function(i) X[[i]] %*% object[[i]]$coefficients)
     names(out) <- names(X)
     out <- as.data.frame(lapply(out, function(x) x[,1]))
+    out0 <- out
     
     if (se.fit) { ## start working with standard errors
       
@@ -177,189 +181,72 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
       if (type == "qqplot") 
         se.fit <- FALSE
       
-      if (family %in% customs) {
+      if (type == 'response') {
         
         for (i in seq_along(nms)) {
           
+          lsti <- list(x = out0[[i]])
+          if (!is.null(object$likdata$other)) {
+            lsti <- c(lsti, object$likdata$other)
+            if (!is.null(unlink_fns[[i]])) {
+              fmls <- formalArgs(unlink_fns[[i]])
+              lsti <- lsti[names(lsti) %in% fmls]
+            }
+          }
+
           if (se.fit) {
-            if (!is.null(attr(unlink_fns[[i]], "deriv")))
-              std.err[, i] <- attr(unlink_fns[[i]], "deriv")(out[, i]) * std.err[, i]
+            if (!is.null(attr(unlink_fns[[i]], "deriv"))) {
+              std.err[, i] <- do.call(attr(unlink_fns[[i]], "deriv"), lsti) * std.err[, i]
+            }
           }
           
-          if (!is.null(unlink_fns[[i]]))
-            out[, i] <- unlink_fns[[i]](out[, i])
+          if (!is.null(unlink_fns[[i]])) {
+            out[, i] <- do.call(unlink_fns[[i]], lsti)
+          }
           
         }
         
         if (family == 'bgev' & as.gev)
-          out <- bgev2gev(out[, 1], out[, 2], out[, 3], object$likdata$other['pa'], 
-          object$likdata$other['pb'], object$likdata$other['alpha'], 
-          object$likdata$other['beta'], simplify = TRUE)
+          out <- bgev2gev(out[, 1], out[, 2], out[, 3], object$likdata$other$pa, 
+                          object$likdata$other$pb, object$likdata$other$alpha, 
+                          object$likdata$other$beta, simplify = TRUE)
         
-      } else {
-        
-        if (family != "exi") {
-          
-          unlink <- which(substr(nms, 1, 3) == "log")
-          for (i in unlink) {
-            if (substr(nms[i], 1, 5) == "logit") {
-              temp <- exp(-out[, i])
-              out[, i] <- 1 / (1 + temp)
-              if (se.fit & type == "response")
-                std.err[, i] <- temp * out[, i] * std.err[, i] / (1 + temp)
-              if (family == "gpdab")
-                out[, i] <- gpdab[i, 1] + gpdab[i, 2] * out[, i]
-            } else {
-              out[, i] <- exp(out[, i])
-            }
-            if (se.fit & type == "response") {
-              std.err[, i] <- out[, i] * std.err[, i]
-              if (family == "gpdab")
-                std.err[, i] <- gpdab[i, 2] * std.err[, i]
-            }
-          }
-          
-          if (exi & ncol(out) == 4) {
-            out[, 4] <- out[, 4] ^ out[, 3]
-            out[, 1] <- out[, 1] - out[, 2] * (1 - out[, 4]) / out[, 3]
-            out[, 2] <- out[, 2] * out[, 4]
-            out <- out[, 1:3, drop = FALSE]
-            nms <- nms[1:3]
-          }
-          
-        } else {
-          
-          if (se.fit) 
-            std.err[, 1] <- attr(linkfn, "deriv")(out[, 1]) * std.err[, 1]
-          out[, 1] <- linkfn(out[, 1])
-          
-        }
+        names(out) <- object$rnms
         
       }
-      
-      nms <- gsub("cloglog", "", nms)
-      nms <- gsub("probit", "", nms)
-      nms <- gsub("logit", "", nms)
-      nms <- gsub("log", "", nms)
-      nms <- gsub("trans", "", nms)
-      names(out) <- nms
-      
-      if (type == "qqplot") { ## start qqplot
         
-        pit <- !all(apply(out, 2, function(x) all(diff(x) < 1e-12)))
-        x <- ppoints(ndat)
-        y <- newdata[, response.name]
-        if (is.null(y))
-          stop("No response data.")
+      if (se.fit & type == "response") 
+        names(std.err) <- object$rnms
         
-        if (!pit) {
-          if (!(family %in% customs))
-            stop("Unsuitable `family' for `type == 'qqplot''")
-          if (family %in% c("gev", "gev2"))
-            x <- .qgev(x, out[,1], out[,2], out[,3])
-          if (family == "gpd")
-            x <- .qgpd(x, 0, out[,1], out[,2])
-          if (family == "weibull") 
-            x <- .qweibull(x, out[,1], out[,2])
-          if (family == "weibull3") 
-            x <- out[, 1] + .qweibull(x, out[, 2], out[, 3])
-        } else {
-          if (trace > 0)
-            message("Margins converted to unit exponential by probability integral transformation.")
-          x <- qexp(x)
-          if (family %in% c("gev", "gev2", "rlarge"))
-            y <- .pgev(y, out[,1], out[,2], out[,3])
-          if (family %in% c("gpd", "gpdab"))
-            y <- .pgpd(y, 0, out[,1], out[,2], 0)
-          if (family == "weibull") 
-            y <- .pweibull(y, out[, 1], out[, 2])
-          if (family == "weibull3") 
-            y <- .pweibull(y - out[, 1], out[, 2], out[, 3])
-          y <- qexp(y)
+      if (type %in% c("quantile", "qqplot")) { ## convert response to quantile predictions
+          
+        pars <- out
+        nprob <- length(prob)
+        out <- matrix(NA, ndat, nprob)
+        
+        qnms <- paste('pars', 1:ncol(out0), sep = '')
+        out0 <- as.data.frame(out0)
+        out0 <- as.list(out0)
+        names(out0) <- qnms
+        
+        if (!is.null(object$likdata$other)) {
+          out0 <- c(out0, object$likdata$other)
         }
         
-        plot(x, sort(y), xlab = "Theoretical", ylab = "Empirical", main = "Quantile-quantile plot")
-        abline(0, 1)
+      }    
         
-      } else { ## end qqplot
+      if (type == 'quantile') {
         
-        if (se.fit & type == "response") 
-          names(std.err) <- nms
+        fmls <- formalArgs(q_fn)
+        out0 <- out0[names(out0) %in% fmls]
         
-        if (type == "quantile") { ## convert response to quantile predictions
+        for (j in seq_len(nprob)) {
           
-          pars <- out
-          nprob <- length(prob)
-          out <- matrix(NA, ndat, nprob)
-          
-          for (j in seq_len(nprob)) {
-            
-            pj <- prob[j]
-            
-            if (family == "egpd") {
-              if (egpd_m %in% c(1, 3)) {
-                pj <- egpd_iG(pj, pars[, 3])
-              } else {
-                if (egpd_m == 2) {
-                  pj <- egpd_iG(pj, pars[, 3], pars[, 4], pars[, 5])
-                } else {
-                  pj <- egpd_iG(pj, pars[, 3], pars[, 4])
-                }
-              }
-            }
-            
-            if (family %in% customs) {
-              
-              if (family == 'bgev') {
-                out[, j] <- q_fn(pj, pars[,1], pars[,2], pars[,3], 
-                                 object$likdata$other[1], object$likdata$other[2], object$likdata$other[3], object$likdata$other[4])
-              } else {
-                
-                if (length(nms) > 4)
-                  stop ("Currently on predictions with non-NULL prob and family = 'custom' only possible for fewer than five parameters.")
-                
-                if (length(nms) == 1) {
-                  out[, j] <- q_fn(pj, pars[,1])
-                } else {
-                  if (length(nms) == 2) {
-                    out[, j] <- q_fn(pj, pars[,1], pars[,2])
-                  } else {
-                    if (length(nms) == 3) {
-                      out[, j] <- q_fn(pj, pars[,1], pars[,2], pars[,3])
-                    } else {
-                      out[, j] <- q_fn(pj, pars[,1], pars[,2], pars[,3], pars[,4])
-                    }
-                  }
-                }
-              }
-              
-            } else {
-              
-              if (family %in% c("gpd", "egpd", "gpdab")) {
-                out[, j] <- .qgpd(pj, 0, pars[,1], pars[,2])
-              } else {
-                if (family == "gev") {
-                  out[, j] <- .qgev(pj, pars[,1], pars[,2], pars[,3])
-                } else {
-                  if (family == "weibull") {
-                    out[, j] <- .qweibull(pj, scale=pars[,1], shape=pars[,2])
-                  } else {
-                    if (family == "weibull3") {
-                      out[, j] <- pars[, 1] + .qweibull(pj, scale=pars[, 2], shape=pars[, 3])
-                    } else {
-                      stop("invalid family")
-                    }
-                  } 
-                }
-              }
-            }
-            
-          }
+          pj <- prob[j]
+          out0$p <- pj
+          out[, j] <- do.call(q_fn, out0)
           
           if (se.fit) { ## standard errors for quantile predictions using Delta method
-            
-            if (family %in% customs) 
-              stop("Standard errors not yet available for this family.")
             
             Sigma <- array(NA, dim=c(ndat, nX, nX))
             idp <- conf.pars[[3]]
@@ -380,40 +267,85 @@ predict.evgam <- function(object, newdata, type="link", prob=NULL, se.fit=FALSE,
             std.err <- matrix(NA, ndat, nprob)
             
             for (j in seq_len(nprob)) {
-              if (family == "gev") {
-                jac <- .dqgev(prob[j], pars[,1], log(pars[,2]), pars[,3])
-              }
-              if (family == "gpd") {
-                jac <- .dqgpd(prob[j], log(pars[,2]), pars[,3])
-              }
-              if (family == "weibull") {
-                jac <- .dqweibull(prob[j], log(pars[,2]), pars[,3])
-              }
-              for (i in seq_len(ndat)) {
-                std.err[i, j] <- sum(jac[i,] * (Sigma[i,,] %*% jac[i,]))
-              }
+              pj <- prob[j]
+              out0$p <- pj
+              
+              jac <- do.call(dq_fn, out0)
+              
+              t1 <- apply(Sigma, 3, function(x) rowSums(x * jac))
+              std.err[, j] <- rowSums(t1 * jac)
+              
             }
             
             std.err <- as.data.frame(sqrt(std.err))
             names(std.err) <- paste("q", round(prob, 3), sep=":")
             
           } ## end std.err for quantile
-          
-          out <- as.data.frame(out)
-          names(out) <- paste("q", round(prob, 3), sep=":")
-          
-        } ## end of response to quantile
+        } ## end loop over probs for quantile 
         
-        if (se.fit) {
-          
-          out <- list(fitted = out, se.fit = std.err)
-          
+        out <- as.data.frame(out)
+        names(out) <- paste("q", round(prob, 3), sep=":")
+        
+      } ## end of response is quantile
+      
+      if (type == 'qqplot') {
+        
+        fmls <- formalArgs(p_fn)
+        out0 <- out0[names(out0) %in% fmls]
+        
+        if (got.newdata) {
+          y <- newdata[, response.name]
+        } else {
+          y <- object$likdata$y
+          if (trace > 0)
+            message("Response data taken from evgam object.")
+        }
+        x <- ppoints(sum(is.finite(y)))
+        x <- replace(rep(NA, length(y)), is.finite(y), x)
+        
+        if (trace > 0)
+          message("Margins converted to unit exponential by probability integral transformation.")
+        
+        if (margins %in% c('uniform', 'exponential')) {
+          out0$x <- y
+          y <- do.call(p_fn, out0)
+          if (margins == 'exponential') {
+            y <- qexp(y)
+            x <- qexp(x)
+          }
+        } else {
+          out0$p <- x
+          x <- do.call(q_fn, out0)
         }
         
-      } ## end not qqplot
+        x <- sort(x)
+        y <- sort(y)
+        
+        if (residual.qq) {
+          y <- y - x
+          ylab <- "Empirical - Theoretical"
+          ablist <- list(h = 0)
+        } else {
+          ylab <- "Empirical"
+          ablist <- list(a = 0, b = 1)
+        }
+        
+        if (residual.qq) {
+          ylim <-  max(abs(y), na.rm = TRUE) * c(-1, 1)
+        } else {
+          ylim <- range(y, na.rm = TRUE)
+        }
+        plot(x, y, ylim = ylim, xlab = "Theoretical", ylab = ylab, 
+             main = "Quantile-quantile plot", ...)
+        do.call(abline, ablist)
+        
+      } ## end of qqplot
       
-    } ## end of not link
-    
+      if (se.fit)
+        out <- list(fitted = out, se.fit = std.err)
+
+    } 
+      
     if (type != "qqplot") return(out)
     
   } ## end of link

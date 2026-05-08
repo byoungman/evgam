@@ -50,3 +50,39 @@ attr(.weib_unlink[[2]], "deriv") <- .weib_unlink[[2]]
 
 .weibfns$q <- .qweibull
 .weibfns$unlink <- .weib_unlink
+
+.weibfns$initfn <- function(lst) {
+  inits <- c(log(mean(lst$y, na.rm = TRUE)), .05)
+  inits
+}
+
+.q_weib <- function(p, pars1, pars2) {
+  scale <- exp(pars1)
+  shape <- exp(pars2)
+  scale * ((-log(1 - p)) ^ (1/shape))
+}
+
+# Deriv::Deriv(.q_weib, paste('pars', 1:2, sep = ''), combine = 'cbind')
+
+.dq_weib <- function(p, pars1, pars2) {
+  .e1 <- -log(1 - p)
+  .e2 <- exp(pars2)
+  .e4 <- .e1^(1/.e2) * exp(pars1)
+  cbind(pars1 = .e4, 
+        pars2 = -(.e4 * log(.e1)/.e2)
+        )
+}
+
+.weibfns$q <- .q_weib
+.weibfns$dq <- .dq_weib
+
+.p_weibull <- function(x, pars1, pars2, log = FALSE) {
+  scale <- exp(pars1)
+  shape <- exp(pars2)
+  out <- 1 - exp(-(x / scale)^shape)
+  if (log)
+    out <- log(out)
+  out
+}
+
+.weibfns$p <- .p_weibull

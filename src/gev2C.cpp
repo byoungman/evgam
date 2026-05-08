@@ -28,6 +28,8 @@ return -log(1.5 / (1.0 + xi) - 1.0);
 // //' @param X3 a design matrix for the GEV transformed shape parameter
 // //' @param yvec a vector
 // //' @param dupid a scalar or vector, identifying duplicates in Xs; -1 corresponds to no duplicates
+// //' @param dcate an integer
+// //' @param nhere an integer vector
 // //' @return gevd0 a scalar, the negative log-likelihood
 // //' @return gevd12 a matrix, first then second derivatives w.r.t. GEV parameters
 // //' @return gevd34 a matrix, third then fourth derivatives w.r.t. GEV parameters
@@ -35,7 +37,8 @@ return -log(1.5 / (1.0 + xi) - 1.0);
 // //' ## to follow
 // //' @export
 // [[Rcpp::export]]
-double gev2d0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere)
+double gev2d0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3, 
+              arma::mat ymat, arma::uvec dupid, int dcate, arma::ivec nhere)
 {
     
 arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);

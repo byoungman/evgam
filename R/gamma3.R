@@ -28,7 +28,7 @@ location + qgamma(x, shape = shape, scale = scale)
 }
 
 .pgamma3 <- function(x, location, scale, shape) {
-pgamma3(x - location, shape = shape, scale = scale) 
+pgamma(x - location, shape = shape, scale = scale) 
 }
 
 .gamma3_unlink <- list(NULL, function(x) exp(x), function(x) exp(x))
@@ -37,3 +37,16 @@ attr(.gamma3_unlink[[3]], "deriv") <- .gamma3_unlink[[3]]
 
 .gamma3fns$q <- .qgamma3
 .gamma3fns$unlink <- .gamma3_unlink
+
+.gamma3fns$initfn <- function(lst) {
+  yy <- lst$y
+  loc <- min(yy, na.rm = TRUE) - .1
+  yy <- yy - loc
+  ybar <- mean(yy, na.rm = TRUE)
+  vbar <- var(as.vector(yy), na.rm = TRUE)
+  inits <- vbar / ybar
+  inits <- c(inits, c(ybar / inits))
+  inits <- log(inits)
+  inits <- c(loc, inits)
+  inits
+}

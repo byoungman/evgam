@@ -1,12 +1,18 @@
-## evgam 1.0.1
+## evgam 1.0.2
 
 ### Changes:
 
+* Added function and class `geoevgam` with S3 method `plot` for fitting and plotting geometric extreme value models. (Thanks to Callum Murphy-Barltrop, Jenny Wadsworth and Miguel de Carvalho.)
+
+* Added `type = 'qqplot2'` to `predict()` for residual-based QQ-plots. (Thanks to Jenny Wadsworth.)
+
+* Added `family = 'gw'` for fitting generalised Weibull distribution. (Thanks to Cees de Valk.)
+
 * Added `family = 'poisson'` for fitting Poisson distribution.
 
-* Added `args(dist = 'aggauss')` for fitting `family = 'condex'` with asymmetric generalised Gaussian residuals. (Thanks again to Kristina Bratkova and Aiden Farrell).
+* Added `args(dist = 'aggauss')` for fitting `family = 'condex'` with asymmetric generalised Gaussian residuals. (Thanks again to Kristina Bratkova and Aiden Farrell.)
 
-* Added `family = 'aggauss'` for fitting asymmetric generalised Gaussian distribution. (Thanks to Kristina Bratkova and Aiden Farrell).
+* Added `family = 'aggauss'` for fitting asymmetric generalised Gaussian distribution. (Thanks to Kristina Bratkova and Aiden Farrell.)
 
 * GPD model with shape parameter constrained to [-0.5, 1.0] added with `family = "gpd2"`.
 
@@ -14,7 +20,7 @@
 
 * Added `condex`, `beta`, `logitgauss` families.
 
-* Added option `sparse = TRUE` for `evgam(..., family = "gev2")` which coerces matrices to sparse matrices through package `Matrix` where possible.
+* Added option `sparse = TRUE`, which coerces matrices to sparse matrices through package `Matrix` where possible.
 
 * Added `df2matdf()` for turning a vector response to a matrix response if explanatory variable combinations are repeated.
 
@@ -35,6 +41,12 @@
 * That only variables are checked as being supplied to `data` is now properly detected. (Thanks, Simon Brown.)
 
 * That values smoothing parameters supplied to `evgam()` are properly recognised has been fixed.
+
+## evgam 1.0.1
+
+### Changes:
+
+* Makevars and Makevars.win updated.
 
 ## evgam 1.0.0
 

@@ -92,3 +92,5 @@ rbind(out1, out2)
 }
 
 .ppfns <- list(d0=.pp.d0, d120=.pp.d12, d340=.pp.d34)
+
+.ppfns <- c(.ppfns, .gevfns[c('initfn', 'p', 'q', 'dq')])

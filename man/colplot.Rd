@@ -49,11 +49,11 @@ colplot(
 
 \item{...}{other arguments passed to \link[graphics]{plot}}
 
-\item{legend}{should a legend be added? Defaults to code{FALSE}}
+\item{legend}{should a legend be added? Defaults to \code{FALSE}}
 
 \item{n.legend}{an integer giving the approximate number of legend entries; defaults to 6}
 
-\item{legend.pretty}{logical: should the legend values produced by \[base]{pretty}? Otherwise they are exact. Defaults to \code{TRUE}}
+\item{legend.pretty}{logical: should the legend values produced by \link[base]{pretty}? Otherwise they are exact. Defaults to \code{TRUE}}
 
 \item{legend.plot}{passed to \link[graphics]{legend}'s \code{plot} argument}
 

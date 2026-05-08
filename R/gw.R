@@ -7,7 +7,7 @@
     w <- 1
   if (length(w) < length(likdata$y))
     w <- 0 * likdata$y + w
-  p <- likdata$args$p
+  p <- likdata$args$pexc
   if (length(p) == 1)
     p <- 0 * likdata$y + p
   p <- as.matrix(p)
@@ -30,7 +30,7 @@
     w <- 1
   if (length(w) < length(likdata$y))
     w <- 0 * likdata$y + w
-  p <- likdata$args$p
+  p <- likdata$args$pexc
   if (length(p) == 1)
     p <- 0 * likdata$y + p
   p <- as.matrix(p)
@@ -51,7 +51,7 @@
     w <- 1
   if (length(w) < length(likdata$y))
     w <- 0 * likdata$y + w
-  p <- likdata$args$p
+  p <- likdata$args$pexc
   if (length(p) == 1)
     p <- 0 * likdata$y + p
   nhere <- rowSums(is.finite(likdata$y))
@@ -71,5 +71,46 @@
 attr(.gw_unlink[[1]], "deriv") <- .gw_unlink[[1]]
 attr(.gw_unlink[[2]], "deriv") <- function(x) 0 * x + 1
 
-.gwfns$q <- qpois
 .gwfns$unlink <- .gw_unlink
+
+.gwfns$initfn <- function(lst) {
+  ybar <- -log(mean(lst$args$pexc, na.rm = TRUE)) * mean(lst$y, na.rm = TRUE)
+  inits <- c(log(ybar), .1)
+  inits
+}
+
+.p_gw <- function(x, pars1, pars2, pexc, log = FALSE) {
+  scale <- exp(pars1)
+  shape <- pars2
+  temp <- 1 + shape * x / scale
+  out <- temp^(1 / shape - 1)
+  out <- 1 - pexc^temp
+  if (log) 
+    out <- log(out)
+  out
+}
+
+.q_gw <- function(p, pars1, pars2, pexc) {
+  scale <- exp(pars1)
+  shape <- pars2
+  out <- log(1 - p) / log(pexc)
+  out <- (scale / shape) * ((out + 1)^shape - 1)
+  out
+}
+
+# Deriv::Deriv(.q_gw, paste('pars', 1:2, sep = ''), combine = 'cbind')
+
+.dq_gw <- function(p, pars1, pars2, pexc) {
+  .e3 <- log(1 - p)/log(pexc)
+  .e4 <- (1 + .e3)^pars2
+  .e5 <- .e4 - 1
+  .e6 <- exp(pars1)
+  cbind(pars1 = .e5 * .e6/pars2, 
+        pars2 = (.e4 * log1p(.e3) - .e5/pars2) * .e6/pars2
+        )
+}
+
+.gwfns$q <- .q_gw
+.gwfns$dq <- .dq_gw
+.gwfns$p <- .p_gw
+

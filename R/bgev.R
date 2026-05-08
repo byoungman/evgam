@@ -478,8 +478,14 @@ attr(.bgev_unlink[[3]], "deriv") <- function(x) 1.5 * exp(-x)/(1 + exp(-x))^2
 }
   
   
-.bgevfns$q <- qbgev
 .bgevfns$unlink <- .bgev_unlink
+
+.bgevfns$initfn <- function(lst) {
+  inits <- quantile(lst$y, .5, na.rm = TRUE)
+  inits <- c(inits, log(diff(quantile(lst$y, c(.25, .75), na.rm = TRUE))))
+  inits <- c(inits, -.5)
+  inits
+}
 
 .ell1 <- function(a, xi) (-log(a))^(-xi)
 .ell2 <- function(a) log(-log(a))
@@ -585,3 +591,55 @@ gev2bgev <- function(location, scale, shape, pa = 0.05, pb = 0.2,
     out <- simplify2array(out)
   out
 }
+
+.p_bgev <- function(x, pars1, pars2, pars3, pa = 0.05, pb = 0.2, alpha = 0.5, 
+                  beta = 0.5, log = FALSE) {
+  
+  location <- pars1
+  scale <- exp(pars2)
+  shape <- 1.5 / (1 + exp(-pars3)) - .5
+  
+  hbeta <- .5 * beta
+  
+  a <- .qgev2(pa, location, scale, shape, alpha, beta)
+  b <- .qgev2(pb, location, scale, shape, alpha, beta)
+  x2 <- (q - a) / (b - a)
+  
+  px <- pbeta(x2, 5, 5)
+  sx <- pbeta(x2, 5, 5, lower.tail = FALSE)
+  
+  lF <- .pgev2(q, location, scale, shape, alpha, beta, log = TRUE)
+  
+  tlocation <- a - (b - a) * (.ell2(alpha) - .ell2(pa)) / (.ell2(pa) - .ell2(pb))
+  tscale <- (b - a) * (.ell2(hbeta) - .ell2(1 - hbeta)) / (.ell2(pa) - .ell2(pb))
+  
+  lG <- .pgumb2(q, tlocation, tscale, alpha, beta, log = TRUE)
+  
+  out <- px * lF + sx * lG
+  
+  if (!log) 
+    out <- exp(out)
+
+  out
+  
+}
+
+.q_bgev <- function(p, pars1, pars2, pars3, pa = 0.05, pb = 0.2, alpha = 0.5, 
+                  beta = 0.5) {
+  
+  location <- pars1
+  scale <- exp(pars2)
+  shape <- 1.5 / (1 + exp(-pars3)) - .5
+  
+  hbeta <- .5 * beta
+  numer11 <- scale / (.ell1(1 - hbeta, shape) - .ell1(hbeta, shape))
+  gev_pars <- bgev2gev(location, scale, shape, pa, pb, alpha, beta)
+  inits <- .qgev(p, gev_pars[[1]], gev_pars[[2]], gev_pars[[3]])
+  out <- .root_NR(inits, pbgev, p, eps = 1e-5, maxit = 5, tol = 1e-3, 
+                  location = location, scale = scale, shape = shape, pa = pa, 
+                  pb = pb, alpha = alpha, beta = beta, log.p = TRUE)
+  out
+}
+
+.bgevfns$q <- .q_bgev
+.bgevfns$p <- .p_bgev

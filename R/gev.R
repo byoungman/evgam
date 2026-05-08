@@ -36,7 +36,7 @@ if (!likdata$censored) {
 out
 }
 
-.gevfns <- list(d0=.gev.d0, d120=.gev.d12, d340=.gev.d34)
+.gevfns <- list(d0 = .gev.d0, d120 = .gev.d12, d340 = .gev.d34)
 
 .pgev <- function(x, loc, scale, shape, NAOK=FALSE, log=FALSE) {
 # function to evaluate daily cdf, e.g. Coles (2001, pp.138)
@@ -45,6 +45,40 @@ if (!NAOK) temp <- pmax(temp, 0)
 out <- -(temp ^ (-1/shape))
 if (!log) out <- exp(out)
 out
+}
+
+.gev_unlink <- list(NULL, function(x) exp(x), NULL)
+attr(.gev_unlink[[2]], "deriv") <- .gev_unlink[[2]]
+
+.q_gev <- function(p, pars1, pars2, pars3) {
+  loc <- pars1
+  scale <- exp(pars2)
+  shape <- pars3
+  # shape <- sign(shape) * pmax(abs(shape), 1e-6)
+  yp <- -log(p)
+  loc - scale * (1 - yp^(-shape)) / shape
+}
+
+# Deriv::Deriv(.q_gev, paste('pars', 1:3, sep = ''), combine = 'cbind')
+
+.dq_gev <- function (p, pars1, pars2, pars3) {
+  .e1 <- -log(p)
+  .e2 <- .e1^pars3
+  .e3 <- 1 - 1/.e2
+  .e4 <- exp(pars2)
+  cbind(pars1 = 1, 
+        pars2 = -(.e3 * .e4/pars3), 
+        pars3 = -(.e4 * (log(.e1)/.e2 - .e3/pars3)/pars3)
+        )
+}
+
+.gevfns$q <- .q_gev
+.gevfns$dq <- .dq_gev
+.gevfns$unlink <- .gev_unlink
+
+.gevfns$initfn <- function(lst) {
+  inits <- sqrt(6) * sd(as.vector(lst$y), na.rm = TRUE) / pi
+  c(mean(as.matrix(lst$y), na.rm = TRUE) - .5772 * inits[1], log(inits[1]), .05)
 }
 
 .qgev <- function(p, loc, scale, shape) {
@@ -64,3 +98,17 @@ d2 <- -(.e3 * .e4/shape)
 d3 <- -(.e4 * (log(.e1)/.e2 - .e3/shape)/shape)
 cbind(d1, d2, d3)
 }
+
+.p_gev <- function(x, pars1, pars2, pars3, log = FALSE) {
+  loc <- pars1
+  scale <- exp(pars2)
+  shape <- pars3
+  temp <- 1 + shape * (x - loc) / scale
+  temp <- pmax(temp, 0)
+  out <- -(temp ^ (-1/shape))
+  if (!log) 
+    out <- exp(out)
+  out
+}
+
+.gevfns$p <- .p_gev

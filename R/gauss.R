@@ -22,3 +22,8 @@ out
 }
 
 .gaussfns <- list(d0=.gauss.d0, d120=.gauss.d12, d340=.gauss.d34)
+
+.gaussfns$initfn <- function(lst) {
+  inits <- c(mean(lst$y, na.rm = TRUE), log(sd(as.vector(lst$y), na.rm = TRUE)))
+  inits
+}

@@ -22,3 +22,7 @@ out
 }
 
 .expfns <- list(d0=.exp.d0, d120=.exp.d12, d340=.exp.d34)
+
+.expfns$initfn <- function(lst) {
+  - log(mean(lst$y, na.rm = TRUE))
+}

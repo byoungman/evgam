@@ -28,7 +28,6 @@ evgam(
   sandwich.args = list(),
   egpd.args = list(),
   custom.fns = list(),
-  aggregated.args = list(),
   sp = NULL,
   gamma = 1,
   sparse = FALSE,

@@ -19,8 +19,10 @@ double ldenom(double left, double alpha, double beta) {
 // //' @param X1 a design matrix for the shape parameter
 // //' @param X2 a design matrix for the rate parameter
 // //' @param ymat a matrix
-// //' @param leftmat a matrix
 // //' @param dupid a scalar or vector, identifying duplicates in Xs; -1 corresponds to no duplicates
+// //' @param dcate an integer
+// //' @param nhere an integer vector
+// //' @param leftmat a matrix
 // //' @return ltgammad0 a scalar, the negative log-likelihood
 // //' @return ltgamma12 a matrix, first then second derivatives w.r.t. parameters
 // //' @return ltgamma34 a matrix, third then fourth derivatives w.r.t. parameters

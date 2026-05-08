@@ -105,3 +105,8 @@ attr(.negbin_unlink[[2]], "deriv") <- .negbin_unlink[[2]]
 .negbinfns$q <- qpois
 .negbinfns$unlink <- .negbin_unlink
 
+.negbinfns$initfn <- function(lst) {
+  ybar <- mean(lst$y, na.rm = TRUE)
+  inits <- c(log(ybar), -5)
+  inits
+}

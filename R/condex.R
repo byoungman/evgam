@@ -191,3 +191,7 @@ attr(.condex_unlink[[4]], "deriv") <- function(x) exp(x)
 .condexfns$q <- NULL
 .condexfns$unlink <- .condex_unlink
 
+.condexfns$initfn <- function(lst) {
+inits <- c(0, -1, mean(lst$y, na.rm = TRUE), log(sd(lst$y, na.rm = TRUE)))
+inits
+}

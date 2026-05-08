@@ -13,6 +13,7 @@
   marginal = TRUE,
   exi = FALSE,
   as.gev = FALSE,
+  margins = "original",
   trace = 0,
   ...
 )
@@ -34,9 +35,11 @@
 
 \item{as.gev}{a logical: should blended GEV parameters be converted to GEV parameters? Defaults to \code{FALSE}}
 
+\item{margins}{a character string giving the QQ-plot margins. Defaults to original scale}
+
 \item{trace}{an integer where higher values give more output. -1 suppresses everything. Defaults to 0}
 
-\item{...}{unused}
+\item{...}{passed to \code{plot} if \code{type == 'qqplot'} or \code{type == 'qqplot2'}}
 }
 \value{
 A data frame or list of predictions, or a plot if \code{type == "qqplot"}

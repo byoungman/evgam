@@ -61,7 +61,10 @@ bgevd34 <- function(pars, X1, X2, X3, ymat, dupid, dcate, other, nhere) {
     .Call(`_evgam_bgevd34`, pars, X1, X2, X3, ymat, dupid, dcate, other, nhere)
 }
 
-#' Conditional extreme value model negative log-likelihood
+#'
+NULL
+
+#'
 NULL
 
 condexd0 <- function(pars, X1, X2, X3, X4, ymat, xmat, wmat, dupid, dcate, nhere) {
@@ -87,9 +90,6 @@ condexspd12 <- function(pars, X1, X2, X3, X4, ymat, xmat, wmat, dupid, dcate, nh
 condexspd34 <- function(pars, X1, X2, X3, X4, ymat, xmat, wmat, dupid, dcate, nhere) {
     .Call(`_evgam_condexspd34`, pars, X1, X2, X3, X4, ymat, xmat, wmat, dupid, dcate, nhere)
 }
-
-#' Conditional extreme value model negative log-likelihood for asymmetric generalised Gaussian
-NULL
 
 condexaggd0 <- function(pars, X1, X2, X3, X4, X5, X6, ymat, xmat, wmat, dupid, dcate, nhere, C, epsilon = 0.1) {
     .Call(`_evgam_condexaggd0`, pars, X1, X2, X3, X4, X5, X6, ymat, xmat, wmat, dupid, dcate, nhere, C, epsilon)

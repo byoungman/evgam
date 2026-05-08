@@ -23,3 +23,9 @@ out
 .rlargecfns$q <- .qgev
 .rlargecfns$unlink <- .rlarge_unlink
 
+.rlargecfns$initfn <- function(lst) {
+  col <- lst$args$drop + 1
+  inits <- c(sqrt(6) * sd(as.matrix(lst$y)[, col]) / pi, .85)
+  inits <- c(mean(as.matrix(lst$y)[, col]) - .5772 * inits[1], log(inits[1]), inits[2])
+  inits
+}
