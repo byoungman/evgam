@@ -260,19 +260,26 @@ simulate.evgam <- function(object, nsim=1e3, seed=NULL, newdata,
                            type="link", probs=NULL, threshold=0, marginal=TRUE, ...) {
   family <- object$family
   
-  customs <- c("custom", "bgev", "gev2", "condex", "beta", "rlarge", "rlargec", 
-                              "ltgamma", "ltgammab", "gevr", "weibull3", "gamma", "gamma3", "gpd2")
-
-  if (family %in% customs) {
+  # customs <- c("custom", "bgev", "gev2", "condex", "beta", "rlarge", "rlargec", 
+  #                             "ltgamma", "ltgammab", "gevr", "weibull3", "gamma", "gamma3", "gpd2")
+  # 
+  # if (family %in% customs) {
     q_fn <- object$likfns$q
     unlink_fns <- object$likfns$unlink
-    rnms <- names(unlink_fns)
-  }
+    rnms <- object$rnms
+  # }
+    
+  if (type == "quantile" & is.null(probs)) 
+    stop("non-NULL `prob' required if `type = quantile'")
+    
+  if (is.null(q_fn) & type == 'quantile' & family != 'custom')
+    stop(paste("type = 'quantile' not currently supported for family = '", family, "'", sep = ''))
+    
                
   if (!is.null(probs)) 
     type <- "quantile"
   # if (is.null(newdata)) newdata <- object$data
-  if (type %in% c("link", "response")) {
+  if (type %in% c("link", "response", "quantile")) {
     if(!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
       runif(1) # initialize the RNG if necessary
     if(is.null(seed)) {
@@ -296,44 +303,44 @@ simulate.evgam <- function(object, nsim=1e3, seed=NULL, newdata,
     X <- lapply(seq_along(X), function(i) X[[i]] %*% B[[i]])
     names(X) <- nms
     if (type == "response") {
-      if (family != "exi") {
-        if (family %in% customs) {
+      # if (family != "exi") {
+        # if (family %in% customs) {
           for (i in seq_along(nms)) {
             if (!is.null(unlink_fns[[i]]))
               X[[i]] <- unlink_fns[[i]](X[[i]])
           }
-        } else {
-          unlink <- which(substr(nms, 1, 3) == "log")
-          for (i in unlink) {
-            X[[i]] <- exp(X[[i]])
-            if (substr(nms[i], 1, 5) == "logit")
-              X[[i]] <- X[[i]] / (1 + X[[i]])
-          }
-        }
-      } else {
-          X[[i]] <- object$linkfn(X[[i]])
-      }
+        # } else {
+        #   unlink <- which(substr(nms, 1, 3) == "log")
+        #   for (i in unlink) {
+        #     X[[i]] <- exp(X[[i]])
+        #     if (substr(nms[i], 1, 5) == "logit")
+        #       X[[i]] <- X[[i]] / (1 + X[[i]])
+        #   }
+        # }
+      # } else {
+      #     X[[i]] <- object$linkfn(X[[i]])
+      # }
     }
-    nms <- gsub("cloglog", "", nms)
-    nms <- gsub("probit", "", nms)
-    nms <- gsub("logit", "", nms)
-    nms <- gsub("log", "", nms)
+    # nms <- gsub("cloglog", "", nms)
+    # nms <- gsub("probit", "", nms)
+    # nms <- gsub("logit", "", nms)
+    # nms <- gsub("log", "", nms)
     names(X) <- nms
   }
   if (type == "quantile") {
-    X <- simulate.evgam(object, nsim, seed, newdata, "response")
+    
+    fmls <- formalArgs(q_fn)
+    out0 <- X
+    names(out0) <- paste('pars', seq_along(out0), sep = '')
     out <- list()
+    
     for (i in seq_along(probs)) {
-      if (substr(family, 1, 3) == "gpd") {
-        out[[i]] <- threshold + .qgpd(probs[i], 0, X[[1]], X[[2]])
-      } else {
-        if (substr(family, 1, 3) == "gev" | family == 'pp') {
-          out[[i]] <- .qgev(probs[i], X[[1]], X[[2]], X[[3]])
-        } else {
-          stop(paste("type = 'quantile' currently not available for family", family))
-        }
-      }
+      
+      out0$p <- probs[i]
+      out[[i]] <- do.call(q_fn, out0)
+      
     }
+      
     names(out) <- paste("q", probs, sep=":")
     if (length(probs) == 1) {
       X <- out[[1]]

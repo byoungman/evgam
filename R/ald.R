@@ -40,4 +40,8 @@ out
   inits <- c(quantile(lst$y, lst$args$tau, na.rm = TRUE), log(sd(as.vector(lst$y), na.rm = TRUE)))
   inits
 }
-  
+
+.ald_unlink <- list(NULL, function(x) exp(x))
+attr(.ald_unlink[[2]], "deriv") <- .ald_unlink[[2]]
+
+.aldfns$unlink <- .ald_unlink

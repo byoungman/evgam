@@ -27,3 +27,8 @@ out
   inits <- c(mean(lst$y, na.rm = TRUE), log(sd(as.vector(lst$y), na.rm = TRUE)))
   inits
 }
+
+.gauss_unlink <- list(NULL, function(x) exp(x))
+attr(.gauss_unlink[[2]], "deriv") <- .gauss_unlink[[2]]
+
+.gaussfns$unlink <- .gauss_unlink
