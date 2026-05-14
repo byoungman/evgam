@@ -1518,10 +1518,68 @@
 
 .edf <- function(beta, likfns, likdata, VpVc, sandwich) {
   if (!likdata$sparse) {
-    out <- base::diag(base::crossprod(VpVc$Vp, VpVc$H0))
+    if (VpVc$correctV) {
+      out <- base::diag(base::crossprod(VpVc$Vc, VpVc$H0))
+    } else {
+      out <- base::diag(base::crossprod(VpVc$Vp, VpVc$H0))
+    }
   } else {
     # out <- Matrix::diag(Matrix::crossprod(VpVc$Vp, VpVc$H0))
     out <- NULL
+  }
+  out
+}
+
+############ .VpVc ##########################
+
+.VpVc <- function(fitreml, likfns, likdata, Sdata, correctV, sandwich, smooths, trace) {
+  if (likdata$outer == 'fixed')
+    correctV <- FALSE
+  lsp <- fitreml$par
+  H0 <- .gH.nopen(fitreml$beta, likdata, likfns)[[2]]
+  if (smooths) {
+    sp <- exp(lsp)
+    H <- H0 + likdata$S
+  } else {
+    H <- H0
+  }
+  if (!likdata$sparse) {
+    Hd <- .Hdata(H)
+    if (!likdata$sparse) {
+      cholH <- try(chol(H), silent = TRUE)
+    } else {
+      cholH <- suppressWarnings(try(Matrix::chol(H), silent = TRUE))
+    }
+    if (inherits(cholH, "try-error") & trace >= 0)
+      message("Final Hessian of negative penalized log-likelihood not numerically positive definite.")
+    Vc <- Vp <- Hd$iH
+    if (smooths) {
+      if (correctV) {
+        cholVp <- try(chol(Vp), silent=TRUE)
+        if (inherits(cholVp, "try-error")) {
+          cholVp <- attr(.perturb(Vp), "chol")
+        }
+        attr(lsp, "beta") <- fitreml$beta
+        spSl <- Map("*", attr(Sdata, "Sl"), exp(lsp))
+        dbeta <- .d1beta(lsp, fitreml$beta, spSl, Hd)$d1
+        Vrho <- fitreml$invHessian
+        if (!likdata$sparse) {
+          Vbetarho <- base::tcrossprod(dbeta %*% Vrho, dbeta)
+        } else {
+          Vbetarho <- Matrix::tcrossprod(dbeta %*% Vrho, dbeta)
+        }
+        VR <- matrix(0, nrow=likdata$nb, ncol=likdata$nb)
+        Vc <- .perturb(Vp + Vbetarho + VR)
+      } else {
+        Vrho <- 0
+      }
+    } else {
+      Vrho <- 0
+    }
+    out <- list(Vp=Vp, Vc=Vc, Vlsp=Vrho, H0=H0, H=H, correctV = correctV)
+  } else {
+    out <- list(Vp = Matrix::Diagonal(nrow(H), x = 0), Vc = Matrix::Diagonal(nrow(H), x = 0), 
+                Vlsp=NULL, H0 = H0, H = H, correctV = correctV)
   }
   out
 }

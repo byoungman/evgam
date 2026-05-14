@@ -152,6 +152,8 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
     
     ## check for fixed smoothing parameters
     if (!is.null(sp)) {
+      if (length(sp) != length(rho0))
+        stop('Wrong number of smoothing parameters in argument "sp"')
       rho0 <- log(sp)
       lik.data$outer <- "fixed"
     }
