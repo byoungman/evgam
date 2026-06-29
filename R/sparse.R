@@ -165,7 +165,11 @@ out
   temp <- .gH.nopen(pars, likdata, likfns, deriv=deriv)
   temp[[1]] <- temp[[1]] + crossprod(pars, likdata$S)[1, ]
   if (deriv > 1) {
-    attr(temp, "PP") <- attr(temp, "PP") + likdata$S / norm(likdata$S, "F")
+    if (norm(likdata$S, "F") > 0) {
+      attr(temp, "PP") <- attr(temp, "PP") + likdata$S / norm(likdata$S, "F")
+    } else {
+      attr(temp, "PP") <- attr(temp, "PP") + likdata$S
+    }
     temp[[2]] <- temp[[2]] + likdata$S
   }
   temp
@@ -520,3 +524,12 @@ out
   d1 <- d1 + sapply(spSl, function(x) .choltr(H$cH, x))
   list(d1 = d1, dbeta = dbeta)
 }
+
+.pivchol_rmvn_sparse <- function(n, mu, Sig) {
+  Ch <- Matrix::Cholesky(Sig, permutation = TRUE, LDL = FALSE)
+  P <- as(Ch, "pMatrix")
+  L <- as(Ch, "Matrix")
+  Z <- matrix(rnorm(n * ncol(Sig)), ncol(Sig))
+  as.matrix(Matrix::t(P) %*% L %*% Z) + as.vector(mu)
+}
+

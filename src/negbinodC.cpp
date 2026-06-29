@@ -2,6 +2,8 @@
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
 
+const double size_threshold = 1e5;
+
 // //' Negative binomial distribution negative log-likelihood
 // //'
 // //' @param pars a list of vectors of coefficients for neg bin log mean and log overdispersion
@@ -16,80 +18,90 @@
 // //' ## to follow
 // //' @export
 // [[Rcpp::export]]
-double negbinodd0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, 
-                arma::uvec dupid, int dcate, arma::ivec nhere, arma::mat wmat, arma::mat offmat)
+double negbinodd0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat,
+                  arma::uvec dupid, int dcate, arma::ivec nhere, arma::mat wmat, arma::mat offmat)
 {
-  
+
   arma::vec p1vec = X1 * Rcpp::as<arma::vec>(pars[0]);
   arma::vec p2vec = X2 * Rcpp::as<arma::vec>(pars[1]);
   int nobs = nhere.size();
-  
+
   if (dcate == 1) {
     p1vec = p1vec.elem(dupid);
     p2vec = p2vec.elem(dupid);
   }
-  
+
   double y, w, pars1, pars2, offset;
-  double mu, size, p;
+  double lmu, mu, size, p;
   double nllh = 0.0;
-  
+
   for (int j=0; j < nobs; j++) {
-    
+
     pars1 = p1vec[j];
     pars2 = p2vec[j];
-    
+    size = exp(-pars2);
+
     for (int l=0; l < nhere[j]; l++) {
-      
+
       y = ymat(j, l);
       w = wmat(j, l);
       offset = offmat(j, l);
 
-      mu = exp(log(offset) + pars1);
-      size = exp(-pars2);
+      lmu = log(offset) + pars1;
+      mu = exp(lmu);
       p = size / (size + mu);
-      nllh -= w * (lgamma(y + size) - lgamma(size) - lgamma(y + 1) + size * log(p) + y * log(1 - p));
 
-    } 
+      if (size > size_threshold) {
+
+        nllh -= w * (y * lmu - lgamma(y + 1) - mu);
+
+      } else {
+
+        nllh -= w * (lgamma(y + size) - lgamma(size) - lgamma(y + 1) + size * log(p) + y * log(1 - p));
+
+      }
+
+    }
     
   }
-  
-  return(nllh);
-  
-}
+
+    return(nllh);
+
+  }
 
 // //' @rdname negbinodd0
 // [[Rcpp::export]]
-arma::mat negbinodd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat, 
-                    arma::uvec dupid, int dcate, arma::ivec nhere, arma::mat wmat, arma::mat offmat)
+arma::mat negbinodd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat ymat,
+                      arma::uvec dupid, int dcate, arma::ivec nhere, arma::mat wmat, arma::mat offmat)
 {
-  
+
   arma::vec p1vec = X1 * Rcpp::as<arma::vec>(pars[0]);
   arma::vec p2vec = X2 * Rcpp::as<arma::vec>(pars[1]);
   int nobs = nhere.size();
-  
+
   if (dcate == 1) {
     p1vec = p1vec.elem(dupid);
     p2vec = p2vec.elem(dupid);
   }
-  
+
   double y, w, pars1, pars2, offset;
-  
+
   double ee2, ee3, ee4, ee5, ee6, ee7, ee8, ee9;
   double ee10, ee11, ee12;
-  
+
   arma::mat out = arma::mat(nobs, 5, arma::fill::zeros);
-  
+
   for (int j=0; j < nobs; j++) {
-    
+
     pars1 = p1vec[j];
     pars2 = p2vec[j];
 
     for (int l=0; l < nhere[j]; l++) {
-      
+
       y = ymat(j, l);
       w = wmat(j, l);
       offset = offmat(j, l);
-      
+
       ee2 = exp(-pars2);
       ee3 = exp(log(offset) + pars1);
       ee4 = ee2 + ee3;
@@ -102,24 +114,34 @@ arma::mat negbinodd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat yma
       ee11 = Rf_digamma(ee2);
       ee12 = log(ee4);
       
-      out(j, 0) += w * (-(ee2 * ee3 * (y/ee9 - 1)/ee4));
-      out(j, 1) += w * (-((ee7/ee4 + ee11 + ee12 + pars2 - (1 + ee10)) *
-        ee2));
-      out(j, 2) += w * (-(((y * (1 - (2 + ee2/ee9) * ee3/ee4)/ee6 -
-        (R_pow(ee2, 2)/(R_pow(ee4, 2) * ee8) - 2) * ee3)/ee4 - 1) *
-        ee2 * ee3/ee4));
-      out(j, 3) += w * ((((ee6 * ee2/(ee4 * ee8) + 2) * ee2 + y)/
-        ee4 - 2) * ee2 * ee3/ee4);
-      out(j, 4) += w * ((ee11 + ee12 + pars2 + y * ((1 - (3 - 2 *
-        ee5) * ee2/ee4)/ee6 + ee5)/ee4 - (3 + ee10 + ee2 * (Rf_trigamma(ee7) -
-        (((R_pow(ee6, 2)/ee8 - 2) * ee2/ee4 + 5)/ee4 + Rf_trigamma(ee2))))) *
-        ee2);
+      if (ee2 > size_threshold) {
+        
+        out(j, 0) += w * (ee3 - y);
+        out(j, 2) += w * ee3;
+
+      } else {
+
+        out(j, 0) += w * (-(ee2 * ee3 * (y/ee9 - 1)/ee4));
+        out(j, 1) += w * (-((ee7/ee4 + ee11 + ee12 + pars2 - (1 + ee10)) *
+          ee2));
+        out(j, 2) += w * (-(((y * (1 - (2 + ee2/ee9) * ee3/ee4)/ee6 -
+          (R_pow(ee2, 2)/(R_pow(ee4, 2) * ee8) - 2) * ee3)/ee4 - 1) *
+          ee2 * ee3/ee4));
+        out(j, 3) += w * ((((ee6 * ee2/(ee4 * ee8) + 2) * ee2 + y)/
+          ee4 - 2) * ee2 * ee3/ee4);
+        out(j, 4) += w * ((ee11 + ee12 + pars2 + y * ((1 - (3 - 2 *
+          ee5) * ee2/ee4)/ee6 + ee5)/ee4 - (3 + ee10 + ee2 * (Rf_trigamma(ee7) -
+          (((R_pow(ee6, 2)/ee8 - 2) * ee2/ee4 + 5)/ee4 + Rf_trigamma(ee2))))) *
+          ee2);
+      
+      }
+      
     }
-    
+
   }
-  
+
   return out;
-  
+
 }
 
 // //' @rdname negbinodd0
@@ -264,70 +286,80 @@ arma::mat negbinodd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat yma
       ee134 = Rf_trigamma(ee39);
       ee135 = Rf_trigamma(ee2);
       
-      out(j, 0) =+ w * ( -(((y * (1 - (((1 + ee63 - ee106) * ee2/ee6 + ee20 +
-        ee9 - ee34)/ee4 + 2) * ee3/ee4)/ee6 - ((ee104 * ee23/
-          ee32 + ee34 - ee27)/ee4 - 2) * ee3)/ee4 - 1) * ee2 * ee3/ee4));
-      out(j, 1) =+ w * ( ((y * (1 - ((((ee84 + ee7)/ee6 + 2) * ee3/ee4 +
-        1) * ee2 + ee38)/ee4)/ee6 - ((((ee84 - 2 * ee47) * ee3/ee4 -
-        ee55) * ee2/ee32 - 2) * ee2 + (((6 + ee2/ee32) * ee2 - ee9)/
-          ee4 - 2) * ee3))/ee4 - 2) * ee2 * ee3/ee4);
-      out(j, 2) =+ w * ( -(((((((ee6 * (2 - (ee112 + 4) * ee2/ee4) + 3 -
-        (5 - ee7) * ee2/ee4)/ee11 - 8) * ee2 + ee12 + ee9)/ee4 + 6) *
-        ee2 + y * ((ee54/ee6 + (ee25 - ee30)/ee4 - 1) * ee2/ee4 +
-        1)/ee6)/ee4 - 4) * ee2 * ee3/ee4));
-      out(j, 3) =+ w * ( -((ee129 + y * (((((ee26 - ee31)/ee4 + 3) * ee2/
-        ee4 - 6) * ee2/ee4 + 1)/ee6 + (2 * (ee22/ee6) + ee7) * ee2/
-          ee4)/ee4 - ((3 * ee134 + ee2 * (ee132 - ee133) - (((ee6 * (ee83 +
-            4 - (ee59 + 6) * ee2/ee4)/ee11 - ee103) * ee2/ee4 + 19)/
-              ee4 + 3 * ee135)) * ee2 + 7 + ee126)) * ee2));
-      out(j, 4) =+ w * ( -(((y * (1 - ((((1 - ee106) * ee16 + 2 + ee111 -
-        (((2 * (ee55 + ee131) + ee115 - 8 * ee131)/ee6 + ee117) *
-        ee2/ee56 + ee113) * ee3/ee4) * ee2/ee6 + ee114 + ee21 + ee122 -
-        ee90)/ee4 + 2) * ee3/ee4)/ee6 - (((((2 * (1 - 3 * ee15) +
-        8 * ee16 + 8 * (ee23 * ee3/(R_pow(ee4, 3) * ee11))) * ee23/
-          ee28 - ee113) * ee3/ee4 + ee77 * ee16 + 2 + ee111) * ee23/
-            ee32 + ee90 - (ee114 + ee21 + ee122))/ee4 - 2) * ee3)/ee4 - 1) *
-              ee2 * ee3/ee4));
-      out(j, 5) =+ w * ( ((y * (1 - (((((((2 * (ee49 - 1) - ee116) * ee3/
-        ee56 + ee117 - 2) * ee2 - (ee33/ee4 + 2) * ee3)/ee4 + 2 + ee108)/
-          ee6 + ee40 + 2) * ee3/ee4 + 1) * ee2 + (ee20 + ee21 -
-            ((2 + 4 * (ee27/ee4)) * ee2 + ee121 * ee3/ee4)) * ee3/ee4)/
-              ee4)/ee6 - ((((((((2 * (2 - ee49) + ee66 - ee68) * ee3/ee4 -
-                ee115) * ee2/ee32 - 2) * ee2 - ee38)/ee4 + (1 - (2 + ee112) *
-                ee2/ee4) * ee16 + 1 + ee108) * ee3/ee4 - (1 - ee70) * ee6) *
-                ee2/ee32 - 2) * ee2 + ((((ee104 * ee2/ee11 + 4 * ee27)/ee4 +
-                2) * ee2 + (ee121/ee4 + 8) * ee3 - (4 * ee19 + ee123))/
-                  ee4 - 2) * ee3))/ee4 - 2) * ee2 * ee3/ee4);
-      out(j, 6) =+ w * ( -(((y * (((((((ee82 - 4 * ee45)/ee6 - ee116) *
-        ee2/ee4 - ee110) * ee3/ee4 + ee91 + ee22 * ee16)/ee6 + ((ee63 +
-        6) * ee2 - (ee38 + ee12 + ee9))/ee4 - 1) * ee2 - ((6 - (ee42 +
-        ee125 - ee85)/ee4) * ee2 + ee9) * ee3/ee4)/ee4 + 1)/
-          ee6 - ((((((1/ee11 - 64) * ee2 + ee42 + ee125)/ee4 + 6) * ee2 -
-            ee123)/ee4 - 2) * ee3 + (((((ee110 + ee66 - (ee6 * (4 + 8 *
-            ee17 - ee68) + ee81) * ee23/ee28) * ee3/ee4 - (ee16 * (3 -
-            (ee59 + 5) * ee2/ee4) + 2 * ee91))/ee11 + 8) * ee2 - ee30)/
-              ee4 - 6) * ee2))/ee4 - 4) * ee2 * ee3/ee4));
-      out(j, 7) =+ w * ( -(((y * (((((ee82 - ee109)/ee6 + (ee30 + 48 * ee2 -
-        ee118)/ee4 - (ee84 + 6)) * ee2 + ee64 + ee21 + 6 * ee10)/
-          ee4 + 1 - ((ee44 + ee109 - 7) * ee2/ee4 + 1 + 2 * (ee107 *
-            ee6) + 3 * (ee22 * ee17))/ee6) * ee2/ee4 - 1)/ee6 - ((((ee17 *
-            (1 + ee83 - ee89) + ee6 * (2 * ee107 + 7 - ((((ee6 * (6 -
-            ee68) + ee81 + 4 * ee54)/ee11 - 8) * ee2 + ee12 + ee9)/ee4 +
-            14) * ee2/ee4) + 7 - (19 - ee103 * ee2/ee4) * ee2/ee4)/ee11 -
-            ((ee118 - ee85)/ee4 + 32)) * ee2 + 10 * ee4 + 12 * ee10 +
-            ee64)/ee4 + 14) * ee2)/ee4 + 8) * ee2 * ee3/ee4));
-      out(j, 8) =+ w * ( -((((6 * ee132 + ee2 * (Rf_psigamma(ee39, 3) - Rf_psigamma(ee2, 3)) -
-        6 * ee133) * ee2 + 7 * ee134 - (((((1 - ee89) *
-        ee22 + ee6 * (10 + 2 * ee62 + ee124 - (((ee6 * (8 - ee68) +
-        ee81 + ee124) * ee6/ee11 - 8) * ee2/ee4 + 18) * ee2/ee4) +
-        2 * ee72)/ee11 - ((ee64 + 22 * ee10 + 36 * ee4 - ((ee119 -
-        ee85)/ee4 + 56) * ee2)/ee4 + 50)) * ee2/ee4 + 65)/ee4 + 7 *
-        ee135)) * ee2 + 15 + ee126 + y * ((((ee82 - 4 * ee22)/ee6 -
-        ee86) * ee2/ee4 - (2 * ee87 + 4 * (ee22 * ee2/ee4))/ee6) *
-        ee2/ee4 - ((((((ee26 + 56 * ee2 - ee119)/ee4 - 18) * ee2 +
-        14 * ee10 + ee64 + 20 * ee4)/ee4 + ee83 + 7) * ee2/ee4 + ee87 -
-        14) * ee2/ee4 + 1)/ee6)/ee4 - ee129) * ee2));
-        }
+      if (ee2 > size_threshold) {
+        
+        out(j, 0) += w * ee3;
+        out(j, 4) += w * ee3;
+        
+      } else {
+        
+        out(j, 0) += w * ( -(((y * (1 - (((1 + ee63 - ee106) * ee2/ee6 + ee20 +
+          ee9 - ee34)/ee4 + 2) * ee3/ee4)/ee6 - ((ee104 * ee23/
+            ee32 + ee34 - ee27)/ee4 - 2) * ee3)/ee4 - 1) * ee2 * ee3/ee4));
+        out(j, 1) += w * ( ((y * (1 - ((((ee84 + ee7)/ee6 + 2) * ee3/ee4 +
+          1) * ee2 + ee38)/ee4)/ee6 - ((((ee84 - 2 * ee47) * ee3/ee4 -
+          ee55) * ee2/ee32 - 2) * ee2 + (((6 + ee2/ee32) * ee2 - ee9)/
+            ee4 - 2) * ee3))/ee4 - 2) * ee2 * ee3/ee4);
+        out(j, 2) += w * ( -(((((((ee6 * (2 - (ee112 + 4) * ee2/ee4) + 3 -
+          (5 - ee7) * ee2/ee4)/ee11 - 8) * ee2 + ee12 + ee9)/ee4 + 6) *
+          ee2 + y * ((ee54/ee6 + (ee25 - ee30)/ee4 - 1) * ee2/ee4 +
+          1)/ee6)/ee4 - 4) * ee2 * ee3/ee4));
+        out(j, 3) += w * ( -((ee129 + y * (((((ee26 - ee31)/ee4 + 3) * ee2/
+          ee4 - 6) * ee2/ee4 + 1)/ee6 + (2 * (ee22/ee6) + ee7) * ee2/
+            ee4)/ee4 - ((3 * ee134 + ee2 * (ee132 - ee133) - (((ee6 * (ee83 +
+              4 - (ee59 + 6) * ee2/ee4)/ee11 - ee103) * ee2/ee4 + 19)/
+                ee4 + 3 * ee135)) * ee2 + 7 + ee126)) * ee2));
+        out(j, 4) += w * ( -(((y * (1 - ((((1 - ee106) * ee16 + 2 + ee111 -
+          (((2 * (ee55 + ee131) + ee115 - 8 * ee131)/ee6 + ee117) *
+          ee2/ee56 + ee113) * ee3/ee4) * ee2/ee6 + ee114 + ee21 + ee122 -
+          ee90)/ee4 + 2) * ee3/ee4)/ee6 - (((((2 * (1 - 3 * ee15) +
+          8 * ee16 + 8 * (ee23 * ee3/(R_pow(ee4, 3) * ee11))) * ee23/
+            ee28 - ee113) * ee3/ee4 + ee77 * ee16 + 2 + ee111) * ee23/
+              ee32 + ee90 - (ee114 + ee21 + ee122))/ee4 - 2) * ee3)/ee4 - 1) *
+                ee2 * ee3/ee4));
+        out(j, 5) += w * ( ((y * (1 - (((((((2 * (ee49 - 1) - ee116) * ee3/
+          ee56 + ee117 - 2) * ee2 - (ee33/ee4 + 2) * ee3)/ee4 + 2 + ee108)/
+            ee6 + ee40 + 2) * ee3/ee4 + 1) * ee2 + (ee20 + ee21 -
+              ((2 + 4 * (ee27/ee4)) * ee2 + ee121 * ee3/ee4)) * ee3/ee4)/
+                ee4)/ee6 - ((((((((2 * (2 - ee49) + ee66 - ee68) * ee3/ee4 -
+                  ee115) * ee2/ee32 - 2) * ee2 - ee38)/ee4 + (1 - (2 + ee112) *
+                  ee2/ee4) * ee16 + 1 + ee108) * ee3/ee4 - (1 - ee70) * ee6) *
+                  ee2/ee32 - 2) * ee2 + ((((ee104 * ee2/ee11 + 4 * ee27)/ee4 +
+                  2) * ee2 + (ee121/ee4 + 8) * ee3 - (4 * ee19 + ee123))/
+                    ee4 - 2) * ee3))/ee4 - 2) * ee2 * ee3/ee4);
+        out(j, 6) += w * ( -(((y * (((((((ee82 - 4 * ee45)/ee6 - ee116) *
+          ee2/ee4 - ee110) * ee3/ee4 + ee91 + ee22 * ee16)/ee6 + ((ee63 +
+          6) * ee2 - (ee38 + ee12 + ee9))/ee4 - 1) * ee2 - ((6 - (ee42 +
+          ee125 - ee85)/ee4) * ee2 + ee9) * ee3/ee4)/ee4 + 1)/
+            ee6 - ((((((1/ee11 - 64) * ee2 + ee42 + ee125)/ee4 + 6) * ee2 -
+              ee123)/ee4 - 2) * ee3 + (((((ee110 + ee66 - (ee6 * (4 + 8 *
+              ee17 - ee68) + ee81) * ee23/ee28) * ee3/ee4 - (ee16 * (3 -
+              (ee59 + 5) * ee2/ee4) + 2 * ee91))/ee11 + 8) * ee2 - ee30)/
+                ee4 - 6) * ee2))/ee4 - 4) * ee2 * ee3/ee4));
+        out(j, 7) += w * ( -(((y * (((((ee82 - ee109)/ee6 + (ee30 + 48 * ee2 -
+          ee118)/ee4 - (ee84 + 6)) * ee2 + ee64 + ee21 + 6 * ee10)/
+            ee4 + 1 - ((ee44 + ee109 - 7) * ee2/ee4 + 1 + 2 * (ee107 *
+              ee6) + 3 * (ee22 * ee17))/ee6) * ee2/ee4 - 1)/ee6 - ((((ee17 *
+              (1 + ee83 - ee89) + ee6 * (2 * ee107 + 7 - ((((ee6 * (6 -
+              ee68) + ee81 + 4 * ee54)/ee11 - 8) * ee2 + ee12 + ee9)/ee4 +
+              14) * ee2/ee4) + 7 - (19 - ee103 * ee2/ee4) * ee2/ee4)/ee11 -
+              ((ee118 - ee85)/ee4 + 32)) * ee2 + 10 * ee4 + 12 * ee10 +
+              ee64)/ee4 + 14) * ee2)/ee4 + 8) * ee2 * ee3/ee4));
+        out(j, 8) += w * ( -((((6 * ee132 + ee2 * (Rf_psigamma(ee39, 3) - Rf_psigamma(ee2, 3)) -
+          6 * ee133) * ee2 + 7 * ee134 - (((((1 - ee89) *
+          ee22 + ee6 * (10 + 2 * ee62 + ee124 - (((ee6 * (8 - ee68) +
+          ee81 + ee124) * ee6/ee11 - 8) * ee2/ee4 + 18) * ee2/ee4) +
+          2 * ee72)/ee11 - ((ee64 + 22 * ee10 + 36 * ee4 - ((ee119 -
+          ee85)/ee4 + 56) * ee2)/ee4 + 50)) * ee2/ee4 + 65)/ee4 + 7 *
+          ee135)) * ee2 + 15 + ee126 + y * ((((ee82 - 4 * ee22)/ee6 -
+          ee86) * ee2/ee4 - (2 * ee87 + 4 * (ee22 * ee2/ee4))/ee6) *
+          ee2/ee4 - ((((((ee26 + 56 * ee2 - ee119)/ee4 - 18) * ee2 +
+          14 * ee10 + ee64 + 20 * ee4)/ee4 + ee83 + 7) * ee2/ee4 + ee87 -
+          14) * ee2/ee4 + 1)/ee6)/ee4 - ee129) * ee2));
+        
+      }
+      
+    }
 
   }
 
@@ -360,7 +392,7 @@ double negbinodspd0(Rcpp::List pars, arma::sp_mat X1, arma::sp_mat X2, arma::mat
   }
   
   double y, w, pars1, pars2, offset;
-  double mu, size, p;
+  double lmu, mu, size, p;
   double nllh = 0.0;
   
   for (int j=0; j < nobs; j++) {
@@ -374,11 +406,21 @@ double negbinodspd0(Rcpp::List pars, arma::sp_mat X1, arma::sp_mat X2, arma::mat
       w = wmat(j, l);
       offset = offmat(j, l);
       
-      mu = exp(log(offset) + pars1);
+      lmu = log(offset) + pars1;
+      mu = exp(lmu);
       size = exp(-pars2);
       p = size / (size + mu);
-      nllh -= w * (lgamma(y + size) - lgamma(size) - lgamma(y + 1) + size * log(p) + y * log(1 - p));
       
+      if (size > size_threshold) {
+        
+        nllh -= w * (y * lmu - lgamma(y + 1) - mu);
+        
+      } else {
+        
+        nllh -= w * (lgamma(y + size) - lgamma(size) - lgamma(y + 1) + size * log(p) + y * log(1 - p));
+        
+      }
+
     } 
     
   }
@@ -432,18 +474,27 @@ arma::mat negbinodspd12(Rcpp::List pars, arma::sp_mat X1, arma::sp_mat X2, arma:
       ee11 = Rf_digamma(ee2);
       ee12 = log(ee4);
       
-      out(j, 0) += w * (-(ee2 * ee3 * (y/ee9 - 1)/ee4));
-      out(j, 1) += w * (-((ee7/ee4 + ee11 + ee12 + pars2 - (1 + ee10)) *
-        ee2));
-      out(j, 2) += w * (-(((y * (1 - (2 + ee2/ee9) * ee3/ee4)/ee6 -
-        (R_pow(ee2, 2)/(R_pow(ee4, 2) * ee8) - 2) * ee3)/ee4 - 1) *
-        ee2 * ee3/ee4));
-      out(j, 3) += w * ((((ee6 * ee2/(ee4 * ee8) + 2) * ee2 + y)/
-        ee4 - 2) * ee2 * ee3/ee4);
-      out(j, 4) += w * ((ee11 + ee12 + pars2 + y * ((1 - (3 - 2 *
-        ee5) * ee2/ee4)/ee6 + ee5)/ee4 - (3 + ee10 + ee2 * (Rf_trigamma(ee7) -
-        (((R_pow(ee6, 2)/ee8 - 2) * ee2/ee4 + 5)/ee4 + Rf_trigamma(ee2))))) *
-        ee2);
+      if (ee2 > size_threshold) {
+        
+        out(j, 0) += w * (ee3 - y);
+        out(j, 2) += w * ee3;
+        
+      } else {
+        
+        out(j, 0) += w * (-(ee2 * ee3 * (y/ee9 - 1)/ee4));
+        out(j, 1) += w * (-((ee7/ee4 + ee11 + ee12 + pars2 - (1 + ee10)) *
+          ee2));
+        out(j, 2) += w * (-(((y * (1 - (2 + ee2/ee9) * ee3/ee4)/ee6 -
+          (R_pow(ee2, 2)/(R_pow(ee4, 2) * ee8) - 2) * ee3)/ee4 - 1) *
+          ee2 * ee3/ee4));
+        out(j, 3) += w * ((((ee6 * ee2/(ee4 * ee8) + 2) * ee2 + y)/
+          ee4 - 2) * ee2 * ee3/ee4);
+        out(j, 4) += w * ((ee11 + ee12 + pars2 + y * ((1 - (3 - 2 *
+          ee5) * ee2/ee4)/ee6 + ee5)/ee4 - (3 + ee10 + ee2 * (Rf_trigamma(ee7) -
+          (((R_pow(ee6, 2)/ee8 - 2) * ee2/ee4 + 5)/ee4 + Rf_trigamma(ee2))))) *
+          ee2);
+        
+      }
     }
     
   }
@@ -594,69 +645,78 @@ arma::mat negbinodspd34(Rcpp::List pars, arma::sp_mat X1, arma::sp_mat X2, arma:
       ee134 = Rf_trigamma(ee39);
       ee135 = Rf_trigamma(ee2);
       
-      out(j, 0) =+ w * ( -(((y * (1 - (((1 + ee63 - ee106) * ee2/ee6 + ee20 +
-        ee9 - ee34)/ee4 + 2) * ee3/ee4)/ee6 - ((ee104 * ee23/
-          ee32 + ee34 - ee27)/ee4 - 2) * ee3)/ee4 - 1) * ee2 * ee3/ee4));
-      out(j, 1) =+ w * ( ((y * (1 - ((((ee84 + ee7)/ee6 + 2) * ee3/ee4 +
-        1) * ee2 + ee38)/ee4)/ee6 - ((((ee84 - 2 * ee47) * ee3/ee4 -
-        ee55) * ee2/ee32 - 2) * ee2 + (((6 + ee2/ee32) * ee2 - ee9)/
-          ee4 - 2) * ee3))/ee4 - 2) * ee2 * ee3/ee4);
-      out(j, 2) =+ w * ( -(((((((ee6 * (2 - (ee112 + 4) * ee2/ee4) + 3 -
-        (5 - ee7) * ee2/ee4)/ee11 - 8) * ee2 + ee12 + ee9)/ee4 + 6) *
-        ee2 + y * ((ee54/ee6 + (ee25 - ee30)/ee4 - 1) * ee2/ee4 +
-        1)/ee6)/ee4 - 4) * ee2 * ee3/ee4));
-      out(j, 3) =+ w * ( -((ee129 + y * (((((ee26 - ee31)/ee4 + 3) * ee2/
-        ee4 - 6) * ee2/ee4 + 1)/ee6 + (2 * (ee22/ee6) + ee7) * ee2/
-          ee4)/ee4 - ((3 * ee134 + ee2 * (ee132 - ee133) - (((ee6 * (ee83 +
-            4 - (ee59 + 6) * ee2/ee4)/ee11 - ee103) * ee2/ee4 + 19)/
-              ee4 + 3 * ee135)) * ee2 + 7 + ee126)) * ee2));
-      out(j, 4) =+ w * ( -(((y * (1 - ((((1 - ee106) * ee16 + 2 + ee111 -
-        (((2 * (ee55 + ee131) + ee115 - 8 * ee131)/ee6 + ee117) *
-        ee2/ee56 + ee113) * ee3/ee4) * ee2/ee6 + ee114 + ee21 + ee122 -
-        ee90)/ee4 + 2) * ee3/ee4)/ee6 - (((((2 * (1 - 3 * ee15) +
-        8 * ee16 + 8 * (ee23 * ee3/(R_pow(ee4, 3) * ee11))) * ee23/
-          ee28 - ee113) * ee3/ee4 + ee77 * ee16 + 2 + ee111) * ee23/
-            ee32 + ee90 - (ee114 + ee21 + ee122))/ee4 - 2) * ee3)/ee4 - 1) *
-              ee2 * ee3/ee4));
-      out(j, 5) =+ w * ( ((y * (1 - (((((((2 * (ee49 - 1) - ee116) * ee3/
-        ee56 + ee117 - 2) * ee2 - (ee33/ee4 + 2) * ee3)/ee4 + 2 + ee108)/
-          ee6 + ee40 + 2) * ee3/ee4 + 1) * ee2 + (ee20 + ee21 -
-            ((2 + 4 * (ee27/ee4)) * ee2 + ee121 * ee3/ee4)) * ee3/ee4)/
-              ee4)/ee6 - ((((((((2 * (2 - ee49) + ee66 - ee68) * ee3/ee4 -
-                ee115) * ee2/ee32 - 2) * ee2 - ee38)/ee4 + (1 - (2 + ee112) *
-                ee2/ee4) * ee16 + 1 + ee108) * ee3/ee4 - (1 - ee70) * ee6) *
-                ee2/ee32 - 2) * ee2 + ((((ee104 * ee2/ee11 + 4 * ee27)/ee4 +
-                2) * ee2 + (ee121/ee4 + 8) * ee3 - (4 * ee19 + ee123))/
-                  ee4 - 2) * ee3))/ee4 - 2) * ee2 * ee3/ee4);
-      out(j, 6) =+ w * ( -(((y * (((((((ee82 - 4 * ee45)/ee6 - ee116) *
-        ee2/ee4 - ee110) * ee3/ee4 + ee91 + ee22 * ee16)/ee6 + ((ee63 +
-        6) * ee2 - (ee38 + ee12 + ee9))/ee4 - 1) * ee2 - ((6 - (ee42 +
-        ee125 - ee85)/ee4) * ee2 + ee9) * ee3/ee4)/ee4 + 1)/
-          ee6 - ((((((1/ee11 - 64) * ee2 + ee42 + ee125)/ee4 + 6) * ee2 -
-            ee123)/ee4 - 2) * ee3 + (((((ee110 + ee66 - (ee6 * (4 + 8 *
-            ee17 - ee68) + ee81) * ee23/ee28) * ee3/ee4 - (ee16 * (3 -
-            (ee59 + 5) * ee2/ee4) + 2 * ee91))/ee11 + 8) * ee2 - ee30)/
-              ee4 - 6) * ee2))/ee4 - 4) * ee2 * ee3/ee4));
-      out(j, 7) =+ w * ( -(((y * (((((ee82 - ee109)/ee6 + (ee30 + 48 * ee2 -
-        ee118)/ee4 - (ee84 + 6)) * ee2 + ee64 + ee21 + 6 * ee10)/
-          ee4 + 1 - ((ee44 + ee109 - 7) * ee2/ee4 + 1 + 2 * (ee107 *
-            ee6) + 3 * (ee22 * ee17))/ee6) * ee2/ee4 - 1)/ee6 - ((((ee17 *
-            (1 + ee83 - ee89) + ee6 * (2 * ee107 + 7 - ((((ee6 * (6 -
-            ee68) + ee81 + 4 * ee54)/ee11 - 8) * ee2 + ee12 + ee9)/ee4 +
-            14) * ee2/ee4) + 7 - (19 - ee103 * ee2/ee4) * ee2/ee4)/ee11 -
-            ((ee118 - ee85)/ee4 + 32)) * ee2 + 10 * ee4 + 12 * ee10 +
-            ee64)/ee4 + 14) * ee2)/ee4 + 8) * ee2 * ee3/ee4));
-      out(j, 8) =+ w * ( -((((6 * ee132 + ee2 * (Rf_psigamma(ee39, 3) - Rf_psigamma(ee2, 3)) -
-        6 * ee133) * ee2 + 7 * ee134 - (((((1 - ee89) *
-        ee22 + ee6 * (10 + 2 * ee62 + ee124 - (((ee6 * (8 - ee68) +
-        ee81 + ee124) * ee6/ee11 - 8) * ee2/ee4 + 18) * ee2/ee4) +
-        2 * ee72)/ee11 - ((ee64 + 22 * ee10 + 36 * ee4 - ((ee119 -
-        ee85)/ee4 + 56) * ee2)/ee4 + 50)) * ee2/ee4 + 65)/ee4 + 7 *
-        ee135)) * ee2 + 15 + ee126 + y * ((((ee82 - 4 * ee22)/ee6 -
-        ee86) * ee2/ee4 - (2 * ee87 + 4 * (ee22 * ee2/ee4))/ee6) *
-        ee2/ee4 - ((((((ee26 + 56 * ee2 - ee119)/ee4 - 18) * ee2 +
-        14 * ee10 + ee64 + 20 * ee4)/ee4 + ee83 + 7) * ee2/ee4 + ee87 -
-        14) * ee2/ee4 + 1)/ee6)/ee4 - ee129) * ee2));
+      if (ee2 > size_threshold) {
+        
+        out(j, 0) += w * ee3;
+        out(j, 4) += w * ee3;
+        
+      } else {
+        
+        out(j, 0) += w * ( -(((y * (1 - (((1 + ee63 - ee106) * ee2/ee6 + ee20 +
+          ee9 - ee34)/ee4 + 2) * ee3/ee4)/ee6 - ((ee104 * ee23/
+            ee32 + ee34 - ee27)/ee4 - 2) * ee3)/ee4 - 1) * ee2 * ee3/ee4));
+        out(j, 1) += w * ( ((y * (1 - ((((ee84 + ee7)/ee6 + 2) * ee3/ee4 +
+          1) * ee2 + ee38)/ee4)/ee6 - ((((ee84 - 2 * ee47) * ee3/ee4 -
+          ee55) * ee2/ee32 - 2) * ee2 + (((6 + ee2/ee32) * ee2 - ee9)/
+            ee4 - 2) * ee3))/ee4 - 2) * ee2 * ee3/ee4);
+        out(j, 2) += w * ( -(((((((ee6 * (2 - (ee112 + 4) * ee2/ee4) + 3 -
+          (5 - ee7) * ee2/ee4)/ee11 - 8) * ee2 + ee12 + ee9)/ee4 + 6) *
+          ee2 + y * ((ee54/ee6 + (ee25 - ee30)/ee4 - 1) * ee2/ee4 +
+          1)/ee6)/ee4 - 4) * ee2 * ee3/ee4));
+        out(j, 3) += w * ( -((ee129 + y * (((((ee26 - ee31)/ee4 + 3) * ee2/
+          ee4 - 6) * ee2/ee4 + 1)/ee6 + (2 * (ee22/ee6) + ee7) * ee2/
+            ee4)/ee4 - ((3 * ee134 + ee2 * (ee132 - ee133) - (((ee6 * (ee83 +
+              4 - (ee59 + 6) * ee2/ee4)/ee11 - ee103) * ee2/ee4 + 19)/
+                ee4 + 3 * ee135)) * ee2 + 7 + ee126)) * ee2));
+        out(j, 4) += w * ( -(((y * (1 - ((((1 - ee106) * ee16 + 2 + ee111 -
+          (((2 * (ee55 + ee131) + ee115 - 8 * ee131)/ee6 + ee117) *
+          ee2/ee56 + ee113) * ee3/ee4) * ee2/ee6 + ee114 + ee21 + ee122 -
+          ee90)/ee4 + 2) * ee3/ee4)/ee6 - (((((2 * (1 - 3 * ee15) +
+          8 * ee16 + 8 * (ee23 * ee3/(R_pow(ee4, 3) * ee11))) * ee23/
+            ee28 - ee113) * ee3/ee4 + ee77 * ee16 + 2 + ee111) * ee23/
+              ee32 + ee90 - (ee114 + ee21 + ee122))/ee4 - 2) * ee3)/ee4 - 1) *
+                ee2 * ee3/ee4));
+        out(j, 5) += w * ( ((y * (1 - (((((((2 * (ee49 - 1) - ee116) * ee3/
+          ee56 + ee117 - 2) * ee2 - (ee33/ee4 + 2) * ee3)/ee4 + 2 + ee108)/
+            ee6 + ee40 + 2) * ee3/ee4 + 1) * ee2 + (ee20 + ee21 -
+              ((2 + 4 * (ee27/ee4)) * ee2 + ee121 * ee3/ee4)) * ee3/ee4)/
+                ee4)/ee6 - ((((((((2 * (2 - ee49) + ee66 - ee68) * ee3/ee4 -
+                  ee115) * ee2/ee32 - 2) * ee2 - ee38)/ee4 + (1 - (2 + ee112) *
+                  ee2/ee4) * ee16 + 1 + ee108) * ee3/ee4 - (1 - ee70) * ee6) *
+                  ee2/ee32 - 2) * ee2 + ((((ee104 * ee2/ee11 + 4 * ee27)/ee4 +
+                  2) * ee2 + (ee121/ee4 + 8) * ee3 - (4 * ee19 + ee123))/
+                    ee4 - 2) * ee3))/ee4 - 2) * ee2 * ee3/ee4);
+        out(j, 6) += w * ( -(((y * (((((((ee82 - 4 * ee45)/ee6 - ee116) *
+          ee2/ee4 - ee110) * ee3/ee4 + ee91 + ee22 * ee16)/ee6 + ((ee63 +
+          6) * ee2 - (ee38 + ee12 + ee9))/ee4 - 1) * ee2 - ((6 - (ee42 +
+          ee125 - ee85)/ee4) * ee2 + ee9) * ee3/ee4)/ee4 + 1)/
+            ee6 - ((((((1/ee11 - 64) * ee2 + ee42 + ee125)/ee4 + 6) * ee2 -
+              ee123)/ee4 - 2) * ee3 + (((((ee110 + ee66 - (ee6 * (4 + 8 *
+              ee17 - ee68) + ee81) * ee23/ee28) * ee3/ee4 - (ee16 * (3 -
+              (ee59 + 5) * ee2/ee4) + 2 * ee91))/ee11 + 8) * ee2 - ee30)/
+                ee4 - 6) * ee2))/ee4 - 4) * ee2 * ee3/ee4));
+        out(j, 7) += w * ( -(((y * (((((ee82 - ee109)/ee6 + (ee30 + 48 * ee2 -
+          ee118)/ee4 - (ee84 + 6)) * ee2 + ee64 + ee21 + 6 * ee10)/
+            ee4 + 1 - ((ee44 + ee109 - 7) * ee2/ee4 + 1 + 2 * (ee107 *
+              ee6) + 3 * (ee22 * ee17))/ee6) * ee2/ee4 - 1)/ee6 - ((((ee17 *
+              (1 + ee83 - ee89) + ee6 * (2 * ee107 + 7 - ((((ee6 * (6 -
+              ee68) + ee81 + 4 * ee54)/ee11 - 8) * ee2 + ee12 + ee9)/ee4 +
+              14) * ee2/ee4) + 7 - (19 - ee103 * ee2/ee4) * ee2/ee4)/ee11 -
+              ((ee118 - ee85)/ee4 + 32)) * ee2 + 10 * ee4 + 12 * ee10 +
+              ee64)/ee4 + 14) * ee2)/ee4 + 8) * ee2 * ee3/ee4));
+        out(j, 8) += w * ( -((((6 * ee132 + ee2 * (Rf_psigamma(ee39, 3) - Rf_psigamma(ee2, 3)) -
+          6 * ee133) * ee2 + 7 * ee134 - (((((1 - ee89) *
+          ee22 + ee6 * (10 + 2 * ee62 + ee124 - (((ee6 * (8 - ee68) +
+          ee81 + ee124) * ee6/ee11 - 8) * ee2/ee4 + 18) * ee2/ee4) +
+          2 * ee72)/ee11 - ((ee64 + 22 * ee10 + 36 * ee4 - ((ee119 -
+          ee85)/ee4 + 56) * ee2)/ee4 + 50)) * ee2/ee4 + 65)/ee4 + 7 *
+          ee135)) * ee2 + 15 + ee126 + y * ((((ee82 - 4 * ee22)/ee6 -
+          ee86) * ee2/ee4 - (2 * ee87 + 4 * (ee22 * ee2/ee4))/ee6) *
+          ee2/ee4 - ((((((ee26 + 56 * ee2 - ee119)/ee4 - 18) * ee2 +
+          14 * ee10 + ee64 + 20 * ee4)/ee4 + ee83 + 7) * ee2/ee4 + ee87 -
+          14) * ee2/ee4 + 1)/ee6)/ee4 - ee129) * ee2));
+        
+      }
     }
     
   }

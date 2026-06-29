@@ -142,8 +142,8 @@
       lik.fns <- .negbinfns
       npar <- 2
       nms <- c("lmu", "lalpha")
-      nms2 <- c('logmean', 'logoverdisp')
-      respnms <- c('mean', 'overdisp')
+      nms2 <- c('logmean', 'logsize')
+      respnms <- c('mean', 'size')
     }
 
     if (family == "weibull") {
@@ -493,10 +493,12 @@
   }
   pred.vars <- unique(unlist(lapply(lapply(formula, mgcv::interpret.gam), "[[", "fake.names")))
   # pred.vars <- unique(unlist(lapply(formula, all.vars)))
-  # check they're all in data
+  # check they're all in data or .GlobalEnv
   if (!all(pred.vars %in% names(data))) {
     missing.vars <- pred.vars[!(pred.vars %in% names(data))]
-    stop(paste("Variable(s) '", paste(missing.vars, collapse=", "), "' not supplied to `data'.", sep=""))
+    missing.vars <- missing.vars[!(missing.vars %in% ls(.GlobalEnv))]
+    if (length(missing.vars) > 0)
+      stop(paste("Variable(s) '", paste(missing.vars, collapse=", "), "' not in `data' or `.GlobalEnv'.", sep=""))
   }
   # check if first element of list has response; otherwise get response name
   terms.list <- lapply(formula, terms.formula, specials=c("s", "te", "ti"))
@@ -612,6 +614,16 @@
     warning('Use of ***.args = ... is deprecated. Use evgam(..., args = ...) instead.')
   args <- c(args, deprecated_args)
   
+  for (i in seq_along(responsename)) {
+    if (!(responsename[i] %in% names(data))) {
+      if (responsename[i] %in% ls(.GlobalEnv)) {
+        data[[responsename[i]]] <- get(responsename[i], envir = .GlobalEnv)
+      } else {
+        stop(paste('Cannot find', responsename[i], "in `data' or `.GlobalEnv'"))
+      }
+    }
+  }
+
   for (i in seq_along(responsename)) {
     dm <- as.matrix(data[,responsename[i]])
     if (family != 'condex')
@@ -1508,7 +1520,21 @@
 
 .outer.nosmooth <- function(beta, likfns, likdata, control, trace) {
   
-  fit.inner <- .newton_step(beta, .nllh.nopen, .search.nopen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
+  # fit.inner <- .newton_step(beta, .nllh.nopen, .search.nopen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
+  
+  likdata$S <- diag(0 * beta)
+  
+  # fit.inner2 <- .newton_step(beta, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
+  
+  fit.inner <- nlminb(beta, .nllh.pen, .grad.pen, .hess.pen, likdata=likdata, likfns=likfns)
+  
+  if (trace > 1) {
+  report <- "\n Final max(|grad|))"
+  report <- c(report, paste("   Inner:", signif(max(abs(fit.inner$gradient)), 3)))
+  report <- c(report, paste("   Outer:", NA))
+  report <- c(report, "", "")
+  cat(paste(report, collapse="\n"))
+  }
   
   list(beta=fit.inner$par)
   
@@ -1550,9 +1576,12 @@
     } else {
       cholH <- suppressWarnings(try(Matrix::chol(H), silent = TRUE))
     }
-    if (inherits(cholH, "try-error") & trace >= 0)
+    if (inherits(cholH, "try-error") & trace >= 0) {
       message("Final Hessian of negative penalized log-likelihood not numerically positive definite.")
-    Vc <- Vp <- Hd$iH
+      Vc <- Vp <- pinv(H)
+    } else {
+      Vc <- Vp <- Hd$iH
+    }
     if (smooths) {
       if (correctV) {
         cholVp <- try(chol(Vp), silent=TRUE)
@@ -1693,13 +1722,25 @@
   if (gams$compacted) gams$compactid <- likdata$dupid + 1
   smooth.terms <- unique(lapply(lapply(gams[gotsmooth], function(x) x$smooth), function(y) lapply(y, function(z) z$term)))
   smooth.terms <- unique(unlist(smooth.terms, recursive=FALSE))
-  gams$plotdata <- lapply(smooth.terms, function(x) unique(data[,x, drop=FALSE]))
+  gams$plotdata <- list()
+  for (i in seq_along(smooth.terms)) {
+    lsti <- list()
+    for (j in seq_along(smooth.terms[[i]])) {
+      if (smooth.terms[[i]][j] %in% names(data)) {
+        lsti[[j]] <- data[, smooth.terms[[i]][j], drop = FALSE]
+      } else {
+        lsti[[j]] <- get(smooth.terms[[i]][j], , envir = .GlobalEnv)
+      }
+    }
+    gams$plotdata[[i]] <- unique(as.data.frame(lsti))
+  }
   names(gams$coefficients) <- unlist(lapply(seq_along(likdata$X), function(i) paste(names(gams)[i], names(gams[[i]]$coefficients), sep = "_")))
   gams$ngam <- length(formula)
   gams$sparse <- likdata$sparse
   for (i in seq_along(gams[nms])[-gotsmooth])
     gams[[i]]$smooth <- NULL
-  names(gams$sp) <- smooth.specs$names
+  if (smooths)
+    names(gams$sp) <- smooth.specs$names
   gams$smooth.basis <- smooth.specs$basis
   gams$sp.par.id <- smooth.specs$par.id
   gams$re.info <- .re_process(gams)

@@ -68,6 +68,8 @@ geoevgam <- function(formula, data, args = list(), trace = 0,
   }
   if (is.null(args$tau))
     args$tau <- 0.8
+  if (is.null(args$alpha))
+    args$alpha <- 2
   out <- list()
   if (length(trace) == 1)
     trace <- rep(trace, 2)
@@ -86,7 +88,7 @@ geoevgam <- function(formula, data, args = list(), trace = 0,
   if (trace[2] > 0)
     cat('Fitting exceedance model...')
   out$excess <- evgam(formula$excess, data = data_exc, family = 'ltgammab', 
-                      args = list(left = data_exc$fitted_threshold, alpha = 2), 
+                      args = list(left = data_exc$fitted_threshold, alpha = args$alpha), 
                       knots = knots$excess, trace = trace[2])
   out$norm <- norm
   if (trace[1] > 0)
@@ -167,4 +169,56 @@ plot.geoevgam <- function(x, type = c('threshold', 'excess'),
   type2 <- tolower(substr(type, 1, 2))
   if ('qqplot' %in% type | 'qqplot2' %in% type)
     predict(x$excess, type = type, margins = margins)
+}
+
+#' Predictions from a geoevgam fit
+#'
+#' Generates predictions from the threshold and/or exceedance components of a
+#' fitted \code{geoevgam} model. This is a convenience wrapper around the
+#' corresponding \code{predict()} methods for the underlying fitted
+#' \code{evgam} objects.
+#'
+#' @param object An object of class \code{geoevgam}.
+#' @param model Character vector specifying which component(s) to predict from.
+#'   Possible values are \code{"threshold"} and \code{"excess"}.
+#' @param ... Additional arguments passed to the underlying
+#'   \code{predict.evgam()} method, such as \code{newdata},
+#'   \code{type}, or \code{std.err}.
+#'
+#' @return
+#' If a single model component is requested, the corresponding prediction
+#' object returned by \code{predict.evgam()}. If multiple components are
+#' requested, a named list containing predictions for each requested model
+#' component.
+#'
+#' @examples
+#' n <- 1e3
+#' gauss_sim_data <- rmvnorm(n, numeric(2), matrix(c(1, .8, .8, 1), 2))
+#' laplace_sim_data <- qlaplace(pnorm(gauss_sim_data))
+#' polar1 <- polarise(t(laplace_sim_data))
+#' data1 <- data.frame(radius = polar1$r, angle = polar1$phi[1, ])
+#'
+#' fit1 <- geoevgam(data = data1)
+#'
+#' # threshold predictions
+#' pred_thresh <- predict(fit1, model = "threshold")
+#'
+#' # exceedance predictions on a grid of angles
+#' newdata <- data.frame(angle = seq(0, 2 * pi, length.out = 100))
+#' pred_excess <- predict(fit1, model = "excess",
+#'                        newdata = newdata, type = "response")
+#'
+#' # predictions from both components
+#' pred_both <- predict(fit1,
+#'                      model = c("threshold", "excess"),
+#'                      newdata = newdata)
+#'
+#' @method predict geoevgam
+#' @export
+predict.geoevgam <- function(object, model = c('threshold', 'excess'), ...) {
+  model <- match.arg(model, c("threshold", "excess"), several.ok = TRUE)
+  out <- lapply(model, function(y) predict(object[[y]], ...))
+  if (length(model) == 1)
+    out <- out[[1]]
+  out
 }

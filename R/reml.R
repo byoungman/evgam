@@ -32,6 +32,8 @@ return(out)
     beta <- attr(pars, "beta")
   sp <- exp(pars)
   likdata$S <- .makeS(Sdata, sp)
+  if (all(sp == 0))
+    beta <- nlminb(beta, .nllh.pen, .grad.pen, .hess.pen, likdata = likdata, likfns = likfns)$par
   fitbeta <- .newton_step(beta, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
   if (!fitbeta$gradconv) {
     it0 <- likdata$control$inner$itlim

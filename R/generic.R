@@ -297,7 +297,11 @@ simulate.evgam <- function(object, nsim=1e3, seed=NULL, newdata,
     } else {
       V.type <- "Vp"
     }
-    B <- .pivchol_rmvn(nsim, object$coefficients, object[[V.type]])
+    if (!object$sparse) {
+      B <- .pivchol_rmvn(nsim, object$coefficients, object[[V.type]])
+    } else {
+      B <- .pivchol_rmvn_sparse(nsim, object$coefficients, object[[V.type]])
+    }
     idpars <- object$idpars
     X <- predict.evgam(object, newdata, type = "lpmatrix")
     nms <- names(X)
@@ -327,7 +331,7 @@ simulate.evgam <- function(object, nsim=1e3, seed=NULL, newdata,
     # nms <- gsub("probit", "", nms)
     # nms <- gsub("logit", "", nms)
     # nms <- gsub("log", "", nms)
-    names(X) <- nms
+    names(X) <- rnms
   }
   if (type == "quantile") {
     
