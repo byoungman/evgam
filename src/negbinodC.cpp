@@ -2,7 +2,7 @@
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
 
-const double size_threshold = 1e5;
+const double size_threshold = 1e6;
 
 // //' Negative binomial distribution negative log-likelihood
 // //'

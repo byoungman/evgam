@@ -886,6 +886,7 @@
   lik.data$force <- sargs$force
   lik.data$npar <- attr(formula, "npar")
   lik.data$sparse <- sparse
+  lik.data$some_sp_fixed <- FALSE
   list(lik.data=lik.data, gotsmooth=gotsmooth, data=data, gams=gams, sandwich=lik.data$adjust > 0)
 }
 
@@ -1464,10 +1465,11 @@
   
   if (outer == "fixed") {
     
-    fit.reml <- .reml0_fixed(rho0, likfns=likfns, likdata=likdata, Sdata=Sdata)
-    fit.reml$invHessian <- diag(0 * rho0)
-    fit.reml$gradient <- 0 * rho0
-    fit.reml$gradient[] <- NA
+    fit.reml <- .reml0(rho0, likfns=likfns, likdata=likdata, Sdata=Sdata)
+    fit.reml <- attributes(fit.reml)[c('objective', 'beta')]
+    # fit.reml$invHessian <- diag(0 * rho0)
+    # fit.reml$gradient <- 0 * rho0
+    fit.reml$gradient <- NA
     
   } else {
     
@@ -1503,9 +1505,9 @@
   
   fit.reml$trace <- trace
   
-  if (trace == 1) {
+  if (trace == 1 | (outer == 'fixed' & trace > 1)) {
     report <- "\n Final max(|grad|))"
-    likdata$S <- .makeS(Sdata, exp(fit.reml$par))
+    likdata$S <- .makeS(Sdata, exp(.pars2rho(fit.reml$par, likdata, Sdata)))
     report <- c(report, paste("   Inner:", signif(max(abs(.gH.pen(fit.reml$beta, likdata, likfns)[[1]])), 3)))
     report <- c(report, paste("   Outer:", signif(max(abs(fit.reml$gradient)), 3)))
     report <- c(report, "", "")
@@ -1561,7 +1563,7 @@
 .VpVc <- function(fitreml, likfns, likdata, Sdata, correctV, sandwich, smooths, trace) {
   if (likdata$outer == 'fixed')
     correctV <- FALSE
-  lsp <- fitreml$par
+  lsp <- .pars2rho(fitreml$par, likdata, Sdata)
   H0 <- .gH.nopen(fitreml$beta, likdata, likfns)[[2]]
   if (smooths) {
     sp <- exp(lsp)
@@ -1591,7 +1593,11 @@
         attr(lsp, "beta") <- fitreml$beta
         spSl <- Map("*", attr(Sdata, "Sl"), exp(lsp))
         dbeta <- .d1beta(lsp, fitreml$beta, spSl, Hd)$d1
-        Vrho <- fitreml$invHessian
+        # Vrho <- fitreml$invHessian
+        A <- attr(Sdata, 'A')
+        if (likdata$some_sp_fixed)
+          A <- A[likdata$replacer$rho_change, drop = FALSE, ]
+        Vrho <- pinv(crossprod(A, fitreml$Hessian %*% A))
         if (!likdata$sparse) {
           Vbetarho <- base::tcrossprod(dbeta %*% Vrho, dbeta)
         } else {
@@ -1605,7 +1611,7 @@
     } else {
       Vrho <- 0
     }
-    out <- list(Vp=Vp, Vc=Vc, Vlsp=Vrho, H0=H0, H=H, correctV = correctV)
+    out <- list(Vp = Vp, Vc = Vc, Vlsp = Vrho, H0 = H0, H = H, correctV = correctV)
   } else {
     out <- list(Vp = Matrix::Diagonal(nrow(H), x = 0), Vc = Matrix::Diagonal(nrow(H), x = 0), 
                 Vlsp=NULL, H0 = H0, H = H, correctV = correctV)
@@ -1615,12 +1621,13 @@
 
 ############ .swap ##########################
 
-.swap <- function(fitreml, gams, likdata, VpVc, gotsmooth, edf, smooths) {
+.swap <- function(fitreml, gams, likdata, VpVc, gotsmooth, edf, smooths, Sdata) {
   Vp <- VpVc$Vp
   Vc <- VpVc$Vc
   if (smooths) {
     # bug fixed in evgam_0.1.2 if any(diff(gotsmooth)) != 1
-    spl <- split(exp(fitreml$par), unlist(sapply(seq_along(gams), function(x) rep(x, length(gams[[x]]$sp))))) 
+    sp <- exp(.pars2rho(fitreml$par, likdata, Sdata))
+    spl <- split(sp, unlist(sapply(seq_along(gams), function(x) rep(x, length(gams[[x]]$sp))))) 
     sp <- replace(lapply(seq_along(gams), function(x) NULL), gotsmooth, spl)
   }
   for (i in seq_along(gams)) {
@@ -1644,7 +1651,8 @@
   smooths <- length(gotsmooth) > 0
   Vp <- VpVc$Vp
   Vc <- VpVc$Vc
-  if (smooths) gams$sp <- exp(fitreml$par)
+  if (smooths)
+    gams$sp <- exp(.pars2rho(fitreml$par, likdata, Sdata))[attr(Sdata, 'rho_rep')]
   gams$nobs <- likdata$nobs
   gams$logLik <- -1e20
   fit.lik <- list(convergence=0)
@@ -1740,7 +1748,7 @@
   for (i in seq_along(gams[nms])[-gotsmooth])
     gams[[i]]$smooth <- NULL
   if (smooths)
-    names(gams$sp) <- smooth.specs$names
+    names(gams$sp) <- attr(Sdata, 'label')#smooth.specs$names
   gams$smooth.basis <- smooth.specs$basis
   gams$sp.par.id <- smooth.specs$par.id
   gams$re.info <- .re_process(gams)

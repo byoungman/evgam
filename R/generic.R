@@ -142,28 +142,40 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
     
     ## initialise outer iteration
     S.data <- .joinSmooth(temp.data$gams, sparse)
-    nsp <- length(attr(S.data, "Sl"))
+    nsp <- attr(S.data, "nsp")
     if (is.null(rho0)) {
       diagSl <- sapply(attr(S.data, "Sl"), diag)
       rho0 <- apply(diagSl, 2, function(y) uniroot(.guess, c(-1e2, 1e2), d=attr(beta, "diagH"), s=y)$root)
     } else {
       if (length(rho0) == 1) rho0 <- rep(rho0, nsp)
     }
+    sp0 <- exp(as.vector(rho0) %*% attr(S.data, 'A'))
     
     ## check for fixed smoothing parameters
     if (!is.null(sp)) {
-      if (length(sp) != length(rho0))
+      if (length(sp) != ncol(attr(S.data, 'A')))
         stop('Wrong number of smoothing parameters in argument "sp"')
-      rho0 <- log(sp)
-      lik.data$outer <- "fixed"
+      fixed <- sp >= 0
+      if (any(fixed)) {
+        replacer <- list(fixed = fixed)
+        replacer$rho_change <- which(rowSums(attr(S.data, 'A')[, !fixed, drop = FALSE]) > 0)
+        replacer$start <- numeric(nsp)
+        rho0 <- rho0[replacer$rho_change]
+        replacer$rho_fixed <- log(sp[fixed])
+        lik.data$replacer <- replacer
+        lik.data$some_sp_fixed <- TRUE
+        sp0 <- exp(.pars2rho(rho0, lik.data, S.data))
+        if (all(fixed))
+          lik.data$outer <- "fixed"
+      }
     }
     
-    lik.data$S <- .makeS(S.data, exp(rho0))
+    lik.data$S <- .makeS(S.data, sp0)
     
     ## perform outer iteration
     fit.reml <- .outer(rho0, beta, family.info$lik.fns, lik.data, S.data, control, correctV, lik.data$outer, trace)
     
-    sp <- exp(fit.reml$par)
+    sp <- exp(.pars2rho(fit.reml$par, lik.data, S.data))
     lik.data$S <- .makeS(S.data, sp)
     
   } else {
@@ -181,7 +193,7 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
   
   ## update mgcv objects
   names(temp.data$gams) <- family.info$nms
-  gams <- .swap(fit.reml, temp.data$gams, lik.data, VpVc, temp.data$gotsmooth, edf, smooths)
+  gams <- .swap(fit.reml, temp.data$gams, lik.data, VpVc, temp.data$gotsmooth, edf, smooths, S.data)
   
   ## add extra things that make an evgam object
   ## differ from a list of mgcv objects

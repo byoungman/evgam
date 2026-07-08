@@ -1,5 +1,5 @@
 .joinSmooth <- function(lst, sparse = FALSE) {
-  nms <- c("S", "first.para", "last.para", "rank", "null.space.dim")
+  nms <- c("S", "first.para", "last.para", "rank", "null.space.dim", "id")
   nbi <- sapply(lst, function(x) x$nb)
   starts <- cumsum(c(0, nbi))
   if (length(lst) == 1) {
@@ -39,8 +39,32 @@
   }
   if (sparse)
     lst2 <- lapply(lst2, as, 'CsparseMatrix')
-  attr(out, "Sl") <- lst2
+  Sreps <- sapply(lst, function(x) length(x$S))
+  possible <- seq_len(sum(Sreps))
+  ids <- lapply(lapply(out, '[[', 'id'), as.integer)
+  got <- as.integer(unlist(ids))
+  possible <- possible[!possible %in% got]
+  for (i in seq_along(ids)) {
+    if (length(ids[[i]]) == 0) {
+      ids[[i]] <- possible[1:Sreps[i]]
+      possible <- possible[!possible %in% unlist(ids)]
+    } else {
+      if (length(ids[[i]]) < Sreps[i])
+        ids[[i]] <- rep(ids[[i]], Sreps[i])
+    }
+  }
+  ids <- unlist(ids)
+  uids <- unique(ids)
+  nsp <- length(uids)
+  A <- matrix(0, nsp, length(ids))
+  A[cbind(ids, 1:ncol(A))] <- 1
+  attr(out, 'rho_rep') <- order(ids)
+  labs <- unlist(lapply(lst, function(x) paste0(x$label, sapply(x$margin, '[[', 'label'))))
+  attr(out, 'label') <- labs[attr(out, 'rho_rep')]
+  attr(out, "Sl") <- lst2#[attr(out, 'rho_rep')]
   attr(out, "nb") <- nb
+  attr(out, 'nsp') <- length(uids)
+  attr(out, 'A') <- A
   out
 }
 
