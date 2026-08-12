@@ -4,7 +4,7 @@
 \alias{predict.evgam}
 \title{Predictions from a fitted \code{evgam} object}
 \usage{
-\method{predict}{evgam}(
+predict.evgam(
   object,
   newdata,
   type = "link",
