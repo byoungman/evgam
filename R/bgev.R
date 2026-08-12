@@ -57,8 +57,12 @@
 #' \code{qbgev} gives the quantile function, and
 #' \code{rbgev} generates random deviates.
 #' 
+#' @name bgev
+#' @aliases dbgev pbgev qbgev rbgev
+NULL
+
+#' @rdname bgev
 #' @export
-#' 
 dbgev <- function(x, location, scale, shape, pa = 0.05, pb = 0.2, alpha = 0.5, 
                   beta = 0.5, log = FALSE) {
 
@@ -283,10 +287,8 @@ dbgev <- function(x, location, scale, shape, pa = 0.05, pb = 0.2, alpha = 0.5,
 #   out
 # }  
 
-#' @rdname dbgev
-#' 
+#' @rdname bgev
 #' @export
-#' 
 pbgev <- function(q, location, scale, shape, pa = 0.05, pb = 0.2, alpha = 0.5, 
                beta = 0.5, lower.tail = TRUE, log.p = FALSE) {
 
@@ -353,10 +355,8 @@ pbgev <- function(q, location, scale, shape, pa = 0.05, pb = 0.2, alpha = 0.5,
   
 }
 
-#' @rdname dbgev
-#' 
+#' @rdname bgev
 #' @export
-#' 
 qbgev <- function(p, location, scale, shape, pa = 0.05, pb = 0.2, alpha = 0.5, 
       beta = 0.5, lower.tail = TRUE, log.p = FALSE) {
   if (log.p & lower.tail)
@@ -381,10 +381,8 @@ qbgev <- function(p, location, scale, shape, pa = 0.05, pb = 0.2, alpha = 0.5,
   out
 }
 
-#' @rdname dbgev
-#' 
+#' @rdname bgev
 #' @export
-#' 
 rbgev <- function(n, location, scale, shape, pa = 0.05, pb = 0.2, alpha = 0.5, 
       beta = 0.5) {
 p <- runif(n)

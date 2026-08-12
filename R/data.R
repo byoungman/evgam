@@ -26,6 +26,7 @@
 #' @docType data
 #' @keywords datasets
 #' @name COprcp
+#' @aliases COprcp_meta COelev
 #' @usage data(COprcp) # loads all three objects
 #'
 #' @references
@@ -43,14 +44,6 @@
 #' image(COelev, breaks=brks, col=rev(heat.colors(length(brks[-1]))))
 #' colplot(COprcp_meta$lon, COprcp_meta$lat, COprcp_meta$elev, breaks=brks, add=TRUE)
 #'
-NULL
-
-#' @rdname COprcp
-#' @name COprcp_meta
-NULL
-
-#' @rdname COprcp
-#' @name COelev
 NULL
 
 #' Fort Collins, Colorado, US daily max. temperatures

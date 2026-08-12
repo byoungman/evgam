@@ -123,7 +123,7 @@ list(d1=d1H, GH=GH)
 
 }
 
-.d2H0_diag <- function(dbeta, likdata, GH, H) {
+.d2H0_eigen <- function(dbeta, likdata, likfns, H) {
 
 X <- likdata$X
 idpars <- likdata$idpars
@@ -144,6 +144,12 @@ d2eta <- lapply(seq_len(nX), function(i) apply(dbeta$d2[idpars == i, , , drop=FA
 eH <- eigen(H$H)
 V <- CH %*% eH$vectors
 XV <- lapply(seq_len(nX), function(i) X[[i]] %*% (H$dH[idpars == i] * V[idpars == i, , drop=FALSE]))
+
+beta <- likdata$compmode + likdata$CH %*% (dbeta$d0 - likdata$compmode)
+
+GH <- likdata$k * likfns$d340(beta, likdata)
+
+dbeta$d1 <- CH %*% dbeta$d1
 
 d2H <- array(0, c(nb, nsp, nsp))
 
@@ -168,8 +174,58 @@ if (l != k)
 
 trd2H <- apply(d2H, 2:3, function(x) sum(x / eH$values))
 
-list(d2=trd2H)
+list(d2 = trd2H)
 
+}
+
+.d2H0_diag <- function(dbeta, likdata, likfns, H) {
+  
+  X <- likdata$X
+  idpars <- likdata$idpars
+  CH <- likdata$CH
+  
+  nb <- nrow(dbeta$d1)
+  nsp <- ncol(dbeta$d1)
+  nX <- length(X)
+  n <- nrow(X[[1]])
+  
+  ind <- .indices(nX)
+  
+  dbeta$d1 <- CH %*% dbeta$d1
+  
+  d1eta <- lapply(seq_len(nX), function(i) X[[i]] %*% dbeta$d1[idpars == i, , drop=FALSE])
+  d2eta <- lapply(seq_len(nX), function(i) apply(dbeta$d2[idpars == i, , , drop=FALSE], 2:3, function(x) X[[i]] %*% x))
+  
+  eH <- eigen(H$H)
+  V <- CH %*% eH$vectors
+  XV <- lapply(seq_len(nX), function(i) X[[i]] %*% (H$dH[idpars == i] * V[idpars == i, , drop=FALSE]))
+  
+  beta <- likdata$compmode + likdata$CH %*% (dbeta$d0 - likdata$compmode)
+  
+  GH <- likdata$k * likfns$d340(beta, likdata)
+  
+  dbeta$d1 <- CH %*% dbeta$d1
+  
+  d2H <- array(0, c(nb, nsp))
+  
+  for (k in 1:nsp) {
+    for (i in 1:nX) {
+      for (j in 1:nX) {
+        v <- numeric(n)
+        for (r in 1:nX) {
+          v <- v + GH[,ind$i3[i, j, r]] * d2eta[[r]][, k, k]
+          for (t in 1:nX)
+            v <- v + d1eta[[r]][,k] * d1eta[[t]][,k] * GH[,ind$i4[i, j, r, t]]    
+        }
+        d2H[, k] <- d2H[, k] + colSums(XV[[i]] * XV[[j]] * v)
+      }
+    }
+  }
+
+  trd2H <- colSums(d2H / eH$values)
+  
+  list(d2 = trd2H)
+  
 }
 
 .d2beta <- function(dbeta, gradH, spSl, H) {
@@ -191,4 +247,19 @@ for (k in 1:nsp) {
 }
 dbeta$d2 <- d2beta
 dbeta
+}
+
+.d2beta_diag <- function(dbeta, gradH, spSl, H) {
+  nsp <- ncol(dbeta$d1)
+  nb <- nrow(dbeta$d1)
+  d2beta <- array(NA, c(nb, nsp))
+  for (k in 1:nsp) {
+    temp <- gradH[[k]] %*% dbeta$d1[,k]
+    temp <- temp - 2 * spSl[[k]] %*% dbeta$d1[,k]
+    temp <- temp - dbeta$spSlb[[k]]
+    temp <- .precond_solve(H$cH, temp)
+    d2beta[, k] <- temp
+  }
+  dbeta$d2 <- d2beta
+  dbeta
 }

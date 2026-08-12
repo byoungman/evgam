@@ -543,10 +543,111 @@ out
 
 }
 
+.d1H0 <- function(dbeta, likdata, likfns, H) {
+  
+  X <- likdata$X
+  idpars <- likdata$idpars
+  CH <- likdata$CH
+  
+  nb <- nrow(dbeta$d1)
+  nsp <- ncol(dbeta$d1)
+  nX <- length(X)
+  n <- nrow(X[[1]])
+  
+  ind <- .indices(nX)
+  
+  beta <- likdata$compmode + likdata$CH %*% (dbeta$d0 - likdata$compmode)
+  
+  GH <- likdata$k * likfns$d340(beta, likdata)
+  
+  dbeta$d1 <- CH %*% dbeta$d1
+  
+  d1eta <- lapply(seq_len(nX), function(i) X[[i]] %*% dbeta$d1[idpars == i, , drop=FALSE])
+  
+  trd1H <- numeric(nsp)
+  
+  d1H <- list()
+  
+  for (l in 1:nsp) {
+    
+    if (!likdata$sparse) {
+      d1Hl <- matrix(0, nb, nb)
+    } else {
+      d1Hl <- Matrix::Matrix(0, nrow = nb, ncol = nb, sparse = TRUE)
+    }
+    
+    for (i in 1:nX) {
+      for (j in 1:nX) {
+        v <- numeric(n)
+        for (k in 1:nX)
+          v <- v + GH[,ind$i3[i, j, k]] * d1eta[[k]][, l]
+        if (!likdata$sparse) {
+          d1Hl[idpars == i, idpars == j] <- crossprod(X[[i]], X[[j]] * v)
+        } else {
+          d1Hl[idpars == i, idpars == j] <- Matrix::crossprod(X[[i]], X[[j]] * v)
+        }
+      }  
+    }
+    
+    d1H[[l]] <- d1Hl
+    
+  }
+  
+  list(d1 = d1H)
+  
+}
+
 .d1logdetH <- function(dbeta, likdata, likfns, spSl, H) {
   d1 <- .d1H0_diag(dbeta, likdata, likfns, H)$d1
   d1 <- d1 + sapply(spSl, function(x) .choltr(H$cH, x))
   list(d1 = d1, dbeta = dbeta)
+}
+
+.d2logdetH <- function(dbeta, likdata, likfns, spSl, H) {
+  d1 <- .d1H0(dbeta, likdata, likfns)$d1
+  out <- .d2H0_diag(dbeta, likdata, likfns, H)$d2
+  nsp <- length(d1)
+  for (l in 1:nsp) {
+    d1[[l]] <- d1[[l]] + spSl[[l]]
+    out[l, l] <- out[l, l] + sum(diag(.precond_solve(H$cH, spSl[[l]])))
+    d1[[l]] <- .precond_solve(H$cH, d1[[l]])
+  }
+  for (l in 1:nsp) {
+    for (m in 1:nsp) {
+      out[l, m] <- sum(diag(d1[[l]] %*% d1[[m]])) - out[l, m]
+    }
+  }
+  list(d2 = out)
+}
+
+.d12logdetH <- function(dbeta, likdata, likfns, spSl, H) {
+  d1 <- .d1H0(dbeta, likdata, likfns)$d1
+  out <- .d2H0_eigen(dbeta, likdata, likfns, H)$d2
+  nsp <- length(d1)
+  for (l in 1:nsp) {
+    d1[[l]] <- d1[[l]] + spSl[[l]]
+    out[l, l] <- out[l, l] + sum(diag(.precond_solve(H$cH, spSl[[l]])))
+    d1[[l]] <- .precond_solve(H$cH, d1[[l]])
+  }
+  for (l in 1:nsp) {
+    for (m in 1:nsp) {
+      out[l, m] <- out[l, m] - sum(t(d1[[l]]) * d1[[m]])#sum(diag(d1[[l]] %*% d1[[m]]))
+    }
+  }
+  list(d1 = sapply(d1, function(x) sum(diag(x))), d2 = out)
+}
+
+.d12logdetH_diag <- function(dbeta, likdata, likfns, spSl, H) {
+  d1 <- .d1H0(dbeta, likdata, likfns)$d1
+  out <- .d2H0_diag(dbeta, likdata, likfns, H)$d2
+  nsp <- length(d1)
+  for (l in 1:nsp) {
+    d1[[l]] <- d1[[l]] + spSl[[l]]
+    out[l] <- out[l] + sum(diag(.precond_solve(H$cH, spSl[[l]])))
+    d1[[l]] <- .precond_solve(H$cH, d1[[l]])
+    out[l] <- out[l] - sum(t(d1[[l]]) * d1[[l]])
+  }
+  list(d1 = sapply(d1, function(x) sum(diag(x))), d2 = out)
 }
 
 .pivchol_rmvn_sparse <- function(n, mu, Sig) {

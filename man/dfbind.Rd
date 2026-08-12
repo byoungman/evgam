@@ -2,7 +2,7 @@
 % Please edit documentation in R/generic.R
 \name{dfbind}
 \alias{dfbind}
-\title{Bind a list a data frames}
+\title{Bind a list of data frames}
 \usage{
 dfbind(x)
 }
@@ -13,7 +13,7 @@ dfbind(x)
 A data frame
 }
 \description{
-Bind a list a data frames
+Bind a list of data frames
 }
 \examples{
 

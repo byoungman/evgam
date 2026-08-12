@@ -605,7 +605,7 @@
 
 .setup.data <- function(data, responsename, formula, family, nms, removeData, 
                         gpdargs, exiargs, aldargs, pp, knots, maxdata, maxspline, compact, sargs, 
-                        outer, trace, gamma, bgevargs, sparse, args) {
+                        outer, trace, gamma, bgevargs, sparse, args, ctrl) {
   
   # data
   
@@ -672,7 +672,6 @@
   
   ## likelihood
   lik.data <- list(args = args)
-  lik.data$control <- list()
   if (is.null(outer)) {
     if (sparse) {
       outer <- 'fd'
@@ -681,8 +680,7 @@
     }
   }
   lik.data$outer <- tolower(outer)
-  lik.data$control$outer <- list(steptol=1e-12, itlim=1e2, fntol=1e-8, gradtol=1e-2, stepmax=3)
-  lik.data$control$inner <- list(steptol=1e-12, itlim=1e2, fntol=1e-8, gradtol=1e-4, stepmax=1e2)
+  lik.data$control <- ctrl
   lik.data$y <- as.matrix(data[,responsename, drop=FALSE])
   # if (family == 'condex') {
     if (is.null(lik.data$args$weights))
@@ -1458,10 +1456,65 @@
 
 .outer <- function(rho0, beta, likfns, likdata, Sdata, control, correctV, outer, trace) {
   
+  attr(rho0, "beta") <- beta
+  
+  if (attr(rho0, 'jitter')) {
+    rho00 <- rho0
+    f0 <- .reml0(rho0, likfns = likfns, likdata = likdata, Sdata = Sdata)
+    attr(rho0, "beta") <- attr(f0, 'beta')
+    f1 <- 0 * as.vector(rho0)
+    for (i in seq_along(rho0)) {
+      rho1 <- rho0
+      rho1[i] <- rho0[i] + 1
+      f1[i] <- .reml0(rho1, likfns = likfns, likdata = likdata, Sdata = Sdata)
+    }
+    adder <- c(0, 1)[1 + as.numeric(f1 < f0)]
+    other_way <- which(f1 > f0)
+    if (length(other_way) > 0) {
+      for (i in other_way) {
+        rho1 <- rho0
+        rho1[i] <- rho0[i] - 1
+        f1[i] <- .reml0(rho1, likfns = likfns, likdata = likdata, Sdata = Sdata)
+      }
+      not_adder <- which(f1[other_way] < f0)
+      if (length(not_adder) > 0)
+        adder[other_way[not_adder]] <- -1
+    }
+    attr(rho0, "beta") <- attr(f0, 'beta')
+    cond <- TRUE
+    it <- 0
+    while(cond & it < 5) {
+      rho1 <- rho0 + adder
+      f1 <- .reml0(rho1, likfns = likfns, likdata = likdata, Sdata = Sdata)
+      if (f1 < f0) {
+        rho0 <- rho1
+        f0 <- f1
+        attr(rho0, "beta") <- attr(f0, 'beta')
+        it <- it + 1
+      } else {
+        cond <- FALSE
+      }
+    }
+  }
+  # if (it == 0) {
+  #   cond <- TRUE
+  #   while(cond & it < 3) {
+  #     rho1 <- rho0 - 1
+  #     f1 <- .reml0(rho1, likfns = likfns, likdata = likdata, Sdata = Sdata)
+  #     if (f1 < f0) {
+  #       rho0 <- rho1
+  #       print(as.vector(rho0))
+  #       f0 <- f1
+  #       attr(rho0, "beta") <- attr(f0, 'beta')
+  #       it <- it + 1
+  #     } else {
+  #       cond <- FALSE
+  #     }
+  #   }
+  # }
+  
   if (likdata$sparse)
     correctV <- FALSE
-  
-  attr(rho0, "beta") <- beta
   
   if (outer == "fixed") {
     
@@ -1479,13 +1532,35 @@
     # if (likdata$sparse)
     #   outer <- "fd"
     
+    if (outer == 'newton3') {
+      ctrl <- likdata$control$outer
+      ctrl$itlim <- 10
+      fit.reml <- .newton_step_inner(rho0, .reml0, .search.reml_diag, likfns=likfns, likdata=likdata, Sdata=Sdata, control=ctrl, trace=trace > 1)
+      rho0 <- fit.reml$par
+      attr(rho0, 'beta') <- fit.reml$beta
+      outer <- 'newton'
+    }
+    
+    if (outer == 'newton4') {
+      ctrl <- likdata$control$outer
+      ctrl$itlim <- 5
+      fit.reml <- .BFGS(rho0, .reml0, .reml1, likfns = likfns, likdata = likdata, Sdata = Sdata, control = ctrl, trace = trace > 1)
+      rho0 <- fit.reml$par
+      attr(rho0, 'beta') <- fit.reml$beta
+      outer <- 'newton'
+    }
+    
     if (outer == "newton") {
       fit.reml <- .newton_step_inner(rho0, .reml0, .search.reml, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
     } else {
+      if (outer == 'newton2') {
+        fit.reml <- .newton_step_inner(rho0, .reml0, .search.reml_diag, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
+      } else {
       if (outer == "fd") {
         fit.reml <- .BFGS(rho0, .reml0, .reml1.fd, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
       } else {
         fit.reml <- .BFGS(rho0, .reml0, .reml1, likfns=likfns, likdata=likdata, Sdata=Sdata, control=likdata$control$outer, trace=trace > 1)
+      }
       }
       rho1 <- fit.reml$par
       attr(rho1, "beta") <- fit.reml$beta
@@ -1740,6 +1815,7 @@
         lsti[[j]] <- get(smooth.terms[[i]][j], , envir = .GlobalEnv)
       }
     }
+    lsti <- lapply(lsti, .matricize)
     gams$plotdata[[i]] <- unique(as.data.frame(lsti))
   }
   names(gams$coefficients) <- unlist(lapply(seq_along(likdata$X), function(i) paste(names(gams)[i], names(gams[[i]]$coefficients), sep = "_")))
@@ -1757,6 +1833,17 @@
   class(gams) <- "evgam"
   return(gams)
 }
+
+.matricize <- function(x) {
+  dimx <- dim(x)
+  if (is.null(dimx))
+    return(x)
+  if (length(dimx) > 1) {
+    x <- as.data.frame.matrix(x)
+  }
+  x
+}
+
 
 ############ .re_process ######################################
 

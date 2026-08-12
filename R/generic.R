@@ -106,8 +106,8 @@
 #' @return An object of class \code{evgam}
 #' 
 #' @export
-evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0, 
-                  inits=NULL, outer = NULL, control=NULL, removeData=FALSE, trace=0, 
+evgam <- function(formula, data, family="gev", correctV=TRUE, rho0, 
+                  inits=NULL, outer = NULL, control = evgam.control(), removeData=FALSE, trace=0, 
                   knots=NULL, maxdata=1e20, maxspline=1e20, compact=FALSE, gpd.args = list(),
                   ald.args=list(), exi.args=list(), pp.args=list(), bgev.args = list(),
                   sandwich.args=list(), egpd.args=list(), custom.fns=list(), 
@@ -124,7 +124,8 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
   ## setup mgcv objects and data
   temp.data <- .setup.data(data, response.name, formula, family, family.info$nms, 
                            removeData, gpd.args, exi.args, ald.args, pp.args, knots, maxdata, 
-                           maxspline, compact, sandwich.args, outer, trace, gamma, bgev.args, sparse, args)
+                           maxspline, compact, sandwich.args, outer, trace, gamma, 
+                           bgev.args, sparse, args, control)
   data <- temp.data$data
   
   ## initialise inner iteration
@@ -143,12 +144,24 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
     ## initialise outer iteration
     S.data <- .joinSmooth(temp.data$gams, sparse)
     nsp <- attr(S.data, "nsp")
-    if (is.null(rho0)) {
-      diagSl <- sapply(attr(S.data, "Sl"), diag)
-      rho0 <- apply(diagSl, 2, function(y) uniroot(.guess, c(-1e2, 1e2), d=attr(beta, "diagH"), s=y)$root)
+    
+    if (missing(rho0)) {
+      rho0 <- 0
+      attr(rho0, 'jitter') <- TRUE
     } else {
-      if (length(rho0) == 1) rho0 <- rep(rho0, nsp)
+      attr(rho0, 'jitter') <- FALSE
+      if (is.null(rho0)) {
+        diagSl <- sapply(attr(S.data, "Sl"), diag)
+        rho0 <- apply(diagSl, 2, function(y) uniroot(.guess, c(-1e2, 1e2), d=attr(beta, "diagH"), s=y)$root)
+      } 
     }
+
+    if (length(rho0) == 1) {
+      rho00 <- rho0
+      rho0 <- rep(rho0, nsp)
+      attributes(rho0) <- attributes(rho00)
+    }
+      
     sp0 <- exp(as.vector(rho0) %*% attr(S.data, 'A'))
     
     ## check for fixed smoothing parameters
@@ -203,6 +216,91 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0=0,
                     removeData, edf, family.info$nms2, family.info$respnms)
   
   return(gams)
+                  
+}
+
+#' Create control parameters for evgam fitting
+#'
+#' @description
+#' Defines and updates optimization settings for both the inner and outer iterations 
+#' used in extreme value generalized additive models (`evgam`).
+#'
+#' @param inner An optional named \code{list} of control parameters to override 
+#'   the default values for the inner optimization loop. Defaults to \code{NULL}.
+#' @param outer An optional named \code{list} of control parameters to override 
+#'   the default values for the outer optimization loop. Defaults to \code{NULL}.
+#'
+#' @details 
+#' The function returns a nested list containing settings for \code{outer} and 
+#' \code{inner} optimization. Each sub-list can configure the following parameters:
+#' \itemize{
+#'   \item \code{steptol} Minimum step length tolerance. Iteration terminates 
+#'     if steps fall below this value. Defaults: outer = \code{1e-12}, inner = \code{1e-12}.
+#'   \item \code{itlim} Maximum number of iterations allowed. 
+#'     Defaults: outer = \code{100}, inner = \code{100}.
+#'   \item \code{fntol} Relative function convergence tolerance. 
+#'     Defaults: outer = \code{1e-8}, inner = \code{1e-8}.
+#'   \item \code{gradtol} Convergence tolerance for the mean absolute gradient. 
+#'     Defaults: outer = \code{1e-2}, inner = \code{1e-4}.
+#'   \item \code{stepmax} Maximum allowable step length scaled to prevent 
+#'     excessive jumps. Defaults: outer = \code{3}, inner = \code{100}.
+#'   \item \code{alpha0} Initial step length factor for backtracking line searches. 
+#'     Defaults: outer = \code{10}, inner = \code{1}.
+#'   \item \code{dgradtol} Derivative gradient tolerance threshold. 
+#'     Defaults: outer = \code{1e-4}, inner = \code{1e-6}.
+#' }
+#'
+#' @return A nested named \code{list} with two components: \code{outer} and 
+#'   \code{inner}. Each component contains the finalized tuning values used 
+#'   by the fitting algorithms.
+#' 
+#' @export
+#'
+#' @examples
+#' # Generate default control parameters
+#' default_control <- evgam.control()
+#' 
+#' # Customise specific inner loop parameters
+#' custom_control <- evgam.control(inner = list(itlim = 500, gradtol = 1e-6))
+#' 
+evgam.control <- function(inner = NULL, outer = NULL) {
+  out <- list(outer = list(steptol = 1e-4, 
+                           itlim = 1e2, 
+                           fntol = 1e-6, 
+                           gradtol = 1e-2, 
+                           stepmax = 3, 
+                           alpha0 = 10, 
+                           dgradtol = 1e-4),
+              inner = list(steptol = 1e-12, 
+                           itlim = 1e2, 
+                           fntol = 1e-8, 
+                           gradtol = 1e-4, 
+                           stepmax = 1e2, 
+                           alpha0 = 1, 
+                           dgradtol = 1e-6))
+  
+  if (!is.null(inner)) {
+    if (!is.list(inner)) {
+      stop("control argument 'inner' must be a list")
+    } else {
+      for (i in names(inner)) {
+        out$inner[i] <- inner[i]
+      }
+    }
+  }
+  
+  if (!is.null(outer)) {
+    if (!is.list(outer)) {
+      stop("control argument 'outer' must be a list")
+    } else {
+      for (i in names(outer)) {
+        out$outer[i] <- outer[i]
+      }
+    }
+  }
+  
+  out
+  
 }
 
 #' @rdname evgam
@@ -555,7 +653,7 @@ print.evgam <- function(x, ...) {
   invisible(x)
 }
 
-#' Bind a list a data frames
+#' Bind a list of data frames
 #'
 #' @param x a list of data frames
 #'
