@@ -244,8 +244,8 @@ out
   g0[!kept] <- 0
   attr(out, "gradient") <- g0
   attr(out, "Hessian") <- H0
-  attr(out, "cholH") <- R
-  attr(out, "rank") <- attr(H2, 'rank0')
+  attr(out, "cholHessian") <- R
+  attr(out, "rankHessian") <- attr(H2, 'rank0')
   out
 }
 
@@ -268,8 +268,8 @@ out
   g0[!kept] <- 0
   attr(out, "gradient") <- g0
   attr(out, "Hessian") <- H2
-  attr(out, "cholH") <- attr(H2, 'chol')
-  attr(out, "rank") <- attr(H2, 'rank0')
+  attr(out, "cholHessian") <- attr(H2, 'chol')
+  attr(out, "rankHessian") <- attr(H2, 'rank0')
   out
 }
 

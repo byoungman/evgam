@@ -176,6 +176,9 @@ d2V <- crossprod(dbeta$d1, H$H0 %*% dbeta$d1)
 diag(d2V) <- diag(d2V) - dbSb
 d2V <- d2V + .5 * dS$d2
 d2V <- d2V + .5 * d2H$d2
+if (likdata$some_sp_fixed)
+  d2V <- d2V[likdata$replacer$rho_change, likdata$replacer$rho_change]
+
 # for (j in 1:nsp) {
 #   for (k in 1:j) {
 #     d2V[j, k] <- d2V[j, k] - sum(diag(d1H$d1[[k]] %*% d1H$d1[[j]]))
@@ -187,35 +190,35 @@ d2V <- d2V + .5 * d2H$d2
 list(d2 = -d2V)
 }
 
-.reml12 <- function(pars, likfns, likdata, Sdata, H=NULL, beta=NULL) {
-if (is.null(beta)) {
-  beta <- attr(pars, "beta")
-} else {
-  attr(pars, "beta") <- beta
-}
-d1 <- .reml1(pars, likfns, likdata, Sdata, H, beta)
-tol <- .Machine$double.eps^(1/4)
-eps <- pmax(tol * abs(pars), tol)
-d2 <- matrix(NA, length(pars), length(pars))
-# for (i in seq_along(pars)) {
-#   parsi <- replace(pars, i, pars[i] + eps[i])
-#   d2[, i] <- (.reml1(parsi, likfns, likdata, Sdata, NULL, beta) - d1) / eps[i]
+# .reml12 <- function(pars, likfns, likdata, Sdata, H=NULL, beta=NULL) {
+# if (is.null(beta)) {
+#   beta <- attr(pars, "beta")
+# } else {
+#   attr(pars, "beta") <- beta
 # }
-for (i in seq_along(pars)) {
-  phi <- replace(pars, i, pars[i] + eps[i])
-  dhi <- .reml1(phi, likfns, likdata, Sdata, NULL, beta)
-  plo <- replace(pars, i, pars[i] - eps[i])
-  dlo <- .reml1(plo, likfns, likdata, Sdata, NULL, beta)
-  d2[, i] <- .5 * (dhi - dlo) / eps[i]
-}
-d2 <- .5 * (d2 + t(d2))
-list(d1 = d1, d2 = d2)
-}
+# d1 <- .reml1(pars, likfns, likdata, Sdata, H, beta)
+# tol <- .Machine$double.eps^(1/4)
+# eps <- pmax(tol * abs(pars), tol)
+# d2 <- matrix(NA, length(pars), length(pars))
+# # for (i in seq_along(pars)) {
+# #   parsi <- replace(pars, i, pars[i] + eps[i])
+# #   d2[, i] <- (.reml1(parsi, likfns, likdata, Sdata, NULL, beta) - d1) / eps[i]
+# # }
+# for (i in seq_along(pars)) {
+#   phi <- replace(pars, i, pars[i] + eps[i])
+#   dhi <- .reml1(phi, likfns, likdata, Sdata, NULL, beta)
+#   plo <- replace(pars, i, pars[i] - eps[i])
+#   dlo <- .reml1(plo, likfns, likdata, Sdata, NULL, beta)
+#   d2[, i] <- .5 * (dhi - dlo) / eps[i]
+# }
+# d2 <- .5 * (d2 + t(d2))
+# list(d1 = d1, d2 = d2)
+# }
 
-.reml12 <- function(pars, likfns, likdata, Sdata, H=NULL, beta=NULL) {
-  list(d1 = .reml1(pars, likfns, likdata, Sdata, H, beta),
-       d2 = .reml2(pars, likfns, likdata, Sdata, H, beta)$d2)
-}
+# .reml12 <- function(pars, likfns, likdata, Sdata, H=NULL, beta=NULL) {
+#   list(d1 = .reml1(pars, likfns, likdata, Sdata, H, beta),
+#        d2 = .reml2(pars, likfns, likdata, Sdata, H, beta)$d2)
+# }
 
 .reml12 <- function(pars, likfns, likdata, Sdata, H=NULL, beta=NULL) {
   if (is.null(beta)) {
@@ -249,6 +252,9 @@ list(d1 = d1, d2 = d2)
   diag(dV2) <- diag(dV2) - dbSb
   dV2 <- dV2 + .5 * dS$d2
   dV2 <- dV2 - .5 * d12H$d2
+  if (likdata$some_sp_fixed)
+    d2V <- d2V[likdata$replacer$rho_change, likdata$replacer$rho_change]
+  dV2 <- attr(Sdata, 'A') %*% tcrossprod(dV2, attr(Sdata, 'A'))
   list(d1 = -dV1, d2 = -dV2)
 }
 
@@ -284,6 +290,8 @@ list(d1 = d1, d2 = d2)
   dV2 <- dV2 - dbSb
   dV2 <- dV2 + .5 * diag(dS$d2)
   dV2 <- dV2 - .5 * d12H$d2
+  if (likdata$some_sp_fixed)
+    d2V <- d2V[likdata$replacer$rho_change, likdata$replacer$rho_change]
   list(d1 = -dV1, d2 = -dV2)
 }
 

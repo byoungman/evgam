@@ -31,6 +31,7 @@
 #' @param gamma a total penalty adjustment, such that higher values (>1) give smoother overall fits; defaults to 1 (no adjustment)
 #' @param sparse logical: should matrices be coerced to be recognised as sparse? Defaults to \code{FALSE}
 #' @param args a list of arguments to supply to the likelihood. Default to none, which is \code{list()}
+#' @param jitter logical: should initial rho values be jittered before they're optimized? Defaults to \code{TRUE}
 #' 
 #' @details
 #' 
@@ -111,7 +112,7 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0,
                   knots=NULL, maxdata=1e20, maxspline=1e20, compact=FALSE, gpd.args = list(),
                   ald.args=list(), exi.args=list(), pp.args=list(), bgev.args = list(),
                   sandwich.args=list(), egpd.args=list(), custom.fns=list(), 
-                  sp = NULL, gamma = 1, sparse = FALSE, args = list()) {
+                  sp = NULL, gamma = 1, sparse = FALSE, args = list(), jitter = TRUE) {
 
   ## setup family
   family.info <- .setup.family(family, gpd.args, pp.args, egpd.args, formula, custom.fns, args)
@@ -125,7 +126,7 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0,
   temp.data <- .setup.data(data, response.name, formula, family, family.info$nms, 
                            removeData, gpd.args, exi.args, ald.args, pp.args, knots, maxdata, 
                            maxspline, compact, sandwich.args, outer, trace, gamma, 
-                           bgev.args, sparse, args, control)
+                           bgev.args, sparse, args, control, jitter)
   data <- temp.data$data
   
   ## initialise inner iteration
@@ -147,9 +148,8 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0,
     
     if (missing(rho0)) {
       rho0 <- 0
-      attr(rho0, 'jitter') <- TRUE
     } else {
-      attr(rho0, 'jitter') <- FALSE
+      lik.data$jitter <- FALSE
       if (is.null(rho0)) {
         diagSl <- sapply(attr(S.data, "Sl"), diag)
         rho0 <- apply(diagSl, 2, function(y) uniroot(.guess, c(-1e2, 1e2), d=attr(beta, "diagH"), s=y)$root)
@@ -181,6 +181,7 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0,
         if (all(fixed))
           lik.data$outer <- "fixed"
       }
+      lik.data$jitter <- FALSE
     }
     
     lik.data$S <- .makeS(S.data, sp0)
@@ -270,14 +271,16 @@ evgam.control <- function(inner = NULL, outer = NULL) {
                            gradtol = 1e-2, 
                            stepmax = 3, 
                            alpha0 = 10, 
-                           dgradtol = 1e-4),
+                           dgradtol = 1e-4,
+                           rho0 = .5),
               inner = list(steptol = 1e-12, 
                            itlim = 1e2, 
                            fntol = 1e-8, 
-                           gradtol = 1e-4, 
+                           gradtol = 1e-5, 
                            stepmax = 1e2, 
                            alpha0 = 1, 
-                           dgradtol = 1e-6))
+                           dgradtol = 1e-6,
+                           rho0 = .5))
   
   if (!is.null(inner)) {
     if (!is.list(inner)) {

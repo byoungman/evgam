@@ -31,7 +31,8 @@ evgam(
   sp = NULL,
   gamma = 1,
   sparse = FALSE,
-  args = list()
+  args = list(),
+  jitter = TRUE
 )
 }
 \arguments{
@@ -86,6 +87,8 @@ evgam(
 \item{sparse}{logical: should matrices be coerced to be recognised as sparse? Defaults to \code{FALSE}}
 
 \item{args}{a list of arguments to supply to the likelihood. Default to none, which is \code{list()}}
+
+\item{jitter}{logical: should initial rho values be jittered before they're optimized? Defaults to \code{TRUE}}
 }
 \value{
 An object of class \code{evgam}

@@ -605,7 +605,7 @@
 
 .setup.data <- function(data, responsename, formula, family, nms, removeData, 
                         gpdargs, exiargs, aldargs, pp, knots, maxdata, maxspline, compact, sargs, 
-                        outer, trace, gamma, bgevargs, sparse, args, ctrl) {
+                        outer, trace, gamma, bgevargs, sparse, args, ctrl, jitter) {
   
   # data
   
@@ -885,6 +885,7 @@
   lik.data$npar <- attr(formula, "npar")
   lik.data$sparse <- sparse
   lik.data$some_sp_fixed <- FALSE
+  lik.data$jitter <- jitter
   list(lik.data=lik.data, gotsmooth=gotsmooth, data=data, gams=gams, sandwich=lik.data$adjust > 0)
 }
 
@@ -1458,7 +1459,7 @@
   
   attr(rho0, "beta") <- beta
   
-  if (attr(rho0, 'jitter')) {
+  if (likdata$jitter) {
     rho00 <- rho0
     f0 <- .reml0(rho0, likfns = likfns, likdata = likdata, Sdata = Sdata)
     attr(rho0, "beta") <- attr(f0, 'beta')
