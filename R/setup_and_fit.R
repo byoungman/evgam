@@ -1602,9 +1602,9 @@
   
   likdata$S <- diag(0 * beta)
   
-  # fit.inner2 <- .newton_step(beta, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
+  fit.inner <- .newton_step(beta, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
   
-  fit.inner <- nlminb(beta, .nllh.pen, .grad.pen, .hess.pen, likdata=likdata, likfns=likfns)
+  # fit.inner <- nlminb(beta, .nllh.pen, .grad.pen, .hess.pen, likdata=likdata, likfns=likfns)
   
   if (trace > 1) {
   report <- "\n Final max(|grad|))"
@@ -1639,9 +1639,9 @@
 .VpVc <- function(fitreml, likfns, likdata, Sdata, correctV, sandwich, smooths, trace) {
   if (likdata$outer == 'fixed')
     correctV <- FALSE
-  lsp <- .pars2rho(fitreml$par, likdata, Sdata)
   H0 <- .gH.nopen(fitreml$beta, likdata, likfns)[[2]]
   if (smooths) {
+    lsp <- .pars2rho(fitreml$par, likdata, Sdata)
     sp <- exp(lsp)
     H <- H0 + likdata$S
   } else {
