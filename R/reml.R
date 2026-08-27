@@ -25,8 +25,13 @@
   likdata$S <- .makeS(Sdata, sp)
   fitbeta <- .newton_step(beta, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
   if (!fitbeta$gradconv) {
-    if (!likdata$sparse)
-      fitbeta <- nlminb(fitbeta$par, .nllh.pen, .grad.pen, .hess.pen, likdata = likdata, likfns = likfns)
+    if (!likdata$sparse) {
+      temp <- try(nlminb(fitbeta$par, .nllh.pen, .grad.pen, .hess.pen, likdata = likdata, likfns = likfns), silent = TRUE)
+    if (!inherits(temp, 'try-error'))
+      fitbeta <- temp
+    }
+    ctrl <- likdata$control$inner
+    ctrl$itlim <- 1e3
     fitbeta <- .newton_step(fitbeta$par, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
   }
   if (inherits(fitbeta, "try-error")) 

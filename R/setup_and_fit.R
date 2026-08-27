@@ -630,6 +630,9 @@
       data <- data[rowSums(!is.na(dm)) == ncol(dm), ]
   }
   
+  if (family == 'condex')
+    args$x <- as.matrix(args$x)
+  
   if (nrow(data) > maxdata) {
     id <- sort(sample(nrow(data), maxdata))
     data <- data[id,]
@@ -689,6 +692,11 @@
   lik.data$Mp <- sum(unlist(sapply(gams, function(y) c(1, sapply(y$smooth, function(x) x$null.space.dim)))))
   lik.data$const <- .5 * lik.data$Mp * log(2 * pi)
   lik.data$nobs <- nrow(lik.data$y)
+  if (is.null(lik.data$args$sandwich)) {
+    lik.data$sandwich <- FALSE
+  } else {
+    lik.data$sandwich <- lik.data$args$sandwich
+  }
   if (attr(formula, "censored")) {
     lik.data$censored <- TRUE
     # check right-censored values not below left censored values
@@ -810,10 +818,8 @@
       args$beta <- .5
     lik.data$other <- unlist(args[c('pa', 'pb', 'alpha', 'beta')])
   }
-  lik.data$sandwich <- !is.null(args$id)
   if (lik.data$sandwich) 
     lik.data$sandwich.split <- data[, args$id]
-  
   if (!compact) {
     if (nrow(data) > maxspline) {
       lik.data$X <- .X.evgam(gams, data, sparse)
@@ -850,7 +856,7 @@
   lik.data$subsampling <- subsampling
   gotsmooth <- which(sapply(gams, function(x) length(x$sp)) > 0)
   lik.data$k <- 1 / gamma
-  if (is.null(args$id)) {
+  if (is.null(args$sandwich)) {
     lik.data$adjust <- 0
   } else {
     if (gamma != 1)
@@ -1600,7 +1606,7 @@
   
   # fit.inner <- .newton_step(beta, .nllh.nopen, .search.nopen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
   
-  likdata$S <- diag(0 * beta)
+  likdata$S <- diag(length(beta))
   
   fit.inner <- .newton_step(beta, .nllh.pen, .search.pen, likdata=likdata, likfns=likfns, control=likdata$control$inner)
   

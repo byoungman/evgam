@@ -30,6 +30,9 @@
   alpha0 <- control$alpha0
   rho0 <- control$rho0
   
+  if (is.null(dgradtol))
+    dgradtol <- 1e-4
+  
   nms <- names(pars)
   
   pars0 <- pars
@@ -186,7 +189,7 @@
   kept
 }
 
-.newton_step <- function(pars, fn, sfn, ..., control, trace=0) {
+.newton_step <- function(pars, fn, sfn, ..., control, trace=0, alpha0 = NULL) {
   
   nkept <- length(pars)
   fit0 <- .newton_step_inner(pars, fn, sfn, ..., control=control, trace=trace)
@@ -342,6 +345,9 @@
   gradtol <- control$gradtol
   stepmax <- control$stepmax
   dgradtol <- control$dgradtol
+  
+  if (is.null(dgradtol))
+    dgradtol <- 1e-4
   
   nms <- names(pars)
   

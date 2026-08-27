@@ -18,4 +18,4 @@ Imports: Rcpp (>= 1.1.1-1.1), mgcv, Matrix, methods
 LinkingTo: Rcpp, RcppArmadillo
 Depends: R (>= 3.5.0)
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+Config/roxygen2/version: 8.1.0

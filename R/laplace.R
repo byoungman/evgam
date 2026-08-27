@@ -1,6 +1,5 @@
 #' The Laplace Distribution
 #'
-#' @description 
 #' Density, distribution function, quantile function and random generation for 
 #' the Laplace distribution with location \code{location} and scale \code{scale}.
 #'
@@ -13,11 +12,18 @@
 #' @param lower.tail logical; if TRUE (default), probabilities are P[X <= x], 
 #'   otherwise, P[X > x].
 #'
+#' @return 
+#' 
+#' \code{dlaplace} gives the density,
+#' \code{plaplace} gives the distribution function,
+#' \code{qlaplace} gives the quantile function, and
+#' \code{rlaplace} generates random deviates.
+#' 
 #' @name laplace
 #' @aliases dlaplace plaplace qlaplace rlaplace
 NULL
 
-#' @rdname Laplace
+#' @rdname laplace
 #' @export
 dlaplace <- function(x, location = 0, scale = 1, log = FALSE) {
   if (any(scale <= 0)) stop("scale must be positive")
@@ -25,7 +31,7 @@ dlaplace <- function(x, location = 0, scale = 1, log = FALSE) {
   if (log) return(d) else return(exp(d))
 }
 
-#' @rdname Laplace
+#' @rdname laplace
 #' @export
 plaplace <- function(q, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE) {
   if (any(scale <= 0)) stop("scale must be positive")
@@ -35,7 +41,7 @@ plaplace <- function(q, location = 0, scale = 1, lower.tail = TRUE, log.p = FALS
   if (log.p) return(log(p)) else return(p)
 }
 
-#' @rdname Laplace
+#' @rdname laplace
 #' @export
 qlaplace <- function(p, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE) {
   if (any(scale <= 0)) stop("scale must be positive")
@@ -45,7 +51,7 @@ qlaplace <- function(p, location = 0, scale = 1, lower.tail = TRUE, log.p = FALS
   location + scale * out
 }
 
-#' @rdname Laplace
+#' @rdname laplace
 #' @export
 rlaplace <- function(n, location = 0, scale = 1) {
   if (any(scale <= 0)) stop("scale must be positive")

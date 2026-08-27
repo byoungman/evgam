@@ -62,7 +62,7 @@ d <- diff(vv)
 lo <- vv[1]
 while(.G2(lo, kappa1, kappa2, p) - v > 0) lo <- max(0, lo - d)
 hi <- vv[2]
-while(.G2(hi, kappa1, kappa2, p) - v > 0) hi <- min(1, hi + d)
+while(.G2(hi, kappa1, kappa2, p) - v < 0) hi <- min(1, hi + d)
 uniroot(function(x) .G2(x, kappa1, kappa2, p) - v, c(lo, hi))$root
 }
 

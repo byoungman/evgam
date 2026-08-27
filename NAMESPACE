@@ -40,8 +40,12 @@ import(grDevices)
 import(graphics)
 import(stats)
 import(utils)
-importFrom(Rcpp,evalCpp)
-importFrom(Rcpp,sourceCpp)
-importFrom(methods,as)
-importFrom(methods,formalArgs)
+importFrom(Rcpp,
+  evalCpp,
+  sourceCpp
+)
+importFrom(methods,
+  as,
+  formalArgs
+)
 useDynLib(evgam, .registration = TRUE)

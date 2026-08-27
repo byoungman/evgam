@@ -20,7 +20,7 @@ out
 
 .rlargecfns <- list(d0 = .rlargec.d0, d120 = .rlargec.d12, d340 = .rlargec.d34)
 
-.rlargecfns$q <- .qgev
+.rlargecfns$q <- .q_gev
 .rlargecfns$unlink <- .rlarge_unlink
 
 .rlargecfns$initfn <- function(lst) {

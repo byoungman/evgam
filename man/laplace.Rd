@@ -7,12 +7,17 @@
 \alias{qlaplace}
 \alias{rlaplace}
 \title{The Laplace Distribution}
+\usage{
+dlaplace(x, location = 0, scale = 1, log = FALSE)
+
+plaplace(q, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE)
+
+qlaplace(p, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE)
+
+rlaplace(n, location = 0, scale = 1)
+}
 \arguments{
 \item{x, q}{vector of quantiles.}
-
-\item{p}{vector of probabilities.}
-
-\item{n}{number of observations.}
 
 \item{location}{location parameter (mean).}
 
@@ -22,6 +27,16 @@
 
 \item{lower.tail}{logical; if TRUE (default), probabilities are P[X <= x], 
 otherwise, P[X > x].}
+
+\item{p}{vector of probabilities.}
+
+\item{n}{number of observations.}
+}
+\value{
+\code{dlaplace} gives the density,
+\code{plaplace} gives the distribution function,
+\code{qlaplace} gives the quantile function, and
+\code{rlaplace} generates random deviates.
 }
 \description{
 Density, distribution function, quantile function and random generation for 
