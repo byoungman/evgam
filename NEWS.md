@@ -2,6 +2,10 @@
 
 ### Changes:
 
+* Smooths can now use `id` argument of `mgcv::s()` to allow multiple smooths to have same smoothing parameter.
+
+* Objects in workspace can now be used in `evgam()`'s `formula` argument (as opposed to all variables needing to be part of `data`).
+
 * Added function and class `geoevgam` with S3 method `plot` for fitting and plotting geometric extreme value models. (Thanks to Callum Murphy-Barltrop, Jenny Wadsworth and Miguel de Carvalho.)
 
 * Added `type = 'qqplot2'` to `predict()` for residual-based QQ-plots. (Thanks to Jenny Wadsworth.)
@@ -18,29 +22,33 @@
 
 * Added `ltgamma` and `ltgammab` families for the left truncated gamma distribution with unknown and know shape, respectively. Use `args = list(lower = )` to give the scalar, vector or matrix of left-truncation points, and `args = list(alpha = )` to give scalar, vector or matrix of gamma distribution shape parameters with family `ltgammab`.
 
-* Added `condex`, `beta`, `logitgauss` families.
+* Added `condex` family, for conditional extreme value model of Heffernan and Tawn (2004, https://doi.org/10.1111/j.1467-9868.2004.02050.x). For an example see https://byoungman.github.io/evgam/condex/.
 
-* Added option `sparse = TRUE`, which coerces matrices to sparse matrices through package `Matrix` where possible.
+* Added `beta` and `logitgauss` families.
+
+* Added option `sparse = TRUE`, which coerces matrices to sparse matrices through package `Matrix` where possible. Particularly useful for `bs = 're'` or `bs = 'mrf'`.
 
 * Added `df2matdf()` for turning a vector response to a matrix response if explanatory variable combinations are repeated.
 
-* Added functionality to fit extended generalised Pareto distribution through `evgam(..., family = "egpd")`. See Naveau et al. (Water Resour. Res., 2016, (https://doi.org/10.1002/2015WR018552)) and `family.evgam`.
+* Added functionality to fit extended generalised Pareto distribution through `evgam(..., family = "egpd")`. See Naveau et al. (W2016, https://doi.org/10.1002/2015WR018552) and `family.evgam`. (Thanks to Touqeer Ahmad.)
 
-* Added functionality to fit blended generalised extreme value (GEV) distribution through `evgam(..., family = "bgev")`. See Naveau et al. (Water Resour. Res., 2016, (https://doi.org/10.1002/2015WR018552)) and `family.evgam`. (Thanks to Jordan Richards for the suggestion.)
+* Added functionality to fit blended generalised extreme value (GEV) distribution through `evgam(..., family = "bgev")`. See Castro-Camilo et al. (2022, https://doi.org/10.1002/env.2742) and `family.evgam`. (Thanks to Jordan Richards.)
 
 * Also added `dbgev()`, `pbgev()`, `qbgev()` and `rbgev()` for density, distribution function, quantile function and random generation, respectively, for the blended GEV distribution.
 
 * Added functionality to fit models via custom likelihood functions, i.e. extending those available in `evgam` through `family = ...`. See `custom.family.evgam`.
 
-* Added functionality to constrain both GPD parameters using `gpd.args = list(lower = ..., upper = ...)`. (Thanks to Callum Murphy-Barltrop for the suggestion.)
+* Added functionality to constrain both GPD parameters using `gpd.args = list(lower = ..., upper = ...)`. (Thanks to Callum Murphy-Barltrop.)
 
 * GEV model with shape parameter constrained to [-0.5, 1.0] added with `family = "gev2"`.
 
 ### Bug fixes:
 
+* Slight change to calculation of log determinant of penalty matrices and their derivatives for tensor smooths. Should implement algorithm in Appendix B of Wood (2011, https://doi.org/10.1111/j.1467-9868.2010.00749.x)
+
 * That only variables are checked as being supplied to `data` is now properly detected. (Thanks, Simon Brown.)
 
-* That values smoothing parameters supplied to `evgam()` are properly recognised has been fixed.
+* That values of smoothing parameters supplied to `evgam()` are properly recognised has been fixed.
 
 ## evgam 1.0.1
 
