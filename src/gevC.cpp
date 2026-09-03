@@ -80,7 +80,7 @@ arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec xivec = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 9);
+arma::mat out = arma::mat(nobs, 9, arma::fill::zeros);
 
 if (dcate == 1) {
     muvec = muvec.elem(dupid);
@@ -171,7 +171,7 @@ arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec xivec = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 25);
+arma::mat out = arma::mat(nobs, 25, arma::fill::zeros);
 
 if (dcate == 1) {
     muvec = muvec.elem(dupid);
