@@ -57,7 +57,7 @@ arma::mat gaussd12(const Rcpp::List& pars, const arma::mat& X1, const arma::mat&
 arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lsigvec = X2 * Rcpp::as<arma::vec>(pars[1]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 5);
+arma::mat out = arma::mat(nobs, 5, arma::fill::zeros);
 
 if (dcate == 1) {
     muvec = muvec.elem(dupid);
@@ -99,7 +99,7 @@ arma::mat gaussd34(const Rcpp::List& pars, const arma::mat& X1, const arma::mat&
 arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lsigvec = X2 * Rcpp::as<arma::vec>(pars[1]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 9);
+arma::mat out = arma::mat(nobs, 9, arma::fill::zeros);
 
 if (dcate == 1) {
     muvec = muvec.elem(dupid);

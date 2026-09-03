@@ -44,7 +44,7 @@ arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec xivec = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 9);
+arma::mat out = arma::mat(nobs, 9, arma::fill::zeros);
 out.zeros();
 
 double y, w, mu, lpsi, xi;
@@ -108,7 +108,7 @@ arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec xivec = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 25);
+arma::mat out = arma::mat(nobs, 25, arma::fill::zeros);
 out.zeros();
 
 double y, w, mu, lpsi, xi;
@@ -305,7 +305,7 @@ arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec xivec = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 9);
+arma::mat out = arma::mat(nobs, 9, arma::fill::zeros);
 
 double y, mu, lpsi, xi;
 double ee1, ee2, ee3, ee4, ee5, ee6, ee7, ee8, ee9;
@@ -358,7 +358,7 @@ arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec xivec = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 25);
+arma::mat out = arma::mat(nobs, 25, arma::fill::zeros);
 
 double y, mu, lpsi, xi;
 double ee1, ee2, ee3, ee4, ee5, ee6, ee7, ee8, ee9;
@@ -506,7 +506,7 @@ arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec xivec = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 9);
+arma::mat out = arma::mat(nobs, 9, arma::fill::zeros);
 
 double y, mu, lpsi, xi;
 double ee1, ee2, ee3, ee4, ee5, ee6, ee7, ee8, ee10; 
@@ -555,7 +555,7 @@ arma::vec muvec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec xivec = X3 * Rcpp::as<arma::vec>(pars[2]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 25);
+arma::mat out = arma::mat(nobs, 25, arma::fill::zeros);
 
 double y, mu, lpsi, xi;
 double ee1, ee2, ee3, ee4, ee5, ee6, ee7, ee8, ee9; 

@@ -73,7 +73,7 @@ arma::mat gpdd12(const Rcpp::List& pars, arma::mat X1, arma::mat X2, arma::vec y
 arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec xivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 5);
+arma::mat out = arma::mat(nobs, 5, arma::fill::zeros);
 
 if (dcate == 1) {
     lpsivec = lpsivec.elem(dupid);
@@ -137,7 +137,7 @@ arma::mat gpdd34(const Rcpp::List& pars, arma::mat X1, arma::mat X2, arma::vec y
 arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec xivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 9);
+arma::mat out = arma::mat(nobs, 9, arma::fill::zeros);
 
 if (dcate == 1) {
     lpsivec = lpsivec.elem(dupid);

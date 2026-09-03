@@ -47,7 +47,7 @@ arma::mat expd12(const Rcpp::List& pars, arma::mat X1, arma::vec yvec, const arm
     
 arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 2);
+arma::mat out = arma::mat(nobs, 2, arma::fill::zeros);
 
 if (dcate == 1) {
     lpsivec = lpsivec.elem(dupid);
@@ -78,7 +78,7 @@ arma::mat expd34(const Rcpp::List& pars, arma::mat X1, arma::vec yvec, const arm
     
 arma::vec lpsivec = X1 * Rcpp::as<arma::vec>(pars[0]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 2);
+arma::mat out = arma::mat(nobs, 2, arma::fill::zeros);
 
 if (dcate == 1) {
     lpsivec = lpsivec.elem(dupid);

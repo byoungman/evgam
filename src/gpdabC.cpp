@@ -71,7 +71,7 @@ arma::mat gpdabd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::vec yvec, 
 arma::vec psi0vec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec xi0vec = X2 * Rcpp::as<arma::vec>(pars[1]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 5);
+arma::mat out = arma::mat(nobs, 5, arma::fill::zeros);
 
 if (dcate == 1) {
     psi0vec = psi0vec.elem(dupid);
@@ -141,7 +141,7 @@ arma::mat gpdabd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::vec yvec, 
 arma::vec psi0vec = X1 * Rcpp::as<arma::vec>(pars[0]);
 arma::vec xi0vec = X2 * Rcpp::as<arma::vec>(pars[1]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 9);
+arma::mat out = arma::mat(nobs, 9, arma::fill::zeros);
   
 if (dcate == 1) {
   psi0vec = psi0vec.elem(dupid);

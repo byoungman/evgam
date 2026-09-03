@@ -56,7 +56,7 @@ arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec xivec = X3 * Rcpp::as<arma::vec>(pars[2]);
 arma::vec thetavec = X4 * Rcpp::as<arma::vec>(pars[3]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 14);
+arma::mat out = arma::mat(nobs, 14, arma::fill::zeros);
 out.zeros();
 
 double y, w, mu, lpsi, xi, theta;
@@ -137,7 +137,7 @@ arma::vec lpsivec = X2 * Rcpp::as<arma::vec>(pars[1]);
 arma::vec xivec = X3 * Rcpp::as<arma::vec>(pars[2]);
 arma::vec thetavec = X4 * Rcpp::as<arma::vec>(pars[3]);
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 20);
+arma::mat out = arma::mat(nobs, 20, arma::fill::zeros);
 out.zeros();
 
 double y, w, mu, lpsi, xi, theta;
@@ -301,7 +301,7 @@ double y, mu, lpsi, xi, theta;
 
 int nobs = yvec.size();
 
-arma::mat out = arma::mat(nobs, 14);
+arma::mat out = arma::mat(nobs, 14, arma::fill::zeros);
 
 double ee1, ee2, ee4, ee5, ee6, ee7, ee9;
 double ee10, ee11, ee12, ee13, ee14, ee15, ee17, ee18, ee19;
@@ -423,7 +423,7 @@ double y, mu, lpsi, xi, theta;
 
 int nobs = yvec.size();
 
-arma::mat out = arma::mat(nobs, 20);
+arma::mat out = arma::mat(nobs, 20, arma::fill::zeros);
 
 double ee1, ee2, ee4, ee5, ee6, ee7, ee8;
 double ee10, ee11, ee12, ee13, ee14, ee15, ee16, ee17, ee18, ee19;

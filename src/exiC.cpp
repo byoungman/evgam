@@ -39,7 +39,7 @@ arma::vec thetavec = X * pars;
 if (dcate == 1) thetavec = thetavec.elem(dupid);    
 
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 2);
+arma::mat out = arma::mat(nobs, 2, arma::fill::zeros);
 double theta, y, ee1, ee2;
     
 for (int j=0; j < nobs; j++) {
@@ -74,7 +74,7 @@ arma::vec thetavec = X * pars;
 if (dcate == 1) thetavec = thetavec.elem(dupid);    
 
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 2);
+arma::mat out = arma::mat(nobs, 2, arma::fill::zeros);
 double theta, y, ee1, ee2, ee3, ee4, ee5, ee6, ee7;
     
 for (int j=0; j < nobs; j++) {
@@ -147,7 +147,7 @@ arma::vec thetavec = X * pars;
 if (dcate == 1) thetavec = thetavec.elem(dupid);    
 
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 2);
+arma::mat out = arma::mat(nobs, 2, arma::fill::zeros);
 double theta, y, ee1, ee2, ee3;
     
 for (int j=0; j < nobs; j++) {
@@ -184,7 +184,7 @@ arma::vec thetavec = X * pars;
 if (dcate == 1) thetavec = thetavec.elem(dupid);    
 
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 2);
+arma::mat out = arma::mat(nobs, 2, arma::fill::zeros);
 double theta, y, ee1, ee2, ee3, ee4, ee6, ee7, ee8, ee9;
 double ee10, ee11, ee12, ee15, ee16, ee17;
 double ee20, ee22, ee23, ee29, ee30, ee31;
@@ -277,7 +277,7 @@ arma::vec thetavec = X * pars;
 if (dcate == 1) thetavec = thetavec.elem(dupid);    
 
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 2);
+arma::mat out = arma::mat(nobs, 2, arma::fill::zeros);
 double theta, y, ee1, ee3, ee4, ee5;
     
 for (int j=0; j < nobs; j++) {
@@ -315,7 +315,7 @@ arma::vec thetavec = X * pars;
 if (dcate == 1) thetavec = thetavec.elem(dupid);    
 
 int nobs = yvec.size();
-arma::mat out = arma::mat(nobs, 2);
+arma::mat out = arma::mat(nobs, 2, arma::fill::zeros);
 double theta, y, ee1, ee3, ee4, ee5, ee6, ee7, ee8, ee9;
 double ee10, ee11;
     
