@@ -74,7 +74,7 @@ double condexaggd0(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3,
        y = ymat(j, l);
        yi = xmat(j, l);
        
-       if (std::isfinite(y) & std::isfinite(yi)) {
+       if (std::isfinite(y) && std::isfinite(yi)) {
          
          w = wmat(j, l);
          
@@ -152,7 +152,7 @@ arma::mat condexaggd12(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3
        y = ymat(j, l);
        yi = xmat(j, l);
        
-       if (std::isfinite(y) & std::isfinite(yi)) {
+       if (std::isfinite(y) && std::isfinite(yi)) {
          
          w = wmat(j, l);
          
@@ -377,7 +377,7 @@ arma::mat condexaggd34(Rcpp::List pars, arma::mat X1, arma::mat X2, arma::mat X3
        y = ymat(j, l);
        yi = xmat(j, l);
        
-       if (std::isfinite(y) & std::isfinite(yi)) {
+       if (std::isfinite(y) && std::isfinite(yi)) {
          
          w = wmat(j, l);
 
