@@ -657,7 +657,7 @@
   gams <- list()
   
   if (family %in% c("pp", "ppexi")) 
-    data <- .setup.pp.data(data, responsename, pp)
+    data <- .setup.pp.data(data, responsename, args)
   
   for (i in seq_along(formula)) {
     if (nrow(data) > maxspline) {
@@ -685,10 +685,8 @@
   lik.data$outer <- tolower(outer)
   lik.data$control <- ctrl
   lik.data$y <- as.matrix(data[,responsename, drop=FALSE])
-  # if (family == 'condex') {
-    if (is.null(lik.data$args$weights))
-      lik.data$args$weights <- 0 * lik.data$y + 1
-  # }
+  if (is.null(lik.data$args$weights))
+    lik.data$args$weights <- 0 * lik.data$y + 1
   lik.data$Mp <- sum(unlist(sapply(gams, function(y) c(1, sapply(y$smooth, function(x) x$null.space.dim)))))
   lik.data$const <- .5 * lik.data$Mp * log(2 * pi)
   lik.data$nobs <- nrow(lik.data$y)
@@ -742,13 +740,6 @@
       if (is.character(lik.data$args$excid))
         lik.data$args$excid <- data[, lik.data$args$excid]
     }
-    # if (is.null(exiargs$id)) {
-    #   if (is.null(lik.data$args$type)) {
-    #     stop("`args$type' is missing.")
-    #   } else {
-    #     stop("no `id' in `exi.args'.")
-    #   }
-    # }
     if (is.null(lik.data$args$nexi)) {
       lik.data$args$nexi <- exiargs$nexi
       if (is.null(lik.data$args$nexi)) {
@@ -768,32 +759,11 @@
     links <- c('probit', 'logistic', 'cloglog')
     lik.data$args$link <- match(lik.data$args$type, links) - 1
     lik.data$y <- as.matrix(lik.data$y)
-    # lik.data$args$exiid <- data[, lik.data$args$id]
-    # lik.data$exiname <- exiargs$id
-    # lik.data$y <- list(lik.data$y, data[,exiargs$id])
-    # lik.data$nexi <- exiargs$nexi
-    # if (exiargs$link == "cloglog") {
-    #   lik.data$exilink <- 2
-    #   lik.data$linkfn <- function(x) 1 - exp(-exp(x))
-    #   attr(lik.data$linkfn, "deriv") <- function(x) exp(-exp(x)) * exp(x)
-    # }
-    # if (exiargs$link == "logistic") {
-    #   lik.data$exilink <- 1
-    #   lik.data$linkfn <- function(x) 1 / (1 + exp(-x))
-    #   attr(lik.data$linkfn, "deriv") <- function(x) exp(-x)/(1 + exp(-x))^2
-    # }
-    # if (exiargs$link == "probit") {
-    #   lik.data$exilink <- 0
-    #   lik.data$linkfn <- function(x) pnorm(x)
-    #   attr(lik.data$linkfn, "deriv") <- function(x) dnorm(x)
-    # }
-    # attr(lik.data$linkfn, "name") <- exiargs$link
     }
   if (family %in% c("pp", "ppexi")) {
     lik.data$ppw <- attr(data, "weights") # point process quadrature weights
     if (ncol(lik.data$y) > 1)
       stop('2+-column response data')
-    # lik.data$y <- as.matrix(rbind(as.matrix(attr(data, "quad")[,responsename]), lik.data$y))
     lik.data$y <- as.matrix(c(attr(data, "quad")[, responsename], lik.data$y[, 1]))
     lik.data$ppq <- rep(as.logical(1:0), c(nrow(attr(data, "quad")), nrow(data))) # identify quadrature points
     lik.data$ppcens <- attr(data, "cens")
