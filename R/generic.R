@@ -93,12 +93,12 @@
 #'
 #' # we have `ny=30' years' data and use top 45 order statistics
 #' pp_args <- list(id="id", ny=30, r=45)
-#' m_pp <- evgam(fmla_gev2, COprcp, family="pp", pp.args=pp_args)
+#' m_pp <- evgam(fmla_gev2, COprcp, family="pp", args=pp_args)
 #'
 #' ## estimate 0.98 quantile using asymmetric Laplace distribution
 #'
 #' fmla_ald <- prcp ~ s(lon, lat, k=15) + s(elev, bs="cr")
-#' m_ald <- evgam(fmla_ald, COprcp, family="ald", ald.args=list(tau=.98))
+#' m_ald <- evgam(fmla_ald, COprcp, family="ald", args=list(tau=.98))
 #'
 #' }
 #'
