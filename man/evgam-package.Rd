@@ -15,5 +15,10 @@ The evgam functions ...
 \author{
 \strong{Maintainer}: Ben Youngman \email{b.youngman@exeter.ac.uk} (\href{https://orcid.org/0000-0003-0215-8189}{ORCID})
 
+Authors:
+\itemize{
+  \item Ben Youngman \email{b.youngman@exeter.ac.uk} (\href{https://orcid.org/0000-0003-0215-8189}{ORCID})
+}
+
 }
 \keyword{internal}
