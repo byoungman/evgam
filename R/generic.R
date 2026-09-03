@@ -256,7 +256,7 @@ evgam <- function(formula, data, family="gev", correctV=TRUE, rho0,
 #'   by the fitting algorithms.
 #' 
 #' @export
-#'
+#' 
 #' @examples
 #' # Generate default control parameters
 #' default_control <- evgam.control()
@@ -304,15 +304,6 @@ evgam.control <- function(inner = NULL, outer = NULL) {
   
   out
   
-}
-
-#' @rdname evgam
-#' @name fevgam
-#' @export
-NULL
-fevgam <- function(...) {
-  message("`fevgam' will soon be deprecated: please migrate to `evgam'.")
-  evgam(...)
 }
 
 #' Extract Model Fitted Values

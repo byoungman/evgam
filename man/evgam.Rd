@@ -2,7 +2,6 @@
 % Please edit documentation in R/generic.R
 \name{evgam}
 \alias{evgam}
-\alias{fevgam}
 \title{Fitting generalised additive extreme-value family models}
 \usage{
 evgam(
