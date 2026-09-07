@@ -59,3 +59,8 @@ fit3 <- geoevgam(data = data1, formula = fmla, knots = knts, args = list(tau = .
 }
 
 }
+\references{
+Murphy-Barltrop, C.J.R., Wadsworth, J.L., Carvalho, M.d., Youngman, B.D. Modelling 
+non-stationary extremal dependence through a geometric approach. Extremes 
+(2026). \doi{10.1007/s10687-026-00543-w}
+}

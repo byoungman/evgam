@@ -1769,6 +1769,8 @@
   }
   if (family %in% c('ltgamma', 'ltgammab', 'gw')) 
     likdata$other <- likdata$args
+  if (family == 'ald') 
+    likdata$tau <- likdata$args$tau
   if (family == 'bgev') 
     likdata$other <- list(pa = likdata$other[1], 
                           pb = likdata$other[2], 

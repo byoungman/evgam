@@ -28,6 +28,12 @@ polarise <- function(x, norm = 2) {
 #' @param trace Integer vector of length 1 or 2. Control verbose output for both fitting stages.
 #' @param knots A list containing knot specifications for \code{threshold} and \code{excess}.
 #' @param norm The L-p norm used in the geometric calculations. Defaults to 2.
+#' 
+#' @references
+#' 
+#' Murphy-Barltrop, C.J.R., Wadsworth, J.L., Carvalho, M.d., Youngman, B.D. Modelling 
+#' non-stationary extremal dependence through a geometric approach. Extremes 
+#' (2026). \doi{10.1007/s10687-026-00543-w}
 #'
 #' @examples
 #' 
